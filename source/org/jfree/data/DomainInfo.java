@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -27,7 +27,7 @@
  * ---------------
  * DomainInfo.java
  * ---------------
- * (C) Copyright 2000-2009, by Object Refinery Limited.
+ * (C) Copyright 2000-2008, by Object Refinery Limited.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   -;
@@ -80,8 +80,7 @@ public interface DomainInfo {
      * @param includeInterval  a flag that determines whether or not the
      *                         x-interval is taken into account.
      *
-     * @return The range (or <code>null</code> if the dataset contains no
-     *     values).
+     * @return The range.
      */
     public Range getDomainBounds(boolean includeInterval);
 

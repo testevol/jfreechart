@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -27,17 +27,15 @@
  * ---------------------
  * PaintScaleLegend.java
  * ---------------------
- * (C) Copyright 2007-2009, by Object Refinery Limited.
+ * (C) Copyright 2007, 2008, by Object Refinery Limited.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
- * Contributor(s):   Peter Kolb - see patch 2686872;
+ * Contributor(s):   -;
  *
  * Changes
  * -------
  * 22-Jan-2007 : Version 1 (DG);
  * 18-Jun-2008 : Fixed bug drawing scale with log axis (DG);
- * 16-Apr-2009 : Patch 2686872 implementing AxisChangeListener, and fix for
- *               ignored stripOutlineVisible flag (DG);
  *
  */
 
@@ -58,8 +56,6 @@ import org.jfree.chart.axis.AxisSpace;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.block.LengthConstraintType;
 import org.jfree.chart.block.RectangleConstraint;
-import org.jfree.chart.event.AxisChangeEvent;
-import org.jfree.chart.event.AxisChangeListener;
 import org.jfree.chart.event.TitleChangeEvent;
 import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotOrientation;
@@ -77,8 +73,7 @@ import org.jfree.util.PublicCloneable;
  *
  * @since 1.0.4
  */
-public class PaintScaleLegend extends Title implements AxisChangeListener,
-        PublicCloneable {
+public class PaintScaleLegend extends Title implements PublicCloneable {
 
     /** For serialization. */
     static final long serialVersionUID = -1365146490993227503L;
@@ -135,12 +130,11 @@ public class PaintScaleLegend extends Title implements AxisChangeListener,
         }
         this.scale = scale;
         this.axis = axis;
-        this.axis.addChangeListener(this);
         this.axisLocation = AxisLocation.BOTTOM_OR_LEFT;
         this.axisOffset = 0.0;
         this.axis.setRange(scale.getLowerBound(), scale.getUpperBound());
         this.stripWidth = 15.0;
-        this.stripOutlineVisible = true;
+        this.stripOutlineVisible = false;
         this.stripOutlinePaint = Color.gray;
         this.stripOutlineStroke = new BasicStroke(0.5f);
         this.backgroundPaint = Color.white;
@@ -197,9 +191,7 @@ public class PaintScaleLegend extends Title implements AxisChangeListener,
         if (axis == null) {
             throw new IllegalArgumentException("Null 'axis' argument.");
         }
-        this.axis.removeChangeListener(this);
         this.axis = axis;
-        this.axis.addChangeListener(this);
         notifyListeners(new TitleChangeEvent(this));
     }
 
@@ -404,20 +396,6 @@ public class PaintScaleLegend extends Title implements AxisChangeListener,
     }
 
     /**
-     * Receives notification of an axis change event and responds by firing
-     * a title change event.
-     *
-     * @param event  the event.
-     *
-     * @since 1.0.13
-     */
-    public void axisChanged(AxisChangeEvent event) {
-        if (this.axis == event.getAxis()) {
-            notifyListeners(new TitleChangeEvent(this));
-        }
-    }
-
-    /**
      * Arranges the contents of the block, within the given constraints, and
      * returns the block size.
      *
@@ -545,6 +523,7 @@ public class PaintScaleLegend extends Title implements AxisChangeListener,
         double increment = this.axis.getRange().getLength() / this.subdivisions;
         Rectangle2D r = new Rectangle2D.Double();
 
+
         if (RectangleEdge.isTopOrBottom(getPosition())) {
             RectangleEdge axisEdge = Plot.resolveRangeAxisLocation(
                     this.axisLocation, PlotOrientation.HORIZONTAL);
@@ -556,19 +535,17 @@ public class PaintScaleLegend extends Title implements AxisChangeListener,
                             RectangleEdge.TOP);
                     double vv1 = this.axis.valueToJava2D(v + increment, target,
                             RectangleEdge.TOP);
-                    double ww = Math.abs(vv1 - vv0) + 1.0;
+                    double ww = Math.abs(vv1 - vv0);
                     r.setRect(Math.min(vv0, vv1), target.getMaxY()
                             - this.stripWidth, ww, this.stripWidth);
                     g2.setPaint(p);
                     g2.fill(r);
                 }
-                if (isStripOutlineVisible()) {
-                    g2.setPaint(this.stripOutlinePaint);
-                    g2.setStroke(this.stripOutlineStroke);
-                    g2.draw(new Rectangle2D.Double(target.getMinX(),
-                            target.getMaxY() - this.stripWidth,
-                            target.getWidth(), this.stripWidth));
-                }
+                g2.setPaint(this.stripOutlinePaint);
+                g2.setStroke(this.stripOutlineStroke);
+                g2.draw(new Rectangle2D.Double(target.getMinX(),
+                        target.getMaxY() - this.stripWidth, target.getWidth(),
+                        this.stripWidth));
                 this.axis.draw(g2, target.getMaxY() - this.stripWidth
                         - this.axisOffset, target, target, RectangleEdge.TOP,
                         null);
@@ -581,19 +558,16 @@ public class PaintScaleLegend extends Title implements AxisChangeListener,
                             RectangleEdge.BOTTOM);
                     double vv1 = this.axis.valueToJava2D(v + increment, target,
                             RectangleEdge.BOTTOM);
-                    double ww = Math.abs(vv1 - vv0) + 1.0;
+                    double ww = Math.abs(vv1 - vv0);
                     r.setRect(Math.min(vv0, vv1), target.getMinY(), ww,
                             this.stripWidth);
                     g2.setPaint(p);
                     g2.fill(r);
                 }
-                if (isStripOutlineVisible()) {
-                    g2.setPaint(this.stripOutlinePaint);
-                    g2.setStroke(this.stripOutlineStroke);
-                    g2.draw(new Rectangle2D.Double(target.getMinX(),
-                            target.getMinY(), target.getWidth(),
-                            this.stripWidth));
-                }
+                g2.setPaint(this.stripOutlinePaint);
+                g2.setStroke(this.stripOutlineStroke);
+                g2.draw(new Rectangle2D.Double(target.getMinX(),
+                        target.getMinY(), target.getWidth(), this.stripWidth));
                 this.axis.draw(g2, target.getMinY() + this.stripWidth
                         + this.axisOffset, target, target,
                         RectangleEdge.BOTTOM, null);
@@ -610,19 +584,17 @@ public class PaintScaleLegend extends Title implements AxisChangeListener,
                             RectangleEdge.LEFT);
                     double vv1 = this.axis.valueToJava2D(v + increment, target,
                             RectangleEdge.LEFT);
-                    double hh = Math.abs(vv1 - vv0) + 1.0;
+                    double hh = Math.abs(vv1 - vv0);
                     r.setRect(target.getMaxX() - this.stripWidth,
                             Math.min(vv0, vv1), this.stripWidth, hh);
                     g2.setPaint(p);
                     g2.fill(r);
                 }
-                if (isStripOutlineVisible()) {
-                    g2.setPaint(this.stripOutlinePaint);
-                    g2.setStroke(this.stripOutlineStroke);
-                    g2.draw(new Rectangle2D.Double(target.getMaxX()
-                            - this.stripWidth, target.getMinY(), this.stripWidth,
-                            target.getHeight()));
-                }
+                g2.setPaint(this.stripOutlinePaint);
+                g2.setStroke(this.stripOutlineStroke);
+                g2.draw(new Rectangle2D.Double(target.getMaxX()
+                        - this.stripWidth, target.getMinY(), this.stripWidth,
+                        target.getHeight()));
                 this.axis.draw(g2, target.getMaxX() - this.stripWidth
                         - this.axisOffset, target, target, RectangleEdge.LEFT,
                         null);
@@ -635,19 +607,16 @@ public class PaintScaleLegend extends Title implements AxisChangeListener,
                             RectangleEdge.LEFT);
                     double vv1 = this.axis.valueToJava2D(v + increment, target,
                             RectangleEdge.LEFT);
-                    double hh = Math.abs(vv1 - vv0) + 1.0;
+                    double hh = Math.abs(vv1 - vv0);
                     r.setRect(target.getMinX(), Math.min(vv0, vv1),
                             this.stripWidth, hh);
                     g2.setPaint(p);
                     g2.fill(r);
                 }
-                if (isStripOutlineVisible()) {
-                    g2.setPaint(this.stripOutlinePaint);
-                    g2.setStroke(this.stripOutlineStroke);
-                    g2.draw(new Rectangle2D.Double(target.getMinX(),
-                            target.getMinY(), this.stripWidth,
-                            target.getHeight()));
-                }
+                g2.setPaint(this.stripOutlinePaint);
+                g2.setStroke(this.stripOutlineStroke);
+                g2.draw(new Rectangle2D.Double(target.getMinX(),
+                        target.getMinY(), this.stripWidth, target.getHeight()));
                 this.axis.draw(g2, target.getMinX() + this.stripWidth
                         + this.axisOffset, target, target, RectangleEdge.RIGHT,
                         null);

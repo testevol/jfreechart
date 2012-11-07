@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -27,7 +27,7 @@
  * --------------------------
  * XYDataImageAnnotation.java
  * --------------------------
- * (C) Copyright 2008, 2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2008, by Object Refinery Limited and Contributors.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   -;
@@ -35,8 +35,6 @@
  * Changes:
  * --------
  * 17-Sep-2008 : Version 1, based on XYImageAnnotation (DG);
- * 10-Mar-2009 : Implemented XYAnnotationBoundsInfo (DG);
- *
  */
 
 package org.jfree.chart.annotations;
@@ -54,7 +52,6 @@ import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.PlotRenderingInfo;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.data.Range;
 import org.jfree.ui.RectangleEdge;
 import org.jfree.util.ObjectUtilities;
 import org.jfree.util.PublicCloneable;
@@ -68,7 +65,7 @@ import org.jfree.util.PublicCloneable;
  * @since 1.0.11
  */
 public class XYDataImageAnnotation extends AbstractXYAnnotation
-        implements Cloneable, PublicCloneable, XYAnnotationBoundsInfo {
+        implements Cloneable, PublicCloneable {
 
     /** The image. */
     private transient Image image;
@@ -94,14 +91,6 @@ public class XYDataImageAnnotation extends AbstractXYAnnotation
     private double h;
 
     /**
-     * A flag indicating whether or not the annotation should contribute to
-     * the data range for a plot/renderer.
-     *
-     * @since 1.0.13
-     */
-    private boolean includeInDataBounds;
-
-    /**
      * Creates a new annotation to be displayed within the specified rectangle.
      *
      * @param image  the image (<code>null</code> not permitted).
@@ -112,25 +101,6 @@ public class XYDataImageAnnotation extends AbstractXYAnnotation
      */
     public XYDataImageAnnotation(Image image, double x, double y, double w,
             double h) {
-        this(image, x, y, w, h, false);
-    }
-
-    /**
-     * Creates a new annotation to be displayed within the specified rectangle.
-     *
-     * @param image  the image (<code>null</code> not permitted).
-     * @param x  the x-coordinate (in data space).
-     * @param y  the y-coordinate (in data space).
-     * @param w  the image display area width.
-     * @param h  the image display area height.
-     * @param includeInDataBounds  a flag that controls whether or not the
-     *     annotation is included in the data bounds for the axis autoRange.
-     *
-     * @since 1.0.13
-     */
-    public XYDataImageAnnotation(Image image, double x, double y, double w,
-            double h, boolean includeInDataBounds) {
-
         if (image == null) {
             throw new IllegalArgumentException("Null 'image' argument.");
         }
@@ -139,7 +109,6 @@ public class XYDataImageAnnotation extends AbstractXYAnnotation
         this.y = y;
         this.w = w;
         this.h = h;
-        this.includeInDataBounds = includeInDataBounds;
     }
 
     /**
@@ -187,40 +156,6 @@ public class XYDataImageAnnotation extends AbstractXYAnnotation
      */
     public double getHeight() {
         return this.h;
-    }
-
-    /**
-     * Returns the flag that controls whether or not the annotation should
-     * contribute to the autoRange for the axis it is plotted against.
-     *
-     * @return A boolean.
-     *
-     * @since 1.0.13
-     */
-    public boolean getIncludeInDataBounds() {
-        return this.includeInDataBounds;
-    }
-
-    /**
-     * Returns the x-range for the annotation.
-     *
-     * @return The range.
-     *
-     * @since 1.0.13
-     */
-    public Range getXRange() {
-        return new Range(this.x, this.x + this.w);
-    }
-
-    /**
-     * Returns the y-range for the annotation.
-     *
-     * @return The range.
-     *
-     * @since 1.0.13
-     */
-    public Range getYRange() {
-        return new Range(this.y, this.y + this.h);
     }
 
     /**
@@ -311,9 +246,6 @@ public class XYDataImageAnnotation extends AbstractXYAnnotation
             return false;
         }
         if (this.h != that.h) {
-            return false;
-        }
-        if (this.includeInDataBounds != that.includeInDataBounds) {
             return false;
         }
         if (!ObjectUtilities.equal(this.image, that.image)) {

@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -27,7 +27,7 @@
  * -------------------------
  * TimeSeriesChartDemo1.java
  * -------------------------
- * (C) Copyright 2003-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2003-2008, by Object Refinery Limited and Contributors.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   ;
@@ -78,6 +78,7 @@ public class TimeSeriesChartDemo1 extends ApplicationFrame {
         super(title);
         ChartPanel chartPanel = (ChartPanel) createDemoPanel();
         chartPanel.setPreferredSize(new java.awt.Dimension(500, 270));
+        chartPanel.setMouseZoomable(true, false);
         setContentPane(chartPanel);
     }
 
@@ -132,7 +133,7 @@ public class TimeSeriesChartDemo1 extends ApplicationFrame {
      */
     private static XYDataset createDataset() {
 
-        TimeSeries s1 = new TimeSeries("L&G European Index Trust");
+        TimeSeries s1 = new TimeSeries("L&G European Index Trust", Month.class);
         s1.add(new Month(2, 2001), 181.8);
         s1.add(new Month(3, 2001), 167.3);
         s1.add(new Month(4, 2001), 153.8);
@@ -152,7 +153,7 @@ public class TimeSeriesChartDemo1 extends ApplicationFrame {
         s1.add(new Month(6, 2002), 137.0);
         s1.add(new Month(7, 2002), 132.8);
 
-        TimeSeries s2 = new TimeSeries("L&G UK Index Trust");
+        TimeSeries s2 = new TimeSeries("L&G UK Index Trust", Month.class);
         s2.add(new Month(2, 2001), 129.6);
         s2.add(new Month(3, 2001), 123.2);
         s2.add(new Month(4, 2001), 117.2);
@@ -195,10 +196,7 @@ public class TimeSeriesChartDemo1 extends ApplicationFrame {
      */
     public static JPanel createDemoPanel() {
         JFreeChart chart = createChart(createDataset());
-        ChartPanel panel = new ChartPanel(chart);
-        panel.setFillZoomRectangle(true);
-        panel.setMouseWheelEnabled(true);
-        return panel;
+        return new ChartPanel(chart);
     }
 
     /**

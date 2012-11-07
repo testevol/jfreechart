@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -27,11 +27,10 @@
  * -----------------
  * CategoryAxis.java
  * -----------------
- * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Original Author:  David Gilbert;
  * Contributor(s):   Pady Srinivasan (patch 1217634);
- *                   Peter Kolb (patches 2497611 and 2603321);
  *
  * Changes
  * -------
@@ -89,10 +88,6 @@
  *               calculateTextBlockWidth() (DG);
  * 26-Jun-2008 : Added new getCategoryMiddle() method (DG);
  * 27-Oct-2008 : Set font on Graphics2D when creating category labels (DG);
- * 14-Jan-2009 : Added new variant of getCategorySeriesMiddle() to make it
- *               simpler for renderers with hidden series (PK);
- * 19-Mar-2009 : Added entity support - see patch 2603321 by Peter Kolb (DG);
- * 16-Apr-2009 : Added tick mark drawing (DG);
  *
  */
 
@@ -102,7 +97,6 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.Shape;
-import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
@@ -210,6 +204,8 @@ public class CategoryAxis extends Axis implements Cloneable, Serializable {
         this.categoryMargin = DEFAULT_CATEGORY_MARGIN;
         this.maximumCategoryLabelLines = 1;
         this.maximumCategoryLabelWidthRatio = 0.0f;
+
+        setTickMarksVisible(false);  // not supported by this axis type yet
 
         this.categoryLabelPositionOffset = 4;
         this.categoryLabelPositions = CategoryLabelPositions.STANDARD;
@@ -725,40 +721,6 @@ public class CategoryAxis extends Axis implements Cloneable, Serializable {
     }
 
     /**
-     * Returns the middle coordinate (in Java2D space) for a series within a
-     * category.
-     *
-     * @param categoryIndex  the category index.
-     * @param categoryCount  the category count.
-     * @param seriesIndex the series index.
-     * @param seriesCount the series count.
-     * @param itemMargin  the item margin (0.0 <= itemMargin < 1.0);
-     * @param area  the area (<code>null</code> not permitted).
-     * @param edge  the edge (<code>null</code> not permitted).
-     *
-     * @return The coordinate in Java2D space.
-     *
-     * @since 1.0.13
-     */
-    public double getCategorySeriesMiddle(int categoryIndex, int categoryCount,
-            int seriesIndex, int seriesCount, double itemMargin,
-            Rectangle2D area, RectangleEdge edge) {
-
-        double start = getCategoryStart(categoryIndex, categoryCount, area,
-                edge);
-        double end = getCategoryEnd(categoryIndex, categoryCount, area, edge);
-        double width = end - start;
-        if (seriesCount == 1) {
-            return start + width / 2.0;
-        }
-        else {
-            double gap = (width * itemMargin) / (seriesCount - 1);
-            double ww = (width * (1 - itemMargin)) / seriesCount;
-            return start + (seriesIndex * (ww + gap)) + ww / 2.0;
-        }
-    }
-
-    /**
      * Calculates the size (width or height, depending on the location of the
      * axis) of a category.
      *
@@ -914,9 +876,12 @@ public class CategoryAxis extends Axis implements Cloneable, Serializable {
      *
      * @return The axis state (never <code>null</code>).
      */
-    public AxisState draw(Graphics2D g2, double cursor, Rectangle2D plotArea,
-            Rectangle2D dataArea, RectangleEdge edge,
-            PlotRenderingInfo plotState) {
+    public AxisState draw(Graphics2D g2,
+                          double cursor,
+                          Rectangle2D plotArea,
+                          Rectangle2D dataArea,
+                          RectangleEdge edge,
+                          PlotRenderingInfo plotState) {
 
         // if the axis is not visible, don't draw it...
         if (!isVisible()) {
@@ -926,16 +891,13 @@ public class CategoryAxis extends Axis implements Cloneable, Serializable {
         if (isAxisLineVisible()) {
             drawAxisLine(g2, cursor, dataArea, edge);
         }
-        AxisState state = new AxisState(cursor);
-        if (isTickMarksVisible()) {
-            drawTickMarks(g2, cursor, dataArea, edge, state);
-        }
 
         // draw the category labels and axis label
+        AxisState state = new AxisState(cursor);
         state = drawCategoryLabels(g2, plotArea, dataArea, edge, state,
                 plotState);
         state = drawLabel(getLabel(), g2, plotArea, dataArea, edge, state);
-        createAndAddEntity(cursor, state, dataArea, edge, plotState);
+
         return state;
 
     }
@@ -1161,75 +1123,6 @@ public class CategoryAxis extends Axis implements Cloneable, Serializable {
         state.setMax(max);
         return ticks;
 
-    }
-
-    /**
-     * Draws the tick marks.
-     *
-     * @since 1.0.13
-     */
-    public void drawTickMarks(Graphics2D g2, double cursor,
-            Rectangle2D dataArea, RectangleEdge edge, AxisState state) {
-
-        Plot p = getPlot();
-        if (p == null) {
-            return;
-        }
-        CategoryPlot plot = (CategoryPlot) p;
-        double il = getTickMarkInsideLength();
-        double ol = getTickMarkOutsideLength();
-        Line2D line = new Line2D.Double();
-        List categories = plot.getCategoriesForAxis(this);
-        g2.setPaint(getTickMarkPaint());
-        g2.setStroke(getTickMarkStroke());
-        if (edge.equals(RectangleEdge.TOP)) {
-            Iterator iterator = categories.iterator();
-            while (iterator.hasNext()) {
-                Comparable key = (Comparable) iterator.next();
-                double x = getCategoryMiddle(key, categories, dataArea, edge);
-                line.setLine(x, cursor, x, cursor + il);
-                g2.draw(line);
-                line.setLine(x, cursor, x, cursor - ol);
-                g2.draw(line);
-            }
-            state.cursorUp(ol);
-        }
-        else if (edge.equals(RectangleEdge.BOTTOM)) {
-            Iterator iterator = categories.iterator();
-            while (iterator.hasNext()) {
-                Comparable key = (Comparable) iterator.next();
-                double x = getCategoryMiddle(key, categories, dataArea, edge);
-                line.setLine(x, cursor, x, cursor - il);
-                g2.draw(line);
-                line.setLine(x, cursor, x, cursor + ol);
-                g2.draw(line);
-            }
-            state.cursorDown(ol);
-        }
-        else if (edge.equals(RectangleEdge.LEFT)) {
-            Iterator iterator = categories.iterator();
-            while (iterator.hasNext()) {
-                Comparable key = (Comparable) iterator.next();
-                double y = getCategoryMiddle(key, categories, dataArea, edge);
-                line.setLine(cursor, y, cursor + il, y);
-                g2.draw(line);
-                line.setLine(cursor, y, cursor - ol, y);
-                g2.draw(line);
-            }
-            state.cursorLeft(ol);
-        }
-        else if (edge.equals(RectangleEdge.RIGHT)) {
-            Iterator iterator = categories.iterator();
-            while (iterator.hasNext()) {
-                Comparable key = (Comparable) iterator.next();
-                double y = getCategoryMiddle(key, categories, dataArea, edge);
-                line.setLine(cursor, y, cursor - il, y);
-                g2.draw(line);
-                line.setLine(cursor, y, cursor + ol, y);
-                g2.draw(line);
-            }
-            state.cursorRight(ol);
-        }
     }
 
     /**

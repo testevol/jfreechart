@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -27,7 +27,7 @@
  * --------
  * Day.java
  * --------
- * (C) Copyright 2001-2009, by Object Refinery Limited.
+ * (C) Copyright 2001-2008, by Object Refinery Limited.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   -;
@@ -57,7 +57,6 @@
  * 05-Oct-2006 : Updated API docs (DG);
  * 06-Oct-2006 : Refactored to cache first and last millisecond values (DG);
  * 16-Sep-2008 : Deprecated DEFAULT_TIME_ZONE (DG);
- * 02-Mar-2009 : Added new constructor with Locale (DG);
  *
  */
 
@@ -69,7 +68,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Locale;
 import java.util.TimeZone;
 
 import org.jfree.date.SerialDate;
@@ -152,7 +150,7 @@ public class Day extends RegularTimePeriod implements Serializable {
      */
     public Day(Date time) {
         // defer argument checking...
-        this(time, TimeZone.getDefault(), Locale.getDefault());
+        this(time, TimeZone.getDefault());
     }
 
     /**
@@ -160,32 +158,16 @@ public class Day extends RegularTimePeriod implements Serializable {
      *
      * @param time  the date/time.
      * @param zone  the time zone.
-     *
-     * @deprecated As of 1.0.13, use the constructor that specifies the locale
-     *     also.
      */
     public Day(Date time, TimeZone zone) {
-        this(time, zone, Locale.getDefault());
-    }
-
-    /**
-     * Constructs a new instance, based on a particular date/time and time zone.
-     *
-     * @param time  the date/time (<code>null</code> not permitted).
-     * @param zone  the time zone (<code>null</code> not permitted).
-     * @param locale  the locale (<code>null</code> not permitted).
-     */
-    public Day(Date time, TimeZone zone, Locale locale) {
+        // FIXME: need a Locale as well as a TimeZone
         if (time == null) {
             throw new IllegalArgumentException("Null 'time' argument.");
         }
         if (zone == null) {
             throw new IllegalArgumentException("Null 'zone' argument.");
         }
-        if (locale == null) {
-            throw new IllegalArgumentException("Null 'locale' argument.");
-        }
-        Calendar calendar = Calendar.getInstance(zone, locale);
+        Calendar calendar = Calendar.getInstance(zone);
         calendar.setTime(time);
         int d = calendar.get(Calendar.DAY_OF_MONTH);
         int m = calendar.get(Calendar.MONTH) + 1;
@@ -281,6 +263,7 @@ public class Day extends RegularTimePeriod implements Serializable {
      * @return The day preceding this one.
      */
     public RegularTimePeriod previous() {
+
         Day result;
         int serial = this.serialDate.toSerial();
         if (serial > SerialDate.SERIAL_LOWER_BOUND) {
@@ -291,6 +274,7 @@ public class Day extends RegularTimePeriod implements Serializable {
             result = null;
         }
         return result;
+
     }
 
     /**
@@ -301,6 +285,7 @@ public class Day extends RegularTimePeriod implements Serializable {
      *         has been reached.
      */
     public RegularTimePeriod next() {
+
         Day result;
         int serial = this.serialDate.toSerial();
         if (serial < SerialDate.SERIAL_UPPER_BOUND) {
@@ -311,6 +296,7 @@ public class Day extends RegularTimePeriod implements Serializable {
             result = null;
         }
         return result;
+
     }
 
     /**
@@ -377,6 +363,7 @@ public class Day extends RegularTimePeriod implements Serializable {
      * @return A flag indicating whether or not an object is equal to this day.
      */
     public boolean equals(Object obj) {
+
         if (obj == this) {
             return true;
         }
@@ -388,6 +375,7 @@ public class Day extends RegularTimePeriod implements Serializable {
             return false;
         }
         return true;
+
     }
 
     /**
@@ -414,6 +402,7 @@ public class Day extends RegularTimePeriod implements Serializable {
      * @return negative == before, zero == same, positive == after.
      */
     public int compareTo(Object o1) {
+
         int result;
 
         // CASE 1 : Comparing to another Day object
@@ -438,6 +427,7 @@ public class Day extends RegularTimePeriod implements Serializable {
         }
 
         return result;
+
     }
 
     /**
@@ -461,6 +451,7 @@ public class Day extends RegularTimePeriod implements Serializable {
      *      string, the day otherwise.
      */
     public static Day parseDay(String s) {
+
         try {
             return new Day (Day.DATE_FORMAT.parse(s));
         }
@@ -473,6 +464,7 @@ public class Day extends RegularTimePeriod implements Serializable {
             }
         }
         return null;
+
     }
 
 }

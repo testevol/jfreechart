@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -27,7 +27,7 @@
  * ------------------------
  * CandlestickRenderer.java
  * ------------------------
- * (C) Copyright 2001-2009, by Object Refinery Limited.
+ * (C) Copyright 2001-2008, by Object Refinery Limited.
  *
  * Original Authors:  David Gilbert (for Object Refinery Limited);
  *                    Sylvain Vieujot;
@@ -80,8 +80,6 @@
  * 08-Oct-2007 : Added new volumePaint field (DG);
  * 08-Apr-2008 : Added findRangeBounds() method override (DG);
  * 13-May-2008 : Fixed chart entity bugs (1962467 and 1962472) (DG);
- * 27-Mar-2009 : Updated findRangeBounds() to call new method in
- *               superclass (DG);
  *
  */
 
@@ -570,7 +568,12 @@ public class CandlestickRenderer extends AbstractXYItemRenderer
      *         or empty).
      */
     public Range findRangeBounds(XYDataset dataset) {
-        return findRangeBounds(dataset, true);
+        if (dataset != null) {
+            return DatasetUtilities.findRangeBounds(dataset, true);
+        }
+        else {
+            return null;
+        }
     }
 
     /**

@@ -27,7 +27,7 @@
  * -----------------
  * ChartFactory.java
  * -----------------
- * (C) Copyright 2001-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2001-2008, by Object Refinery Limited and Contributors.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   Serge V. Grachov;
@@ -1792,8 +1792,8 @@ public abstract class ChartFactory {
         if (urls) {
             urlGenerator = new StandardXYURLGenerator();
         }
-        XYItemRenderer renderer = new XYStepRenderer(toolTipGenerator,
-                urlGenerator);
+        XYItemRenderer renderer
+            = new XYStepRenderer(toolTipGenerator, urlGenerator);
 
         XYPlot plot = new XYPlot(dataset, xAxis, yAxis, null);
         plot.setRenderer(renderer);
@@ -2094,9 +2094,13 @@ public abstract class ChartFactory {
      * @return The chart.
      */
     public static JFreeChart createHistogram(String title,
-            String xAxisLabel, String yAxisLabel, IntervalXYDataset dataset,
-            PlotOrientation orientation, boolean legend, boolean tooltips,
-            boolean urls) {
+                                             String xAxisLabel,
+                                             String yAxisLabel,
+                                             IntervalXYDataset dataset,
+                                             PlotOrientation orientation,
+                                             boolean legend,
+                                             boolean tooltips,
+                                             boolean urls) {
 
         if (orientation == null) {
             throw new IllegalArgumentException("Null 'orientation' argument.");
@@ -2115,8 +2119,6 @@ public abstract class ChartFactory {
 
         XYPlot plot = new XYPlot(dataset, xAxis, yAxis, renderer);
         plot.setOrientation(orientation);
-        plot.setDomainZeroBaselineVisible(true);
-        plot.setRangeZeroBaselineVisible(true);
         JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT,
                 plot, legend);
         currentTheme.apply(chart);

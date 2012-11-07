@@ -192,9 +192,9 @@ public class AxisTests extends TestCase {
         assertTrue(a1.equals(a2));
 
         // tick marks visible flag...
-        a1.setTickMarksVisible(false);
+        a1.setTickMarksVisible(true);
         assertFalse(a1.equals(a2));
-        a2.setTickMarksVisible(false);
+        a2.setTickMarksVisible(true);
         assertTrue(a1.equals(a2));
 
         // tick mark inside length...

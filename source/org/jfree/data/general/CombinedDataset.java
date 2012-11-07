@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -27,7 +27,7 @@
  * --------------------
  * CombinedDataset.java
  * --------------------
- * (C) Copyright 2001-2009, by Bill Kelemen and Contributors.
+ * (C) Copyright 2001-2008, by Bill Kelemen and Contributors.
  *
  * Original Author:  Bill Kelemen;
  * Contributor(s):   David Gilbert (for Object Refinery Limited);
@@ -50,8 +50,7 @@
  *               getYValue() (DG);
  * ------------- JFREECHART 1.0.x ---------------------------------------------
  * 02-Feb-2007 : Removed author tags from all over JFreeChart sources (DG);
- * 04-Feb-2009 : Deprecated the class (DG);
- * 
+ *
  */
 
 package org.jfree.data.general;
@@ -67,10 +66,6 @@ import org.jfree.data.xy.XYDataset;
  * This class can combine instances of {@link XYDataset}, {@link OHLCDataset}
  * and {@link IntervalXYDataset} together exposing the union of all the series
  * under one dataset.
- *
- * @deprecated As of version 1.0.13.  This class will be removed from
- *     JFreeChart 1.2.0 onwards.  Anyone needing this facility will need to
- *     maintain it outside of JFreeChart.
  */
 public class CombinedDataset extends AbstractIntervalXYDataset
         implements XYDataset, OHLCDataset, IntervalXYDataset,

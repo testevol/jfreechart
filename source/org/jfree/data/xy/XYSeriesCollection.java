@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -27,7 +27,7 @@
  * -----------------------
  * XYSeriesCollection.java
  * -----------------------
- * (C) Copyright 2001-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2001-2008, by Object Refinery Limited and Contributors.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   Aaron Metzger;
@@ -52,10 +52,6 @@
  * 08-May-2007 : Added indexOf(XYSeries) method (DG);
  * 03-Dec-2007 : Added getSeries(Comparable) method (DG);
  * 22-Apr-2008 : Implemented PublicCloneable (DG);
- * 27-Feb-2009 : Overridden getDomainOrder() to detect when all series are
- *               sorted in ascending order (DG);
- * 06-Mar-2009 : Implemented RangeInfo (DG);
- * 06-Mar-2009 : Fixed equals() implementation (DG);
  *
  */
 
@@ -66,13 +62,11 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import org.jfree.chart.HashUtilities;
 import org.jfree.data.DomainInfo;
-import org.jfree.data.DomainOrder;
 import org.jfree.data.Range;
-import org.jfree.data.RangeInfo;
 import org.jfree.data.UnknownKeyException;
 import org.jfree.data.general.DatasetChangeEvent;
+import org.jfree.data.general.DatasetUtilities;
 import org.jfree.util.ObjectUtilities;
 import org.jfree.util.PublicCloneable;
 
@@ -81,7 +75,7 @@ import org.jfree.util.PublicCloneable;
  * dataset.
  */
 public class XYSeriesCollection extends AbstractIntervalXYDataset
-        implements IntervalXYDataset, DomainInfo, RangeInfo, PublicCloneable,
+        implements IntervalXYDataset, DomainInfo, PublicCloneable,
                    Serializable {
 
     /** For serialization. */
@@ -116,34 +110,20 @@ public class XYSeriesCollection extends AbstractIntervalXYDataset
     }
 
     /**
-     * Returns the order of the domain (X) values, if this is known.
-     *
-     * @return The domain order.
-     */
-    public DomainOrder getDomainOrder() {
-        int seriesCount = getSeriesCount();
-        for (int i = 0; i < seriesCount; i++) {
-            XYSeries s = getSeries(i);
-            if (!s.getAutoSort()) {
-                return DomainOrder.NONE;  // we can't be sure of the order
-            }
-        }
-        return DomainOrder.ASCENDING;
-    }
-
-    /**
      * Adds a series to the collection and sends a {@link DatasetChangeEvent}
      * to all registered listeners.
      *
      * @param series  the series (<code>null</code> not permitted).
      */
     public void addSeries(XYSeries series) {
+
         if (series == null) {
             throw new IllegalArgumentException("Null 'series' argument.");
         }
         this.data.add(series);
         series.addChangeListener(this);
         fireDatasetChanged();
+
     }
 
     /**
@@ -153,6 +133,7 @@ public class XYSeriesCollection extends AbstractIntervalXYDataset
      * @param series  the series index (zero-based).
      */
     public void removeSeries(int series) {
+
         if ((series < 0) || (series >= getSeriesCount())) {
             throw new IllegalArgumentException("Series index out of bounds.");
         }
@@ -162,6 +143,7 @@ public class XYSeriesCollection extends AbstractIntervalXYDataset
         ts.removeChangeListener(this);
         this.data.remove(series);
         fireDatasetChanged();
+
     }
 
     /**
@@ -171,6 +153,7 @@ public class XYSeriesCollection extends AbstractIntervalXYDataset
      * @param series  the series (<code>null</code> not permitted).
      */
     public void removeSeries(XYSeries series) {
+
         if (series == null) {
             throw new IllegalArgumentException("Null 'series' argument.");
         }
@@ -179,6 +162,7 @@ public class XYSeriesCollection extends AbstractIntervalXYDataset
             this.data.remove(series);
             fireDatasetChanged();
         }
+
     }
 
     /**
@@ -354,9 +338,11 @@ public class XYSeriesCollection extends AbstractIntervalXYDataset
      * @return The value (possibly <code>null</code>).
      */
     public Number getY(int series, int index) {
+
         XYSeries ts = (XYSeries) this.data.get(series);
         XYDataItem xyItem = ts.getDataItem(index);
         return xyItem.getY();
+
     }
 
     /**
@@ -391,6 +377,15 @@ public class XYSeriesCollection extends AbstractIntervalXYDataset
      * @return A boolean.
      */
     public boolean equals(Object obj) {
+        /*
+         * XXX
+         *
+         * what about  the interval delegate...?
+         * The interval width etc wasn't considered
+         * before, hence i did not add it here (AS)
+         *
+         */
+
         if (obj == this) {
             return true;
         }
@@ -398,9 +393,6 @@ public class XYSeriesCollection extends AbstractIntervalXYDataset
             return false;
         }
         XYSeriesCollection that = (XYSeriesCollection) obj;
-        if (!this.intervalDelegate.equals(that.intervalDelegate)) {
-            return false;
-        }
         return ObjectUtilities.equal(this.data, that.data);
     }
 
@@ -425,10 +417,8 @@ public class XYSeriesCollection extends AbstractIntervalXYDataset
      * @return A hash code.
      */
     public int hashCode() {
-        int hash = 5;
-        hash = HashUtilities.hashCode(hash, this.intervalDelegate);
-        hash = HashUtilities.hashCode(hash, this.data);
-        return hash;
+        // Same question as for equals (AS)
+        return (this.data != null ? this.data.hashCode() : 0);
     }
 
     /**
@@ -440,26 +430,7 @@ public class XYSeriesCollection extends AbstractIntervalXYDataset
      * @return The minimum value.
      */
     public double getDomainLowerBound(boolean includeInterval) {
-        if (includeInterval) {
-            return this.intervalDelegate.getDomainLowerBound(includeInterval);
-        }
-        else {
-            double result = Double.NaN;
-            int seriesCount = getSeriesCount();
-            for (int s = 0; s < seriesCount; s++) {
-                XYSeries series = getSeries(s);
-                double lowX = series.getMinX();
-                if (Double.isNaN(result)) {
-                    result = lowX;
-                }
-                else {
-                    if (!Double.isNaN(lowX)) {
-                        result = Math.min(result, lowX);
-                    }
-                }
-            }
-            return result;
-        }
+        return this.intervalDelegate.getDomainLowerBound(includeInterval);
     }
 
     /**
@@ -471,26 +442,7 @@ public class XYSeriesCollection extends AbstractIntervalXYDataset
      * @return The maximum value.
      */
     public double getDomainUpperBound(boolean includeInterval) {
-        if (includeInterval) {
-            return this.intervalDelegate.getDomainUpperBound(includeInterval);
-        }
-        else {
-            double result = Double.NaN;
-            int seriesCount = getSeriesCount();
-            for (int s = 0; s < seriesCount; s++) {
-                XYSeries series = getSeries(s);
-                double hiX = series.getMaxX();
-                if (Double.isNaN(result)) {
-                    result = hiX;
-                }
-                else {
-                    if (!Double.isNaN(hiX)) {
-                        result = Math.max(result, hiX);
-                    }
-                }
-            }
-            return result;
-        }
+        return this.intervalDelegate.getDomainUpperBound(includeInterval);
     }
 
     /**
@@ -499,35 +451,16 @@ public class XYSeriesCollection extends AbstractIntervalXYDataset
      * @param includeInterval  a flag that determines whether or not the
      *                         x-interval is taken into account.
      *
-     * @return The range (or <code>null</code> if the dataset contains no
-     *     values).
+     * @return The range.
      */
     public Range getDomainBounds(boolean includeInterval) {
         if (includeInterval) {
             return this.intervalDelegate.getDomainBounds(includeInterval);
         }
         else {
-            double lower = Double.POSITIVE_INFINITY;
-            double upper = Double.NEGATIVE_INFINITY;
-            int seriesCount = getSeriesCount();
-            for (int s = 0; s < seriesCount; s++) {
-                XYSeries series = getSeries(s);
-                double minX = series.getMinX();
-                if (!Double.isNaN(minX)) {
-                    lower = Math.min(lower, minX);
-                }
-                double maxX = series.getMaxX();
-                if (!Double.isNaN(maxX)) {
-                    upper = Math.max(upper, maxX);
-                }
-            }
-            if (lower > upper) {
-                return null;
-            }
-            else {
-                return new Range(lower, upper);
-            }
+            return DatasetUtilities.iterateDomainBounds(this, includeInterval);
         }
+
     }
 
     /**
@@ -593,89 +526,6 @@ public class XYSeriesCollection extends AbstractIntervalXYDataset
     public void setAutoWidth(boolean b) {
         this.intervalDelegate.setAutoWidth(b);
         fireDatasetChanged();
-    }
-
-    /**
-     * Returns the range of the values in this dataset's range.
-     *
-     * @param includeInterval  ignored.
-     *
-     * @return The range (or <code>null</code> if the dataset contains no
-     *     values).
-     */
-    public Range getRangeBounds(boolean includeInterval) {
-        double lower = Double.POSITIVE_INFINITY;
-        double upper = Double.NEGATIVE_INFINITY;
-        int seriesCount = getSeriesCount();
-        for (int s = 0; s < seriesCount; s++) {
-            XYSeries series = getSeries(s);
-            double minY = series.getMinY();
-            if (!Double.isNaN(minY)) {
-                lower = Math.min(lower, minY);
-            }
-            double maxY = series.getMaxY();
-            if (!Double.isNaN(maxY)) {
-                upper = Math.max(upper, maxY);
-            }
-        }
-        if (lower > upper) {
-            return null;
-        }
-        else {
-            return new Range(lower, upper);
-        }
-    }
-
-    /**
-     * Returns the minimum y-value in the dataset.
-     *
-     * @param includeInterval  a flag that determines whether or not the
-     *                         y-interval is taken into account.
-     *
-     * @return The minimum value.
-     */
-    public double getRangeLowerBound(boolean includeInterval) {
-        double result = Double.NaN;
-        int seriesCount = getSeriesCount();
-        for (int s = 0; s < seriesCount; s++) {
-            XYSeries series = getSeries(s);
-            double lowY = series.getMinY();
-            if (Double.isNaN(result)) {
-                result = lowY;
-            }
-            else {
-                if (!Double.isNaN(lowY)) {
-                    result = Math.min(result, lowY);
-                }
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Returns the maximum y-value in the dataset.
-     *
-     * @param includeInterval  a flag that determines whether or not the
-     *                         y-interval is taken into account.
-     *
-     * @return The maximum value.
-     */
-    public double getRangeUpperBound(boolean includeInterval) {
-        double result = Double.NaN;
-        int seriesCount = getSeriesCount();
-        for (int s = 0; s < seriesCount; s++) {
-            XYSeries series = getSeries(s);
-            double hiY = series.getMaxY();
-            if (Double.isNaN(result)) {
-                result = hiY;
-            }
-            else {
-                if (!Double.isNaN(hiY)) {
-                    result = Math.max(result, hiY);
-                }
-            }
-        }
-        return result;
     }
 
 }

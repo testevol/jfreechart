@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -27,7 +27,7 @@
  * --------------
  * HourTests.java
  * --------------
- * (C) Copyright 2002-2009, by Object Refinery Limited.
+ * (C) Copyright 2002-2008, by Object Refinery Limited.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   -;
@@ -120,16 +120,17 @@ public class HourTests extends TestCase {
      * Use this to check the hour constructor.
      */
     public void testDateConstructor1() {
+
         TimeZone zone = TimeZone.getTimeZone("GMT");
-        Locale locale = Locale.getDefault();  // locale should not matter here
-        Hour h1 = new Hour(new Date(1014307199999L), zone, locale);
-        Hour h2 = new Hour(new Date(1014307200000L), zone, locale);
+        Hour h1 = new Hour(new Date(1014307199999L), zone);
+        Hour h2 = new Hour(new Date(1014307200000L), zone);
 
         assertEquals(15, h1.getHour());
         assertEquals(1014307199999L, h1.getLastMillisecond(zone));
 
         assertEquals(16, h2.getHour());
         assertEquals(1014307200000L, h2.getFirstMillisecond(zone));
+
     }
 
     /**
@@ -137,16 +138,17 @@ public class HourTests extends TestCase {
      * Use this to check the hour constructor.
      */
     public void testDateConstructor2() {
+
         TimeZone zone = TimeZone.getTimeZone("Australia/Sydney");
-        Locale locale = Locale.getDefault();  // locale should not matter here
-        Hour h1 = new Hour(new Date(1014267599999L), zone, locale);
-        Hour h2 = new Hour (new Date(1014267600000L), zone, locale);
+        Hour h1 = new Hour(new Date(1014267599999L), zone);
+        Hour h2 = new Hour (new Date(1014267600000L), zone);
 
         assertEquals(15, h1.getHour());
         assertEquals(1014267599999L, h1.getLastMillisecond(zone));
 
         assertEquals(16, h2.getHour());
         assertEquals(1014267600000L, h2.getFirstMillisecond(zone));
+
     }
 
     /**
@@ -154,9 +156,11 @@ public class HourTests extends TestCase {
      * previous hour, it should be null.
      */
     public void testFirstHourPrevious() {
+
         Hour first = new Hour(0, new Day(1, MonthConstants.JANUARY, 1900));
         Hour previous = (Hour) first.previous();
         assertNull(previous);
+
     }
 
     /**
@@ -175,10 +179,12 @@ public class HourTests extends TestCase {
      * hour, it should be null.
      */
     public void testLastHourPrevious() {
+
         Hour last = new Hour(23, new Day(31, MonthConstants.DECEMBER, 9999));
         Hour previous = (Hour) last.previous();
         assertEquals(22, previous.getHour());
         assertEquals(9999, previous.getYear());
+
     }
 
     /**
@@ -186,18 +192,22 @@ public class HourTests extends TestCase {
      * hour, it should be null.
      */
     public void testLastHourNext() {
+
         Hour last = new Hour(23, new Day(31, MonthConstants.DECEMBER, 9999));
         Hour next = (Hour) last.next();
         assertNull(next);
+
     }
 
     /**
      * Problem for date parsing.
      */
     public void testParseHour() {
+
         // test 1...
         Hour h = Hour.parseHour("2002-01-29 13");
         assertEquals(13, h.getHour());
+
     }
 
     /**
@@ -213,15 +223,17 @@ public class HourTests extends TestCase {
             out.writeObject(h1);
             out.close();
 
-            ObjectInput in = new ObjectInputStream(new ByteArrayInputStream(
-                    buffer.toByteArray()));
+            ObjectInput in = new ObjectInputStream(
+                new ByteArrayInputStream(buffer.toByteArray())
+            );
             h2 = (Hour) in.readObject();
             in.close();
         }
         catch (Exception e) {
-            e.printStackTrace();
+            System.out.println(e.toString());
         }
         assertEquals(h1, h2);
+
     }
 
     /**

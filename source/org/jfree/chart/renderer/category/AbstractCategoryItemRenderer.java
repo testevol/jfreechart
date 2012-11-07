@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -27,11 +27,10 @@
  * ---------------------------------
  * AbstractCategoryItemRenderer.java
  * ---------------------------------
- * (C) Copyright 2002-2009, by Object Refinery Limited.
+ * (C) Copyright 2002-2008, by Object Refinery Limited.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   Richard Atkinson;
- *                   Peter Kolb (patch 2497611);
  *
  * Changes:
  * --------
@@ -97,12 +96,7 @@
  * 17-Jun-2008 : Apply legend shape, font and paint attributes (DG);
  * 26-Jun-2008 : Added crosshair support (DG);
  * 25-Nov-2008 : Fixed bug in findRangeBounds() method (DG);
- * 14-Jan-2009 : Update initialise() to store visible series indices (PK);
- * 21-Jan-2009 : Added drawRangeLine() method (DG);
- * 27-Mar-2009 : Added new findRangeBounds() method to account for hidden
- *               series (DG);
- * 01-Apr-2009 : Added new addEntity() method (DG);
- * 
+ *
  */
 
 package org.jfree.chart.renderer.category;
@@ -115,14 +109,11 @@ import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.Shape;
 import java.awt.Stroke;
-import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.Serializable;
 
-import java.util.ArrayList;
-import java.util.List;
 import org.jfree.chart.LegendItem;
 import org.jfree.chart.LegendItemCollection;
 import org.jfree.chart.axis.CategoryAxis;
@@ -175,17 +166,38 @@ public abstract class AbstractCategoryItemRenderer extends AbstractRenderer
     /** The plot that the renderer is assigned to. */
     private CategoryPlot plot;
 
+    /**
+     * The item label generator for ALL series.
+     *
+     * @deprecated This field is redundant and deprecated as of version 1.0.6.
+     */
+    private CategoryItemLabelGenerator itemLabelGenerator;
+
     /** A list of item label generators (one per series). */
     private ObjectList itemLabelGeneratorList;
 
     /** The base item label generator. */
     private CategoryItemLabelGenerator baseItemLabelGenerator;
 
+    /**
+     * The tool tip generator for ALL series.
+     *
+     * @deprecated This field is redundant and deprecated as of version 1.0.6.
+     */
+    private CategoryToolTipGenerator toolTipGenerator;
+
     /** A list of tool tip generators (one per series). */
     private ObjectList toolTipGeneratorList;
 
     /** The base tool tip generator. */
     private CategoryToolTipGenerator baseToolTipGenerator;
+
+    /**
+     * The URL generator.
+     *
+     * @deprecated This field is redundant and deprecated as of version 1.0.6.
+     */
+    private CategoryURLGenerator itemURLGenerator;
 
     /** A list of item label generators (one per series). */
     private ObjectList itemURLGeneratorList;
@@ -223,7 +235,7 @@ public abstract class AbstractCategoryItemRenderer extends AbstractRenderer
         this.itemURLGenerator = null;
         this.itemURLGeneratorList = new ObjectList();
         this.legendItemLabelGenerator
-                = new StandardCategorySeriesLabelGenerator();
+            = new StandardCategorySeriesLabelGenerator();
     }
 
     /**
@@ -311,6 +323,22 @@ public abstract class AbstractCategoryItemRenderer extends AbstractRenderer
     }
 
     /**
+     * Sets the item label generator for ALL series and sends a
+     * {@link RendererChangeEvent} to all registered listeners.
+     *
+     * @param generator  the generator (<code>null</code> permitted).
+     *
+     * @deprecated This method should no longer be used (as of version 1.0.6).
+     *     It is sufficient to rely on {@link #setSeriesItemLabelGenerator(int,
+     *     CategoryItemLabelGenerator)} and
+     *     {@link #setBaseItemLabelGenerator(CategoryItemLabelGenerator)}.
+     */
+    public void setItemLabelGenerator(CategoryItemLabelGenerator generator) {
+        this.itemLabelGenerator = generator;
+        fireChangeEvent();
+    }
+
+    /**
      * Sets the item label generator for a series and sends a
      * {@link RendererChangeEvent} to all registered listeners.
      *
@@ -377,6 +405,41 @@ public abstract class AbstractCategoryItemRenderer extends AbstractRenderer
             }
         }
         return result;
+    }
+
+    /**
+     * Returns the tool tip generator that will be used for ALL items in the
+     * dataset (the "layer 0" generator).
+     *
+     * @return A tool tip generator (possibly <code>null</code>).
+     *
+     * @see #setToolTipGenerator(CategoryToolTipGenerator)
+     *
+     * @deprecated This method should no longer be used (as of version 1.0.6).
+     *     It is sufficient to rely on {@link #getSeriesToolTipGenerator(int)}
+     *     and {@link #getBaseToolTipGenerator()}.
+     */
+    public CategoryToolTipGenerator getToolTipGenerator() {
+        return this.toolTipGenerator;
+    }
+
+    /**
+     * Sets the tool tip generator for ALL series and sends a
+     * {@link org.jfree.chart.event.RendererChangeEvent} to all registered
+     * listeners.
+     *
+     * @param generator  the generator (<code>null</code> permitted).
+     *
+     * @see #getToolTipGenerator()
+     *
+     * @deprecated This method should no longer be used (as of version 1.0.6).
+     *     It is sufficient to rely on {@link #setSeriesToolTipGenerator(int,
+     *     CategoryToolTipGenerator)} and
+     *     {@link #setBaseToolTipGenerator(CategoryToolTipGenerator)}.
+     */
+    public void setToolTipGenerator(CategoryToolTipGenerator generator) {
+        this.toolTipGenerator = generator;
+        fireChangeEvent();
     }
 
     /**
@@ -472,6 +535,22 @@ public abstract class AbstractCategoryItemRenderer extends AbstractRenderer
         }
         return generator;
 
+    }
+
+    /**
+     * Sets the item URL generator for ALL series and sends a
+     * {@link RendererChangeEvent} to all registered listeners.
+     *
+     * @param generator  the generator.
+     *
+     * @deprecated This method should no longer be used (as of version 1.0.6).
+     *     It is sufficient to rely on {@link #setSeriesItemURLGenerator(int,
+     *     CategoryURLGenerator)} and
+     *     {@link #setBaseItemURLGenerator(CategoryURLGenerator)}.
+     */
+    public void setItemURLGenerator(CategoryURLGenerator generator) {
+        this.itemURLGenerator = generator;
+        fireChangeEvent();
     }
 
     /**
@@ -580,20 +659,8 @@ public abstract class AbstractCategoryItemRenderer extends AbstractRenderer
             this.rowCount = 0;
             this.columnCount = 0;
         }
-        CategoryItemRendererState state = createState(info);
-        int[] visibleSeriesTemp = new int[this.rowCount];
-        int visibleSeriesCount = 0;
-        for (int row = 0; row < this.rowCount; row++){
-        	if (isSeriesVisible(row)) {
-        		visibleSeriesTemp[visibleSeriesCount] = row;
-        		visibleSeriesCount++;
-        	}
-        }
-        int[] visibleSeries = new int[visibleSeriesCount];
-        System.arraycopy(visibleSeriesTemp, 0, visibleSeries, 0,
-                visibleSeriesCount);
-        state.setVisibleSeriesArray(visibleSeries);
-        return state;
+        return createState(info);
+
     }
 
     /**
@@ -606,40 +673,10 @@ public abstract class AbstractCategoryItemRenderer extends AbstractRenderer
      *         <code>null</code> or empty).
      */
     public Range findRangeBounds(CategoryDataset dataset) {
-        return findRangeBounds(dataset, false);
-    }
-
-    /**
-     * Returns the range of values the renderer requires to display all the
-     * items from the specified dataset.
-     *
-     * @param dataset  the dataset (<code>null</code> permitted).
-     * @param includeInterval  include the y-interval if the dataset has one.
-     *
-     * @return The range (<code>null</code> if the dataset is <code>null</code>
-     *         or empty).
-     *
-     * @since 1.0.13
-     */
-    protected Range findRangeBounds(CategoryDataset dataset,
-            boolean includeInterval) {
         if (dataset == null) {
             return null;
         }
-        if (getDataBoundsIncludesVisibleSeriesOnly()) {
-            List visibleSeriesKeys = new ArrayList();
-            int seriesCount = dataset.getRowCount();
-            for (int s = 0; s < seriesCount; s++) {
-                if (isSeriesVisible(s)) {
-                    visibleSeriesKeys.add(dataset.getRowKey(s));
-                }
-            }
-            return DatasetUtilities.findRangeBounds(dataset,
-                    visibleSeriesKeys, includeInterval);
-        }
-        else {
-            return DatasetUtilities.findRangeBounds(dataset, includeInterval);
-        }
+        return DatasetUtilities.findRangeBounds(dataset);
     }
 
     /**
@@ -757,6 +794,7 @@ public abstract class AbstractCategoryItemRenderer extends AbstractRenderer
      * @param value  the value at which the grid line should be drawn.
      *
      * @see #drawDomainGridline(Graphics2D, CategoryPlot, Rectangle2D, double)
+     *
      */
     public void drawRangeGridline(Graphics2D g2,
                                   CategoryPlot plot,
@@ -793,50 +831,6 @@ public abstract class AbstractCategoryItemRenderer extends AbstractRenderer
         }
         g2.setStroke(stroke);
 
-        g2.draw(line);
-
-    }
-
-    /**
-     * Draws a line perpendicular to the range axis.
-     *
-     * @param g2  the graphics device.
-     * @param plot  the plot.
-     * @param axis  the value axis.
-     * @param dataArea  the area for plotting data (not yet adjusted for any 3D
-     *                  effect).
-     * @param value  the value at which the grid line should be drawn.
-     * @param paint  the paint (<code>null</code> not permitted).
-     * @param stroke  the stroke (<code>null</code> not permitted).
-     *
-     * @see #drawRangeGridline
-     *
-     * @since 1.0.13
-     */
-    public void drawRangeLine(Graphics2D g2, CategoryPlot plot, ValueAxis axis,
-            Rectangle2D dataArea, double value, Paint paint, Stroke stroke) {
-
-        // TODO: In JFreeChart 1.2.0, put this method in the
-        // CategoryItemRenderer interface
-        Range range = axis.getRange();
-        if (!range.contains(value)) {
-            return;
-        }
-
-        PlotOrientation orientation = plot.getOrientation();
-        Line2D line = null;
-        double v = axis.valueToJava2D(value, dataArea, plot.getRangeAxisEdge());
-        if (orientation == PlotOrientation.HORIZONTAL) {
-            line = new Line2D.Double(v, dataArea.getMinY(), v,
-                    dataArea.getMaxY());
-        }
-        else if (orientation == PlotOrientation.VERTICAL) {
-            line = new Line2D.Double(dataArea.getMinX(), v,
-                    dataArea.getMaxX(), v);
-        }
-
-        g2.setPaint(paint);
-        g2.setStroke(stroke);
         g2.draw(line);
 
     }
@@ -1366,12 +1360,15 @@ public abstract class AbstractCategoryItemRenderer extends AbstractRenderer
      * @param negative  indicates a negative value (which affects the item
      *                  label position).
      */
-    protected void drawItemLabel(Graphics2D g2, PlotOrientation orientation,
-            CategoryDataset dataset, int row, int column,
-            double x, double y, boolean negative) {
+    protected void drawItemLabel(Graphics2D g2,
+                                 PlotOrientation orientation,
+                                 CategoryDataset dataset,
+                                 int row, int column,
+                                 double x, double y,
+                                 boolean negative) {
 
-        CategoryItemLabelGenerator generator = getItemLabelGenerator(row,
-                column);
+        CategoryItemLabelGenerator generator
+            = getItemLabelGenerator(row, column);
         if (generator != null) {
             Font labelFont = getItemLabelFont(row, column);
             Paint paint = getItemLabelPaint(row, column);
@@ -1659,17 +1656,12 @@ public abstract class AbstractCategoryItemRenderer extends AbstractRenderer
      * @param dataset  the dataset.
      * @param row  the row index.
      * @param column  the column index.
-     * @param hotspot  the hotspot (<code>null</code> not permitted).
+     * @param hotspot  the hotspot.
      */
     protected void addItemEntity(EntityCollection entities,
                                  CategoryDataset dataset, int row, int column,
                                  Shape hotspot) {
-        if (hotspot == null) {
-            throw new IllegalArgumentException("Null 'hotspot' argument.");
-        }
-        if (!getItemCreateEntity(row, column)) {
-            return;
-        }
+
         String tip = null;
         CategoryToolTipGenerator tipster = getToolTipGenerator(row, column);
         if (tipster != null) {
@@ -1683,145 +1675,7 @@ public abstract class AbstractCategoryItemRenderer extends AbstractRenderer
         CategoryItemEntity entity = new CategoryItemEntity(hotspot, tip, url,
                 dataset, dataset.getRowKey(row), dataset.getColumnKey(column));
         entities.add(entity);
+
     }
-
-    /**
-     * Adds an entity to the collection.
-     *
-     * @param entities  the entity collection being populated.
-     * @param hotspot  the entity area (if <code>null</code> a default will be
-     *              used).
-     * @param dataset  the dataset.
-     * @param row  the series.
-     * @param column  the item.
-     * @param entityX  the entity's center x-coordinate in user space (only
-     *                 used if <code>area</code> is <code>null</code>).
-     * @param entityY  the entity's center y-coordinate in user space (only
-     *                 used if <code>area</code> is <code>null</code>).
-     *
-     * @since 1.0.13
-     */
-    protected void addEntity(EntityCollection entities, Shape hotspot,
-                             CategoryDataset dataset, int row, int column,
-                             double entityX, double entityY) {
-        if (!getItemCreateEntity(row, column)) {
-            return;
-        }
-        Shape s = hotspot;
-        if (hotspot == null) {
-            double r = getDefaultEntityRadius();
-            double w = r * 2;
-            if (getPlot().getOrientation() == PlotOrientation.VERTICAL) {
-                s = new Ellipse2D.Double(entityX - r, entityY - r, w, w);
-            }
-            else {
-                s = new Ellipse2D.Double(entityY - r, entityX - r, w, w);
-            }
-        }
-        String tip = null;
-        CategoryToolTipGenerator generator = getToolTipGenerator(row, column);
-        if (generator != null) {
-            tip = generator.generateToolTip(dataset, row, column);
-        }
-        String url = null;
-        CategoryURLGenerator urlster = getItemURLGenerator(row, column);
-        if (urlster != null) {
-            url = urlster.generateURL(dataset, row, column);
-        }
-        CategoryItemEntity entity = new CategoryItemEntity(s, tip, url,
-                dataset, dataset.getRowKey(row), dataset.getColumnKey(column));
-        entities.add(entity);
-    }
-
-    // === DEPRECATED CODE ===
-
-    /**
-     * The item label generator for ALL series.
-     *
-     * @deprecated This field is redundant and deprecated as of version 1.0.6.
-     */
-    private CategoryItemLabelGenerator itemLabelGenerator;
-
-    /**
-     * The tool tip generator for ALL series.
-     *
-     * @deprecated This field is redundant and deprecated as of version 1.0.6.
-     */
-    private CategoryToolTipGenerator toolTipGenerator;
-
-    /**
-     * The URL generator.
-     *
-     * @deprecated This field is redundant and deprecated as of version 1.0.6.
-     */
-    private CategoryURLGenerator itemURLGenerator;
-
-    /**
-     * Sets the item label generator for ALL series and sends a
-     * {@link RendererChangeEvent} to all registered listeners.
-     *
-     * @param generator  the generator (<code>null</code> permitted).
-     *
-     * @deprecated This method should no longer be used (as of version 1.0.6).
-     *     It is sufficient to rely on {@link #setSeriesItemLabelGenerator(int,
-     *     CategoryItemLabelGenerator)} and
-     *     {@link #setBaseItemLabelGenerator(CategoryItemLabelGenerator)}.
-     */
-    public void setItemLabelGenerator(CategoryItemLabelGenerator generator) {
-        this.itemLabelGenerator = generator;
-        fireChangeEvent();
-    }
-
-    /**
-     * Returns the tool tip generator that will be used for ALL items in the
-     * dataset (the "layer 0" generator).
-     *
-     * @return A tool tip generator (possibly <code>null</code>).
-     *
-     * @see #setToolTipGenerator(CategoryToolTipGenerator)
-     *
-     * @deprecated This method should no longer be used (as of version 1.0.6).
-     *     It is sufficient to rely on {@link #getSeriesToolTipGenerator(int)}
-     *     and {@link #getBaseToolTipGenerator()}.
-     */
-    public CategoryToolTipGenerator getToolTipGenerator() {
-        return this.toolTipGenerator;
-    }
-
-    /**
-     * Sets the tool tip generator for ALL series and sends a
-     * {@link org.jfree.chart.event.RendererChangeEvent} to all registered
-     * listeners.
-     *
-     * @param generator  the generator (<code>null</code> permitted).
-     *
-     * @see #getToolTipGenerator()
-     *
-     * @deprecated This method should no longer be used (as of version 1.0.6).
-     *     It is sufficient to rely on {@link #setSeriesToolTipGenerator(int,
-     *     CategoryToolTipGenerator)} and
-     *     {@link #setBaseToolTipGenerator(CategoryToolTipGenerator)}.
-     */
-    public void setToolTipGenerator(CategoryToolTipGenerator generator) {
-        this.toolTipGenerator = generator;
-        fireChangeEvent();
-    }
-
-    /**
-     * Sets the item URL generator for ALL series and sends a
-     * {@link RendererChangeEvent} to all registered listeners.
-     *
-     * @param generator  the generator.
-     *
-     * @deprecated This method should no longer be used (as of version 1.0.6).
-     *     It is sufficient to rely on {@link #setSeriesItemURLGenerator(int,
-     *     CategoryURLGenerator)} and
-     *     {@link #setBaseItemURLGenerator(CategoryURLGenerator)}.
-     */
-    public void setItemURLGenerator(CategoryURLGenerator generator) {
-        this.itemURLGenerator = generator;
-        fireChangeEvent();
-    }
-
 
 }

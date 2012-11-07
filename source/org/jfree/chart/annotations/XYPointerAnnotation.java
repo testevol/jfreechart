@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -27,7 +27,7 @@
  * ------------------------
  * XYPointerAnnotation.java
  * ------------------------
- * (C) Copyright 2003-2009, by Object Refinery Limited.
+ * (C) Copyright 2003-2008, by Object Refinery Limited.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   -;
@@ -45,8 +45,6 @@
  * 20-Feb-2006 : Correction for equals() method (fixes bug 1435160) (DG);
  * 12-Jul-2006 : Fix drawing for PlotOrientation.HORIZONTAL, thanks to
  *               Skunk (DG);
- * 12-Feb-2009 : Added support for rotated label, plus background and
- *               outline (DG);
  *
  */
 
@@ -56,7 +54,6 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Paint;
-import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
@@ -79,9 +76,9 @@ import org.jfree.util.ObjectUtilities;
 import org.jfree.util.PublicCloneable;
 
 /**
- * An arrow and label that can be placed on an {@link XYPlot}.  The arrow is
- * drawn at a user-definable angle so that it points towards the (x, y)
- * location for the annotation.
+ * An arrow and label that can be placed on an
+ * {@link org.jfree.chart.plot.XYPlot}.  The arrow is drawn at a user-definable
+ * angle so that it points towards the (x, y) location for the annotation.
  * <p>
  * The arrow length (and its offset from the (x, y) location) is controlled by
  * the tip radius and the base radius attributes.  Imagine two circles around
@@ -385,14 +382,14 @@ public class XYPointerAnnotation extends XYTextAnnotation
         double arrowBaseY = endY + Math.sin(this.angle) * this.arrowLength;
 
         double arrowLeftX = arrowBaseX
-                + Math.cos(this.angle + Math.PI / 2.0) * this.arrowWidth;
+            + Math.cos(this.angle + Math.PI / 2.0) * this.arrowWidth;
         double arrowLeftY = arrowBaseY
-                + Math.sin(this.angle + Math.PI / 2.0) * this.arrowWidth;
+            + Math.sin(this.angle + Math.PI / 2.0) * this.arrowWidth;
 
         double arrowRightX = arrowBaseX
-                - Math.cos(this.angle + Math.PI / 2.0) * this.arrowWidth;
+            - Math.cos(this.angle + Math.PI / 2.0) * this.arrowWidth;
         double arrowRightY = arrowBaseY
-                - Math.sin(this.angle + Math.PI / 2.0) * this.arrowWidth;
+            - Math.sin(this.angle + Math.PI / 2.0) * this.arrowWidth;
 
         GeneralPath arrow = new GeneralPath();
         arrow.moveTo((float) endX, (float) endY);
@@ -407,27 +404,14 @@ public class XYPointerAnnotation extends XYTextAnnotation
         g2.fill(arrow);
 
         // draw the label
-        double labelX = j2DX + Math.cos(this.angle) * (this.baseRadius
-                + this.labelOffset);
-        double labelY = j2DY + Math.sin(this.angle) * (this.baseRadius
-                + this.labelOffset);
         g2.setFont(getFont());
-        Shape hotspot = TextUtilities.calculateRotatedStringBounds(
-                getText(), g2, (float) labelX, (float) labelY, getTextAnchor(),
-                getRotationAngle(), getRotationAnchor());
-        if (getBackgroundPaint() != null) {
-            g2.setPaint(getBackgroundPaint());
-            g2.fill(hotspot);
-        }
         g2.setPaint(getPaint());
-        TextUtilities.drawRotatedString(getText(), g2, (float) labelX,
-                (float) labelY, getTextAnchor(), getRotationAngle(),
-                getRotationAnchor());
-        if (isOutlineVisible()) {
-            g2.setStroke(getOutlineStroke());
-            g2.setPaint(getOutlinePaint());
-            g2.draw(hotspot);
-        }
+        double labelX = j2DX
+            + Math.cos(this.angle) * (this.baseRadius + this.labelOffset);
+        double labelY = j2DY
+            + Math.sin(this.angle) * (this.baseRadius + this.labelOffset);
+        Rectangle2D hotspot = TextUtilities.drawAlignedString(getText(),
+                g2, (float) labelX, (float) labelY, getTextAnchor());
 
         String toolTip = getToolTipText();
         String url = getURL();
@@ -449,6 +433,9 @@ public class XYPointerAnnotation extends XYTextAnnotation
             return true;
         }
         if (!(obj instanceof XYPointerAnnotation)) {
+            return false;
+        }
+        if (!super.equals(obj)) {
             return false;
         }
         XYPointerAnnotation that = (XYPointerAnnotation) obj;
@@ -476,7 +463,7 @@ public class XYPointerAnnotation extends XYTextAnnotation
         if (this.labelOffset != that.labelOffset) {
             return false;
         }
-        return super.equals(obj);
+        return true;
     }
 
     /**

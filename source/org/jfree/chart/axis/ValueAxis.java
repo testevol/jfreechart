@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -27,7 +27,7 @@
  * --------------
  * ValueAxis.java
  * --------------
- * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   Jonathan Nash;
@@ -99,12 +99,6 @@
  * 22-Mar-2007 : Added new defaultAutoRange attribute (DG);
  * 02-Aug-2007 : Check for major tick when drawing label (DG);
  * 25-Sep-2008 : Added minor tick support, see patch 1934255 by Peter Kolb (DG);
- * 21-Jan-2009 : Updated default behaviour of minor ticks (DG);
- * 18-Mar-2008 : Added resizeRange2() method which provides more natural
- *               anchored zooming for mouse wheel support (DG);
- * 26-Mar-2009 : In equals(), only check current range if autoRange is
- *               false (DG);
- * 30-Mar-2009 : Added pan(double) method (DG);
  *
  */
 
@@ -267,12 +261,8 @@ public abstract class ValueAxis extends Axis
     /** An index into an array of standard tick values. */
     private int autoTickIndex;
 
-    /**
-     * The number of minor ticks per major tick unit.  This is an override
-     * field, if the value is > 0 it is used, otherwise the axis refers to the
-     * minorTickCount in the current tickUnit.
-     */
-    private int minorTickCount;
+    /** The number of minor ticks per major tick unit. */
+    private int minorTickCount; 
 
     /** A flag indicating whether or not tick labels are rotated to vertical. */
     private boolean verticalTickLabels;
@@ -335,7 +325,7 @@ public abstract class ValueAxis extends Axis
         this.leftArrow = p4;
 
         this.verticalTickLabels = false;
-        this.minorTickCount = 0;
+        this.minorTickCount = 1;
 
     }
 
@@ -708,7 +698,7 @@ public abstract class ValueAxis extends Axis
             }
 
             if ((isTickMarksVisible() && tick.getTickType().equals(
-                    TickType.MAJOR)) || (isMinorTickMarksVisible()
+                    TickType.MAJOR)) || (isMinorTickMarksVisible() 
                     && tick.getTickType().equals(TickType.MINOR))) {
 
                 double ol = (tick.getTickType().equals(TickType.MINOR)) ?
@@ -1424,9 +1414,9 @@ public abstract class ValueAxis extends Axis
 
     /**
      * Returns the number of minor tick marks to display.
-     *
+     * 
      * @return The number of minor tick marks to display.
-     *
+     * 
      * @see #setMinorTickCount(int)
      *
      * @since 1.0.12
@@ -1434,18 +1424,21 @@ public abstract class ValueAxis extends Axis
     public int getMinorTickCount() {
         return this.minorTickCount;
     }
-
+    
     /**
      * Sets the number of minor tick marks to display, and sends an
      * {@link AxisChangeEvent} to all registered listeners.
-     *
+     * 
      * @param count  the count.
-     *
+     * 
      * @see #getMinorTickCount()
      *
      * @since 1.0.12
      */
     public void setMinorTickCount(int count) {
+        if (count <= 0) {
+            throw new IllegalArgumentException("Requires 'count' > 0.");
+        }
         this.minorTickCount = count;
         notifyListeners(new AxisChangeEvent(this));
     }
@@ -1565,34 +1558,6 @@ public abstract class ValueAxis extends Axis
     }
 
     /**
-     * Increases or decreases the axis range by the specified percentage about
-     * the specified anchor value and sends an {@link AxisChangeEvent} to all
-     * registered listeners.
-     * <P>
-     * To double the length of the axis range, use 200% (2.0).
-     * To halve the length of the axis range, use 50% (0.5).
-     *
-     * @param percent  the resize factor.
-     * @param anchorValue  the new central value after the resize.
-     *
-     * @see #resizeRange(double)
-     *
-     * @since 1.0.13
-     */
-    public void resizeRange2(double percent, double anchorValue) {
-        if (percent > 0.0) {
-            double left = anchorValue - getLowerBound();
-            double right = getUpperBound() - anchorValue;
-            Range adjusted = new Range(anchorValue - left * percent,
-                    anchorValue + right * percent);
-            setRange(adjusted);
-        }
-        else {
-            setAutoRange(true);
-        }
-    }
-
-    /**
      * Zooms in on the current range.
      *
      * @param lowerPercent  the new lower bound.
@@ -1611,22 +1576,6 @@ public abstract class ValueAxis extends Axis
                     start + length * upperPercent);
         }
         setRange(adjusted);
-    }
-
-    /**
-     * Slides the axis range by the specified percentage.
-     *
-     * @param percent  the percentage.
-     *
-     * @since 1.0.13
-     */
-    public void pan(double percent) {
-        Range range = getRange();
-        double length = range.getLength();
-        double adj = length * percent;
-        double lower = range.getLowerBound() + adj;
-        double upper = range.getUpperBound() + adj;
-        setRange(lower, upper);
     }
 
     /**
@@ -1675,8 +1624,7 @@ public abstract class ValueAxis extends Axis
         if (this.inverted != that.inverted) {
             return false;
         }
-        // if autoRange is true, then the current range is irrelevant
-        if (!this.autoRange && !ObjectUtilities.equal(this.range, that.range)) {
+        if (!ObjectUtilities.equal(this.range, that.range)) {
             return false;
         }
         if (this.autoRange != that.autoRange) {
@@ -1757,6 +1705,7 @@ public abstract class ValueAxis extends Axis
         this.downArrow = SerialUtilities.readShape(stream);
         this.leftArrow = SerialUtilities.readShape(stream);
         this.rightArrow = SerialUtilities.readShape(stream);
+
     }
 
 }

@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -27,7 +27,7 @@
  * ----------------
  * MinuteTests.java
  * ----------------
- * (C) Copyright 2002-2009, by Object Refinery Limited.
+ * (C) Copyright 2002-2008, by Object Refinery Limited.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   -;
@@ -126,16 +126,17 @@ public class MinuteTests extends TestCase {
      * Use this to check the Minute constructor.
      */
     public void testDateConstructor1() {
+
         TimeZone zone = TimeZone.getTimeZone("GMT");
-        Locale locale = Locale.getDefault(); // locale should not matter here
-        Minute m1 = new Minute(new Date(1016729699999L), zone, locale);
-        Minute m2 = new Minute(new Date(1016729700000L), zone, locale);
+        Minute m1 = new Minute(new Date(1016729699999L), zone);
+        Minute m2 = new Minute(new Date(1016729700000L), zone);
 
         assertEquals(54, m1.getMinute());
         assertEquals(1016729699999L, m1.getLastMillisecond(zone));
 
         assertEquals(55, m2.getMinute());
         assertEquals(1016729700000L, m2.getFirstMillisecond(zone));
+
     }
 
     /**
@@ -144,22 +145,24 @@ public class MinuteTests extends TestCase {
      * constructor.
      */
     public void testDateConstructor2() {
+
         TimeZone zone = TimeZone.getTimeZone("Asia/Singapore");
-        Locale locale = Locale.getDefault(); // locale should not matter here
-        Minute m1 = new Minute(new Date(1016700899999L), zone, locale);
-        Minute m2 = new Minute(new Date(1016700900000L), zone, locale);
+        Minute m1 = new Minute(new Date(1016700899999L), zone);
+        Minute m2 = new Minute(new Date(1016700900000L), zone);
 
         assertEquals(54, m1.getMinute());
         assertEquals(1016700899999L, m1.getLastMillisecond(zone));
 
         assertEquals(55, m2.getMinute());
         assertEquals(1016700900000L, m2.getFirstMillisecond(zone));
+
     }
 
     /**
      * Serialize an instance, restore it, and check for equality.
      */
     public void testSerialization() {
+
         Minute m1 = new Minute();
         Minute m2 = null;
 
@@ -169,8 +172,9 @@ public class MinuteTests extends TestCase {
             out.writeObject(m1);
             out.close();
 
-            ObjectInput in = new ObjectInputStream(new ByteArrayInputStream(
-                    buffer.toByteArray()));
+            ObjectInput in = new ObjectInputStream(
+                new ByteArrayInputStream(buffer.toByteArray())
+            );
             m2 = (Minute) in.readObject();
             in.close();
         }
@@ -178,6 +182,7 @@ public class MinuteTests extends TestCase {
             System.out.println(e.toString());
         }
         assertEquals(m1, m2);
+
     }
 
     /**

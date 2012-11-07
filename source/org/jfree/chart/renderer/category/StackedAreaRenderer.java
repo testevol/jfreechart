@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -27,14 +27,13 @@
  * ------------------------
  * StackedAreaRenderer.java
  * ------------------------
- * (C) Copyright 2002-2009, by Dan Rivett (d.rivett@ukonline.co.uk) and
+ * (C) Copyright 2002-2008, by Dan Rivett (d.rivett@ukonline.co.uk) and
  *                          Contributors.
  *
- * Original Author:  Dan Rivett (adapted from AreaRenderer);
+ * Original Author:  Dan Rivett (adapted from AreaCategoryItemRenderer);
  * Contributor(s):   Jon Iles;
  *                   David Gilbert (for Object Refinery Limited);
  *                   Christian W. Zuckschwerdt;
- *                   Peter Kolb (patch 2511330);
  *
  * Changes:
  * --------
@@ -58,11 +57,6 @@
  * ------------- JFREECHART 1.0.x ---------------------------------------------
  * 11-Oct-2006 : Added support for rendering data values as percentages,
  *               and added a second pass for drawing item labels (DG);
- * 04-Feb-2009 : Fixed support for hidden series, and bug in findRangeBounds()
- *               method for null dataset (PK/DG);
- * 04-Feb-2009 : Added item label support, and generate entities only in first
- *               pass (DG);
- * 04-Feb-2009 : Fixed bug for renderAsPercentages == true (DG);
  *
  */
 
@@ -152,7 +146,7 @@ public class StackedAreaRenderer extends AreaRenderer
 
     /**
      * Returns the number of passes (<code>2</code>) required by this renderer.
-     * The first pass is used to draw the areas, the second pass is used to
+     * The first pass is used to draw the bars, the second pass is used to
      * draw the item labels (if visible).
      *
      * @return The number of passes required by the renderer.
@@ -170,9 +164,6 @@ public class StackedAreaRenderer extends AreaRenderer
      * @return The range (or <code>null</code> if the dataset is empty).
      */
     public Range findRangeBounds(CategoryDataset dataset) {
-        if (dataset == null) {
-            return null;
-        }
         if (this.renderAsPercentages) {
             return new Range(0.0, 1.0);
         }
@@ -206,10 +197,6 @@ public class StackedAreaRenderer extends AreaRenderer
                          int column,
                          int pass) {
 
-        if (!isSeriesVisible(row)) {
-            return;
-        }
-        
         // setup for collecting optional entity info...
         Shape entityArea = null;
         EntityCollection entities = state.getEntityCollection();
@@ -218,14 +205,8 @@ public class StackedAreaRenderer extends AreaRenderer
         Number n = dataset.getValue(row, column);
         if (n != null) {
             y1 = n.doubleValue();
-            if (this.renderAsPercentages) {
-                double total = DataUtilities.calculateColumnTotal(dataset,
-                        column, state.getVisibleSeriesArray());
-                y1 = y1 / total;
-            }
         }
-        double[] stack1 = getStackValues(dataset, row, column,
-                state.getVisibleSeriesArray());
+        double[] stack1 = getStackValues(dataset, row, column);
 
 
         // leave the y values (y1, y0) untranslated as it is going to be be
@@ -241,14 +222,8 @@ public class StackedAreaRenderer extends AreaRenderer
         n = dataset.getValue(row, Math.max(column - 1, 0));
         if (n != null) {
             y0 = n.doubleValue();
-            if (this.renderAsPercentages) {
-                double total = DataUtilities.calculateColumnTotal(dataset,
-                        Math.max(column - 1, 0), state.getVisibleSeriesArray());
-                y0 = y0 / total;
-            }
         }
-        double[] stack0 = getStackValues(dataset, row, Math.max(column - 1, 0),
-                state.getVisibleSeriesArray());
+        double[] stack0 = getStackValues(dataset, row, Math.max(column - 1, 0));
 
         // FIXME: calculate xx0
         double xx0 = domainAxis.getCategoryStart(column, getColumnCount(),
@@ -259,15 +234,9 @@ public class StackedAreaRenderer extends AreaRenderer
         n = dataset.getValue(row, Math.min(column + 1, itemCount - 1));
         if (n != null) {
             y2 = n.doubleValue();
-            if (this.renderAsPercentages) {
-                double total = DataUtilities.calculateColumnTotal(dataset,
-                        Math.min(column + 1, itemCount - 1),
-                        state.getVisibleSeriesArray());
-                y2 = y2 / total;
-            }
         }
         double[] stack2 = getStackValues(dataset, row, Math.min(column + 1,
-                itemCount - 1), state.getVisibleSeriesArray());
+                itemCount - 1));
 
         double xx2 = domainAxis.getCategoryEnd(column, getColumnCount(),
                 dataArea, plot.getDomainAxisEdge());
@@ -380,24 +349,60 @@ public class StackedAreaRenderer extends AreaRenderer
             }
         }
 
+        g2.setPaint(getItemPaint(row, column));
+        g2.setStroke(getItemStroke(row, column));
+
+        //  Get series Paint and Stroke
+        Paint itemPaint = getItemPaint(row, column);
         if (pass == 0) {
-            Paint itemPaint = getItemPaint(row, column);
             g2.setPaint(itemPaint);
             g2.fill(left);
             g2.fill(right);
+        }
 
-            // add an entity for the item...
-            if (entities != null) {
-                GeneralPath gp = new GeneralPath(left);
-                gp.append(right, false);
-                entityArea = gp;
-                addItemEntity(entities, dataset, row, column, entityArea);
+        // add an entity for the item...
+        if (entities != null) {
+            GeneralPath gp = new GeneralPath(left);
+            gp.append(right, false);
+            entityArea = gp;
+            addItemEntity(entities, dataset, row, column, entityArea);
+        }
+
+    }
+
+    /**
+     * Calculates the stacked value of the all series up to, but not including
+     * <code>series</code> for the specified category, <code>category</code>.
+     * It returns 0.0 if <code>series</code> is the first series, i.e. 0.
+     *
+     * @param dataset  the dataset (<code>null</code> not permitted).
+     * @param series  the series.
+     * @param category  the category.
+     *
+     * @return double returns a cumulative value for all series' values up to
+     *         but excluding <code>series</code> for Object
+     *         <code>category</code>.
+     */
+    protected double getPreviousHeight(CategoryDataset dataset,
+                                       int series, int category) {
+
+        double result = 0.0;
+        Number n;
+        double total = 0.0;
+        if (this.renderAsPercentages) {
+            total = DataUtilities.calculateColumnTotal(dataset, category);
+        }
+        for (int i = 0; i < series; i++) {
+            n = dataset.getValue(i, category);
+            if (n != null) {
+                double v = n.doubleValue();
+                if (this.renderAsPercentages) {
+                    v = v / total;
+                }
+                result += v;
             }
         }
-        else if (pass == 1) {
-            drawItemLabel(g2, plot.getOrientation(), dataset, row, column,
-                    xx1, transY1, y1 < 0.0);
-        }
+        return result;
 
     }
 
@@ -415,22 +420,14 @@ public class StackedAreaRenderer extends AreaRenderer
      *     for <code>index</code>.
      */
     protected double[] getStackValues(CategoryDataset dataset,
-            int series, int index, int[] validRows) {
+            int series, int index) {
         double[] result = new double[2];
-        double total = 0.0;
-        if (this.renderAsPercentages) {
-            total = DataUtilities.calculateColumnTotal(dataset, index, 
-                    validRows);
-        }
         for (int i = 0; i < series; i++) {
             if (isSeriesVisible(i)) {
                 double v = 0.0;
                 Number n = dataset.getValue(i, index);
                 if (n != null) {
                     v = n.doubleValue();
-                    if (this.renderAsPercentages) {
-                        v = v / total;
-                    }
                 }
                 if (!Double.isNaN(v)) {
                     if (v >= 0.0) {
@@ -508,43 +505,4 @@ public class StackedAreaRenderer extends AreaRenderer
         }
         return super.equals(obj);
     }
-
-    /**
-     * Calculates the stacked value of the all series up to, but not including
-     * <code>series</code> for the specified category, <code>category</code>.
-     * It returns 0.0 if <code>series</code> is the first series, i.e. 0.
-     *
-     * @param dataset  the dataset (<code>null</code> not permitted).
-     * @param series  the series.
-     * @param category  the category.
-     *
-     * @return double returns a cumulative value for all series' values up to
-     *         but excluding <code>series</code> for Object
-     *         <code>category</code>.
-     *
-     * @deprecated As of 1.0.13, as the method is never used internally.
-     */
-    protected double getPreviousHeight(CategoryDataset dataset,
-            int series, int category) {
-
-        double result = 0.0;
-        Number n;
-        double total = 0.0;
-        if (this.renderAsPercentages) {
-            total = DataUtilities.calculateColumnTotal(dataset, category);
-        }
-        for (int i = 0; i < series; i++) {
-            n = dataset.getValue(i, category);
-            if (n != null) {
-                double v = n.doubleValue();
-                if (this.renderAsPercentages) {
-                    v = v / total;
-                }
-                result += v;
-            }
-        }
-        return result;
-
-    }
-
 }

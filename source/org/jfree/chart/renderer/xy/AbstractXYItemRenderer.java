@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -27,7 +27,7 @@
  * ---------------------------
  * AbstractXYItemRenderer.java
  * ---------------------------
- * (C) Copyright 2002-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2002-2008, by Object Refinery Limited and Contributors.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   Richard Atkinson;
@@ -105,11 +105,7 @@
  *               account when the incoming area is null (DG);
  * 02-Jun-2008 : Added isPointInRect() method (DG);
  * 17-Jun-2008 : Apply legend shape, font and paint attributes (DG);
- * 09-Mar-2009 : Added getAnnotations() method (DG);
- * 27-Mar-2009 : Added new findDomainBounds() and findRangeBounds() methods to
- *               take account of hidden series (DG);
- * 01-Apr-2009 : Moved defaultEntityRadius up to superclass (DG);
- * 
+ *
  */
 
 package org.jfree.chart.renderer.xy;
@@ -127,8 +123,6 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -181,11 +175,27 @@ public abstract class AbstractXYItemRenderer extends AbstractRenderer
     /** The plot. */
     private XYPlot plot;
 
+    /**
+     * The item label generator for ALL series.
+     *
+     * @deprecated This field is redundant, use itemLabelGeneratorList and
+     *     baseItemLabelGenerator instead.  Deprecated as of version 1.0.6.
+     */
+    private XYItemLabelGenerator itemLabelGenerator;
+
     /** A list of item label generators (one per series). */
     private ObjectList itemLabelGeneratorList;
 
     /** The base item label generator. */
     private XYItemLabelGenerator baseItemLabelGenerator;
+
+    /**
+     * The tool tip generator for ALL series.
+     *
+     * @deprecated This field is redundant, use tooltipGeneratorList and
+     *     baseToolTipGenerator instead.  Deprecated as of version 1.0.6.
+     */
+    private XYToolTipGenerator toolTipGenerator;
 
     /** A list of tool tip generators (one per series). */
     private ObjectList toolTipGeneratorList;
@@ -207,6 +217,9 @@ public abstract class AbstractXYItemRenderer extends AbstractRenderer
      * items).
      */
     private List foregroundAnnotations;
+
+    /** The default radius for the entity 'hotspot' */
+    private int defaultEntityRadius;
 
     /** The legend item label generator. */
     private XYSeriesLabelGenerator legendItemLabelGenerator;
@@ -230,6 +243,7 @@ public abstract class AbstractXYItemRenderer extends AbstractRenderer
         this.urlGenerator = null;
         this.backgroundAnnotations = new java.util.ArrayList();
         this.foregroundAnnotations = new java.util.ArrayList();
+        this.defaultEntityRadius = 3;
         this.legendItemLabelGenerator = new StandardXYSeriesLabelGenerator(
                 "{0}");
     }
@@ -331,6 +345,40 @@ public abstract class AbstractXYItemRenderer extends AbstractRenderer
     }
 
     /**
+     * Returns the item label generator override.
+     *
+     * @return The generator (possibly <code>null</code>).
+     *
+     * @since 1.0.5
+     *
+     * @see #setItemLabelGenerator(XYItemLabelGenerator)
+     *
+     * @deprecated As of version 1.0.6, this override setting should not be
+     *     used.  You can use the base setting instead
+     *     ({@link #getBaseItemLabelGenerator()}).
+     */
+    public XYItemLabelGenerator getItemLabelGenerator() {
+        return this.itemLabelGenerator;
+    }
+
+    /**
+     * Sets the item label generator for ALL series and sends a
+     * {@link RendererChangeEvent} to all registered listeners.
+     *
+     * @param generator  the generator (<code>null</code> permitted).
+     *
+     * @see #getItemLabelGenerator()
+     *
+     * @deprecated As of version 1.0.6, this override setting should not be
+     *     used.  You can use the base setting instead
+     *     ({@link #setBaseItemLabelGenerator(XYItemLabelGenerator)}).
+     */
+    public void setItemLabelGenerator(XYItemLabelGenerator generator) {
+        this.itemLabelGenerator = generator;
+        fireChangeEvent();
+    }
+
+    /**
      * Sets the item label generator for a series and sends a
      * {@link RendererChangeEvent} to all registered listeners.
      *
@@ -388,6 +436,40 @@ public abstract class AbstractXYItemRenderer extends AbstractRenderer
             generator = this.baseToolTipGenerator;
         }
         return generator;
+    }
+
+    /**
+     * Returns the override tool tip generator.
+     *
+     * @return The tool tip generator (possible <code>null</code>).
+     *
+     * @since 1.0.5
+     *
+     * @see #setToolTipGenerator(XYToolTipGenerator)
+     *
+     * @deprecated As of version 1.0.6, this override setting should not be
+     *     used.  You can use the base setting instead
+     *     ({@link #getBaseToolTipGenerator()}).
+     */
+    public XYToolTipGenerator getToolTipGenerator() {
+        return this.toolTipGenerator;
+    }
+
+    /**
+     * Sets the tool tip generator for ALL series and sends a
+     * {@link RendererChangeEvent} to all registered listeners.
+     *
+     * @param generator  the generator (<code>null</code> permitted).
+     *
+     * @see #getToolTipGenerator()
+     *
+     * @deprecated As of version 1.0.6, this override setting should not be
+     *     used.  You can use the base setting instead
+     *     ({@link #setBaseToolTipGenerator(XYToolTipGenerator)}).
+     */
+    public void setToolTipGenerator(XYToolTipGenerator generator) {
+        this.toolTipGenerator = generator;
+        fireChangeEvent();
     }
 
     /**
@@ -524,18 +606,27 @@ public abstract class AbstractXYItemRenderer extends AbstractRenderer
     }
 
     /**
-     * Returns a collection of the annotations that are assigned to the
-     * renderer.
+     * Returns the radius of the circle used for the default entity area
+     * when no area is specified.
      *
-     * @return A collection of annotations (possibly empty but never
-     *     <code>null</code>).
-     * 
-     * @since 1.0.13
+     * @return A radius.
+     *
+     * @see #setDefaultEntityRadius(int)
      */
-    public Collection getAnnotations() {
-        List result = new java.util.ArrayList(this.foregroundAnnotations);
-        result.addAll(this.backgroundAnnotations);
-        return result;
+    public int getDefaultEntityRadius() {
+        return this.defaultEntityRadius;
+    }
+
+    /**
+     * Sets the radius of the circle used for the default entity area
+     * when no area is specified.
+     *
+     * @param radius  the radius.
+     *
+     * @see #getDefaultEntityRadius()
+     */
+    public void setDefaultEntityRadius(int radius) {
+        this.defaultEntityRadius = radius;
     }
 
     /**
@@ -626,38 +717,11 @@ public abstract class AbstractXYItemRenderer extends AbstractRenderer
      * @see #findRangeBounds(XYDataset)
      */
     public Range findDomainBounds(XYDataset dataset) {
-        return findDomainBounds(dataset, false);
-    }
-
-    /**
-     * Returns the lower and upper bounds (range) of the x-values in the
-     * specified dataset.
-     *
-     * @param dataset  the dataset (<code>null</code> permitted).
-     *
-     * @return The range (<code>null</code> if the dataset is <code>null</code>
-     *         or empty).
-     *
-     * @since 1.0.13
-     */
-    protected Range findDomainBounds(XYDataset dataset,
-            boolean includeInterval) {
-        if (dataset == null) {
-            return null;
-        }
-        if (getDataBoundsIncludesVisibleSeriesOnly()) {
-            List visibleSeriesKeys = new ArrayList();
-            int seriesCount = dataset.getSeriesCount();
-            for (int s = 0; s < seriesCount; s++) {
-                if (isSeriesVisible(s)) {
-                    visibleSeriesKeys.add(dataset.getSeriesKey(s));
-                }
-            }
-            return DatasetUtilities.findDomainBounds(dataset,
-                    visibleSeriesKeys, includeInterval);
+        if (dataset != null) {
+            return DatasetUtilities.findDomainBounds(dataset, false);
         }
         else {
-            return DatasetUtilities.findDomainBounds(dataset, includeInterval);
+            return null;
         }
     }
 
@@ -673,56 +737,11 @@ public abstract class AbstractXYItemRenderer extends AbstractRenderer
      * @see #findDomainBounds(XYDataset)
      */
     public Range findRangeBounds(XYDataset dataset) {
-        return findRangeBounds(dataset, false);
-    }
-
-    /**
-     * Returns the range of values the renderer requires to display all the
-     * items from the specified dataset.
-     *
-     * @param dataset  the dataset (<code>null</code> permitted).
-     *
-     * @return The range (<code>null</code> if the dataset is <code>null</code>
-     *         or empty).
-     *
-     * @since 1.0.13
-     */
-    protected Range findRangeBounds(XYDataset dataset,
-            boolean includeInterval) {
-        if (dataset == null) {
-            return null;
-        }
-        if (getDataBoundsIncludesVisibleSeriesOnly()) {
-            List visibleSeriesKeys = new ArrayList();
-            int seriesCount = dataset.getSeriesCount();
-            for (int s = 0; s < seriesCount; s++) {
-                if (isSeriesVisible(s)) {
-                    visibleSeriesKeys.add(dataset.getSeriesKey(s));
-                }
-            }
-            // the bounds should be calculated using just the items within
-            // the current range of the x-axis...if there is one
-            Range xRange = null;
-            XYPlot p = getPlot();
-            if (p != null) {
-                ValueAxis xAxis = null;
-                int index = p.getIndexOf(this);
-                if (index >= 0) {
-                    xAxis = plot.getDomainAxisForDataset(index);
-                }
-                if (xAxis != null) {
-                    xRange = xAxis.getRange();
-                }
-            }
-            if (xRange == null) {
-                xRange = new Range(Double.NEGATIVE_INFINITY,
-                        Double.POSITIVE_INFINITY);
-            }
-            return DatasetUtilities.findRangeBounds(dataset,
-                    visibleSeriesKeys, xRange, includeInterval);
+        if (dataset != null) {
+            return DatasetUtilities.findRangeBounds(dataset, false);
         }
         else {
-            return DatasetUtilities.findRangeBounds(dataset, includeInterval);
+            return null;
         }
     }
 
@@ -1514,6 +1533,9 @@ public abstract class AbstractXYItemRenderer extends AbstractRenderer
         if (!this.backgroundAnnotations.equals(that.backgroundAnnotations)) {
             return false;
         }
+        if (this.defaultEntityRadius != that.defaultEntityRadius) {
+            return false;
+        }
         if (!ObjectUtilities.equal(this.legendItemLabelGenerator,
                 that.legendItemLabelGenerator)) {
             return false;
@@ -1541,6 +1563,31 @@ public abstract class AbstractXYItemRenderer extends AbstractRenderer
             result = p.getDrawingSupplier();
         }
         return result;
+    }
+
+    /**
+     * Considers the current (x, y) coordinate and updates the crosshair point
+     * if it meets the criteria (usually means the (x, y) coordinate is the
+     * closest to the anchor point so far).
+     *
+     * @param crosshairState  the crosshair state (<code>null</code> permitted,
+     *                        but the method does nothing in that case).
+     * @param x  the x-value (in data space).
+     * @param y  the y-value (in data space).
+     * @param transX  the x-value translated to Java2D space.
+     * @param transY  the y-value translated to Java2D space.
+     * @param orientation  the plot orientation (<code>null</code> not
+     *                     permitted).
+     *
+     * @deprecated Use {@link #updateCrosshairValues(CrosshairState, double,
+     *         double, int, int, double, double, PlotOrientation)} -- see bug
+     *         report 1086307.
+     */
+    protected void updateCrosshairValues(CrosshairState crosshairState,
+            double x, double y, double transX, double transY,
+            PlotOrientation orientation) {
+        updateCrosshairValues(crosshairState, x, y, 0, 0, transX, transY,
+                orientation);
     }
 
     /**
@@ -1695,13 +1742,16 @@ public abstract class AbstractXYItemRenderer extends AbstractRenderer
         }
         Shape hotspot = area;
         if (hotspot == null) {
-            double r = getDefaultEntityRadius();
-            double w = r * 2;
+            double w = this.defaultEntityRadius * 2;
             if (getPlot().getOrientation() == PlotOrientation.VERTICAL) {
-                hotspot = new Ellipse2D.Double(entityX - r, entityY - r, w, w);
+                hotspot = new Ellipse2D.Double(
+                        entityX - this.defaultEntityRadius,
+                        entityY - this.defaultEntityRadius, w, w);
             }
             else {
-                hotspot = new Ellipse2D.Double(entityY - r, entityX - r, w, w);
+                hotspot = new Ellipse2D.Double(
+                        entityY - this.defaultEntityRadius,
+                        entityX - this.defaultEntityRadius, w, w);
             }
         }
         String tip = null;
@@ -1736,117 +1786,5 @@ public abstract class AbstractXYItemRenderer extends AbstractRenderer
         return (x >= rect.getMinX() && x <= rect.getMaxX()
                 && y >= rect.getMinY() && y <= rect.getMaxY());
     }
-
-    // === DEPRECATED CODE ===
-
-    /**
-     * The item label generator for ALL series.
-     *
-     * @deprecated This field is redundant, use itemLabelGeneratorList and
-     *     baseItemLabelGenerator instead.  Deprecated as of version 1.0.6.
-     */
-    private XYItemLabelGenerator itemLabelGenerator;
-
-    /**
-     * The tool tip generator for ALL series.
-     *
-     * @deprecated This field is redundant, use tooltipGeneratorList and
-     *     baseToolTipGenerator instead.  Deprecated as of version 1.0.6.
-     */
-    private XYToolTipGenerator toolTipGenerator;
-
-    /**
-     * Returns the item label generator override.
-     *
-     * @return The generator (possibly <code>null</code>).
-     *
-     * @since 1.0.5
-     *
-     * @see #setItemLabelGenerator(XYItemLabelGenerator)
-     *
-     * @deprecated As of version 1.0.6, this override setting should not be
-     *     used.  You can use the base setting instead
-     *     ({@link #getBaseItemLabelGenerator()}).
-     */
-    public XYItemLabelGenerator getItemLabelGenerator() {
-        return this.itemLabelGenerator;
-    }
-
-    /**
-     * Sets the item label generator for ALL series and sends a
-     * {@link RendererChangeEvent} to all registered listeners.
-     *
-     * @param generator  the generator (<code>null</code> permitted).
-     *
-     * @see #getItemLabelGenerator()
-     *
-     * @deprecated As of version 1.0.6, this override setting should not be
-     *     used.  You can use the base setting instead
-     *     ({@link #setBaseItemLabelGenerator(XYItemLabelGenerator)}).
-     */
-    public void setItemLabelGenerator(XYItemLabelGenerator generator) {
-        this.itemLabelGenerator = generator;
-        fireChangeEvent();
-    }
-
-    /**
-     * Returns the override tool tip generator.
-     *
-     * @return The tool tip generator (possible <code>null</code>).
-     *
-     * @since 1.0.5
-     *
-     * @see #setToolTipGenerator(XYToolTipGenerator)
-     *
-     * @deprecated As of version 1.0.6, this override setting should not be
-     *     used.  You can use the base setting instead
-     *     ({@link #getBaseToolTipGenerator()}).
-     */
-    public XYToolTipGenerator getToolTipGenerator() {
-        return this.toolTipGenerator;
-    }
-
-    /**
-     * Sets the tool tip generator for ALL series and sends a
-     * {@link RendererChangeEvent} to all registered listeners.
-     *
-     * @param generator  the generator (<code>null</code> permitted).
-     *
-     * @see #getToolTipGenerator()
-     *
-     * @deprecated As of version 1.0.6, this override setting should not be
-     *     used.  You can use the base setting instead
-     *     ({@link #setBaseToolTipGenerator(XYToolTipGenerator)}).
-     */
-    public void setToolTipGenerator(XYToolTipGenerator generator) {
-        this.toolTipGenerator = generator;
-        fireChangeEvent();
-    }
-
-    /**
-     * Considers the current (x, y) coordinate and updates the crosshair point
-     * if it meets the criteria (usually means the (x, y) coordinate is the
-     * closest to the anchor point so far).
-     *
-     * @param crosshairState  the crosshair state (<code>null</code> permitted,
-     *                        but the method does nothing in that case).
-     * @param x  the x-value (in data space).
-     * @param y  the y-value (in data space).
-     * @param transX  the x-value translated to Java2D space.
-     * @param transY  the y-value translated to Java2D space.
-     * @param orientation  the plot orientation (<code>null</code> not
-     *                     permitted).
-     *
-     * @deprecated Use {@link #updateCrosshairValues(CrosshairState, double,
-     *         double, int, int, double, double, PlotOrientation)} -- see bug
-     *         report 1086307.
-     */
-    protected void updateCrosshairValues(CrosshairState crosshairState,
-            double x, double y, double transX, double transY,
-            PlotOrientation orientation) {
-        updateCrosshairValues(crosshairState, x, y, 0, 0, transX, transY,
-                orientation);
-    }
-
 
 }

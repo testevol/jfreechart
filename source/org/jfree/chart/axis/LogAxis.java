@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -27,11 +27,11 @@
  * ------------
  * LogAxis.java
  * ------------
- * (C) Copyright 2006-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2006-2008, by Object Refinery Limited and Contributors.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   Andrew Mickish (patch 1868745);
- *                   Peter Kolb (patches 1934255 and 2603321);
+ *                   Peter Kolb (patch 1934255);
  *
  * Changes
  * -------
@@ -47,13 +47,8 @@
  *               labels for vertical axis (DG);
  * 26-Mar-2008 : Changed createTickLabel() method from private to protected -
  *               see patch 1918209 by Andrew Mickish (DG);
- * 25-Sep-2008 : Moved minor tick fields up to superclass, see patch 1934255
+ * 25-Sep-2008 : Moved minor tick fields up to superclass, see patch 1934255 
  *               by Peter Kolb (DG);
- * 14-Jan-2009 : Fetch minor ticks from TickUnit, and corrected
- *               createLogTickUnits() (DG);
- * 21-Jan-2009 : No need to call setMinorTickCount() in constructor (DG);
- * 19-Mar-2009 : Added entity support - see patch 2603321 by Peter Kolb (DG);
- * 30-Mar-2009 : Added pan(double) method (DG);
  *
  */
 
@@ -75,7 +70,6 @@ import org.jfree.chart.event.AxisChangeEvent;
 import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotRenderingInfo;
 import org.jfree.chart.plot.ValueAxisPlot;
-import org.jfree.chart.util.LogFormat;
 import org.jfree.data.Range;
 import org.jfree.ui.RectangleEdge;
 import org.jfree.ui.RectangleInsets;
@@ -119,7 +113,8 @@ public class LogAxis extends ValueAxis {
     public LogAxis(String label) {
         super(label, createLogTickUnits(Locale.getDefault()));
         setDefaultAutoRange(new Range(0.01, 1.0));
-        this.tickUnit = new NumberTickUnit(1.0, new DecimalFormat("0.#"), 9);
+        this.tickUnit = new NumberTickUnit(1.0, new DecimalFormat("0.#"));
+        setMinorTickCount(9);
     }
 
     /**
@@ -455,7 +450,6 @@ public class LogAxis extends ValueAxis {
         }
         state = drawTickMarksAndLabels(g2, cursor, plotArea, dataArea, edge);
         state = drawLabel(getLabel(), g2, plotArea, dataArea, edge, state);
-        createAndAddEntity(cursor, state, dataArea, edge, plotState);
         return state;
     }
 
@@ -512,7 +506,6 @@ public class LogAxis extends ValueAxis {
         if (isAutoTickUnitSelection()) {
             selectAutoTickUnit(g2, dataArea, edge);
         }
-        int minorTickCount = this.tickUnit.getMinorTickCount();
         double start = Math.floor(calculateLog(getLowerBound()));
         double end = Math.ceil(calculateLog(getUpperBound()));
         double current = start;
@@ -525,8 +518,8 @@ public class LogAxis extends ValueAxis {
             // add minor ticks (for gridlines)
             double next = Math.pow(this.base, current
                     + this.tickUnit.getSize());
-            for (int i = 1; i < minorTickCount; i++) {
-                double minorV = v + i * ((next - v) / minorTickCount);
+            for (int i = 1; i < getMinorTickCount(); i++) {
+                double minorV = v + i * ((next - v) / getMinorTickCount());
                 if (range.contains(minorV)) {
                     ticks.add(new NumberTick(TickType.MINOR, minorV, "",
                             textAnchor, TextAnchor.CENTER, 0.0));
@@ -564,7 +557,6 @@ public class LogAxis extends ValueAxis {
         if (isAutoTickUnitSelection()) {
             selectAutoTickUnit(g2, dataArea, edge);
         }
-        int minorTickCount = this.tickUnit.getMinorTickCount();
         double start = Math.floor(calculateLog(getLowerBound()));
         double end = Math.ceil(calculateLog(getUpperBound()));
         double current = start;
@@ -577,8 +569,8 @@ public class LogAxis extends ValueAxis {
             // add minor ticks (for gridlines)
             double next = Math.pow(this.base, current
                     + this.tickUnit.getSize());
-            for (int i = 1; i < minorTickCount; i++) {
-                double minorV = v + i * ((next - v) / minorTickCount);
+            for (int i = 1; i < getMinorTickCount(); i++) {
+                double minorV = v + i * ((next - v) / getMinorTickCount());
                 if (range.contains(minorV)) {
                     ticks.add(new NumberTick(TickType.MINOR, minorV, "",
                             textAnchor, TextAnchor.CENTER, 0.0));
@@ -814,26 +806,6 @@ public class LogAxis extends ValueAxis {
     }
 
     /**
-     * Slides the axis range by the specified percentage.
-     *
-     * @param percent  the percentage.
-     *
-     * @since 1.0.13
-     */
-    public void pan(double percent) {
-        Range range = getRange();
-        double lower = range.getLowerBound();
-        double upper = range.getUpperBound();
-        double log1 = calculateLog(lower);
-        double log2 = calculateLog(upper);
-        double length = log2 - log1;
-        double adj = length * percent;
-        log1 = log1 + adj;
-        log2 = log2 + adj;
-        setRange(calculateValue(log1), calculateValue(log2));
-    }
-
-    /**
      * Creates a tick label for the specified value.  Note that this method
      * was 'private' prior to version 1.0.10.
      *
@@ -905,23 +877,44 @@ public class LogAxis extends ValueAxis {
      * @since 1.0.7
      */
     public static TickUnitSource createLogTickUnits(Locale locale) {
-        TickUnits units = new TickUnits();
-        NumberFormat numberFormat = new LogFormat();
-        units.add(new NumberTickUnit(0.05, numberFormat, 2));
-        units.add(new NumberTickUnit(0.1, numberFormat, 10));
-        units.add(new NumberTickUnit(0.2, numberFormat, 2));
-        units.add(new NumberTickUnit(0.5, numberFormat, 5));
-        units.add(new NumberTickUnit(1, numberFormat, 10));
-        units.add(new NumberTickUnit(2, numberFormat, 10));
-        units.add(new NumberTickUnit(3, numberFormat, 15));
-        units.add(new NumberTickUnit(4, numberFormat, 20));
-        units.add(new NumberTickUnit(5, numberFormat, 25));
-        units.add(new NumberTickUnit(6, numberFormat));
-        units.add(new NumberTickUnit(7, numberFormat));
-        units.add(new NumberTickUnit(8, numberFormat));
-        units.add(new NumberTickUnit(9, numberFormat));
-        units.add(new NumberTickUnit(10, numberFormat));
-        return units;
-    }
 
+        TickUnits units = new TickUnits();
+
+        NumberFormat numberFormat = NumberFormat.getNumberInstance(locale);
+
+        units.add(new NumberTickUnit(1, numberFormat));
+        units.add(new NumberTickUnit(2, numberFormat));
+        units.add(new NumberTickUnit(5, numberFormat));
+        units.add(new NumberTickUnit(10, numberFormat));
+        units.add(new NumberTickUnit(20, numberFormat));
+        units.add(new NumberTickUnit(50, numberFormat));
+        units.add(new NumberTickUnit(100, numberFormat));
+        units.add(new NumberTickUnit(200, numberFormat));
+        units.add(new NumberTickUnit(500, numberFormat));
+        units.add(new NumberTickUnit(1000, numberFormat));
+        units.add(new NumberTickUnit(2000, numberFormat));
+        units.add(new NumberTickUnit(5000, numberFormat));
+        units.add(new NumberTickUnit(10000, numberFormat));
+        units.add(new NumberTickUnit(20000, numberFormat));
+        units.add(new NumberTickUnit(50000, numberFormat));
+        units.add(new NumberTickUnit(100000, numberFormat));
+        units.add(new NumberTickUnit(200000, numberFormat));
+        units.add(new NumberTickUnit(500000, numberFormat));
+        units.add(new NumberTickUnit(1000000, numberFormat));
+        units.add(new NumberTickUnit(2000000, numberFormat));
+        units.add(new NumberTickUnit(5000000, numberFormat));
+        units.add(new NumberTickUnit(10000000, numberFormat));
+        units.add(new NumberTickUnit(20000000, numberFormat));
+        units.add(new NumberTickUnit(50000000, numberFormat));
+        units.add(new NumberTickUnit(100000000, numberFormat));
+        units.add(new NumberTickUnit(200000000, numberFormat));
+        units.add(new NumberTickUnit(500000000, numberFormat));
+        units.add(new NumberTickUnit(1000000000, numberFormat));
+        units.add(new NumberTickUnit(2000000000, numberFormat));
+        units.add(new NumberTickUnit(5000000000.0, numberFormat));
+        units.add(new NumberTickUnit(10000000000.0, numberFormat));
+
+        return units;
+
+    }
 }

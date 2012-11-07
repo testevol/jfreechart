@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -27,10 +27,10 @@
  * ------------------
  * DataUtilities.java
  * ------------------
- * (C) Copyright 2003-2009, by Object Refinery Limited and contributors.
+ * (C) Copyright 2003-2008, by Object Refinery Limited.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
- * Contributor(s):   Peter Kolb (patch 2511330);
+ * Contributor(s):   -;
  *
  * Changes
  * -------
@@ -39,15 +39,11 @@
  *               from the DatasetUtilities class (DG);
  * 17-May-2005 : Added calculateColumnTotal() and calculateRowTotal()
  *               methods (DG);
- * 28-Jan-2009 : Added equal(double[][], double[][]) method (DG);
- * 28-Jan-2009 : Added clone(double[][]) method (DG);
- * 04-Feb-2009 : Added calculateColumnTotal/RowTotal variants (PK);
  *
  */
 
 package org.jfree.data;
 
-import java.util.Arrays;
 import org.jfree.data.general.DatasetUtilities;
 
 /**
@@ -55,61 +51,6 @@ import org.jfree.data.general.DatasetUtilities;
  * see {@link DatasetUtilities}).
  */
 public abstract class DataUtilities {
-
-    /**
-     * Tests two arrays for equality.  To be considered equal, the arrays must
-     * have exactly the same dimensions, and the values in each array must also
-     * match (two values that qre both NaN or both INF are considered equal
-     * in this test).
-     *
-     * @param a  the first array (<code>null</code> permitted).
-     * @param b  the second array (<code>null</code> permitted).
-     *
-     * @return A boolean.
-     *
-     * @since 1.0.13
-     */
-    public static boolean equal(double[][] a, double[][] b) {
-        if (a == null) {
-            return (b == null);
-        }
-        if (b == null) {
-            return false;  // already know 'a' isn't null
-        }
-        if (a.length != b.length) {
-            return false;
-        }
-        for (int i = 0; i < a.length; i++) {
-            if (!Arrays.equals(a[i], b[i])) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Returns a clone of the specified array.
-     *
-     * @param source  the source array (<code>null</code> not permitted).
-     *
-     * @return A clone of the array.
-     *
-     * @since 1.0.13
-     */
-    public static double[][] clone(double[][] source) {
-        if (source == null) {
-            throw new IllegalArgumentException("Null 'source' argument.");
-        }
-        double[][] clone = new double[source.length][];
-        for (int i = 0; i < source.length; i++) {
-            if (source[i] != null) {
-                double[] row = new double[source[i].length];
-                System.arraycopy(source[i], 0, row, 0, source[i].length);
-                clone[i] = row;
-            }
-        }
-        return clone;
-    }
 
     /**
      * Returns the total of the values in one column of the supplied data
@@ -121,9 +62,6 @@ public abstract class DataUtilities {
      * @return The total of the values in the specified column.
      */
     public static double calculateColumnTotal(Values2D data, int column) {
-        if (data == null) {
-            throw new IllegalArgumentException("Null 'data' argument.");
-        }
         double total = 0.0;
         int rowCount = data.getRowCount();
         for (int r = 0; r < rowCount; r++) {
@@ -131,37 +69,6 @@ public abstract class DataUtilities {
             if (n != null) {
                 total += n.doubleValue();
             }
-        }
-        return total;
-    }
-
-    /**
-     * Returns the total of the values in one column of the supplied data
-     * table by taking only the row numbers in the array into account.
-     *
-     * @param data  the table of values (<code>null</code> not permitted).
-     * @param column  the column index (zero-based).
-     * @param validRows the array with valid rows (zero-based).
-     *
-     * @return The total of the valid values in the specified column.
-     *
-     * @since 1.0.13
-     */
-     public static double calculateColumnTotal(Values2D data, int column,
-             int[] validRows) {
-        if (data == null) {
-            throw new IllegalArgumentException("Null 'data' argument.");
-        }
-        double total = 0.0;
-        int rowCount = data.getRowCount();
-        for (int v = 0; v < validRows.length; v++) {
-        	int row = validRows[v];
-        	if (row < rowCount) {
-	            Number n = data.getValue(row, column);
-	            if (n != null) {
-	                total += n.doubleValue();
-	            }
-        	}
         }
         return total;
     }
@@ -176,9 +83,6 @@ public abstract class DataUtilities {
      * @return The total of the values in the specified row.
      */
     public static double calculateRowTotal(Values2D data, int row) {
-        if (data == null) {
-            throw new IllegalArgumentException("Null 'data' argument.");
-        }
         double total = 0.0;
         int columnCount = data.getColumnCount();
         for (int c = 0; c < columnCount; c++) {
@@ -186,37 +90,6 @@ public abstract class DataUtilities {
             if (n != null) {
                 total += n.doubleValue();
             }
-        }
-        return total;
-    }
-
-    /**
-     * Returns the total of the values in one row of the supplied data
-     * table by taking only the column numbers in the array into account.
-     *
-     * @param data  the table of values (<code>null</code> not permitted).
-     * @param row  the row index (zero-based).
-     * @param validCols the array with valid cols (zero-based).
-     *
-     * @return The total of the valid values in the specified row.
-     *
-     * @since 1.0.13
-     */
-     public static double calculateRowTotal(Values2D data, int row,
-             int[] validCols) {
-        if (data == null) {
-            throw new IllegalArgumentException("Null 'data' argument.");
-        }
-        double total = 0.0;
-        int colCount = data.getColumnCount();
-        for (int v = 0; v < validCols.length; v++) {
-        	int col = validCols[v];
-        	if (col < colCount) {
-	            Number n = data.getValue(row, col);
-	            if (n != null) {
-	                total += n.doubleValue();
-	            }
-        	}
         }
         return total;
     }

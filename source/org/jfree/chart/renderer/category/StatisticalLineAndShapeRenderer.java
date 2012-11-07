@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -27,11 +27,10 @@
  * ------------------------------------
  * StatisticalLineAndShapeRenderer.java
  * ------------------------------------
- * (C) Copyright 2005-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2005-2008, by Object Refinery Limited and Contributors.
  *
  * Original Author:  Mofeed Shahin;
  * Contributor(s):   David Gilbert (for Object Refinery Limited);
- *                   Peter Kolb (patch 2497611);
  *
  * Changes
  * -------
@@ -48,12 +47,7 @@
  *               to the drawing behaviour of LineAndShapeRenderer (DG);
  * 27-Sep-2007 : Added offset option to match new option in
  *               LineAndShapeRenderer (DG);
- * 14-Jan-2009 : Added support for seriesVisible flags (PK);
- * 23-Jan-2009 : Observe useFillPaint and drawOutlines flags (PK);
- * 23-Jan-2009 : In drawItem, divide code into passes (DG);
- * 05-Feb-2009 : Added errorIndicatorStroke field (DG);
- * 01-Apr-2009 : Added override for findRangeBounds(), and fixed NPE in
- *               creating item entities (DG);
+ *
  */
 
 package org.jfree.chart.renderer.category;
@@ -61,7 +55,6 @@ package org.jfree.chart.renderer.category;
 import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.Shape;
-import java.awt.Stroke;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
@@ -69,19 +62,16 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
-import org.jfree.chart.HashUtilities;
 import org.jfree.chart.axis.CategoryAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.entity.EntityCollection;
 import org.jfree.chart.event.RendererChangeEvent;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.data.Range;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.statistics.StatisticalCategoryDataset;
 import org.jfree.io.SerialUtilities;
 import org.jfree.ui.RectangleEdge;
-import org.jfree.util.ObjectUtilities;
 import org.jfree.util.PaintUtilities;
 import org.jfree.util.PublicCloneable;
 import org.jfree.util.ShapeUtilities;
@@ -105,14 +95,6 @@ public class StatisticalLineAndShapeRenderer extends LineAndShapeRenderer
     /** The paint used to show the error indicator. */
     private transient Paint errorIndicatorPaint;
 
-    /** 
-     * The stroke used to draw the error indicators.  If null, the renderer
-     * will use the itemOutlineStroke.
-     * 
-     * @since 1.0.13
-     */
-    private transient Stroke errorIndicatorStroke;
-
     /**
      * Constructs a default renderer (draws shapes and lines).
      */
@@ -130,7 +112,6 @@ public class StatisticalLineAndShapeRenderer extends LineAndShapeRenderer
                                            boolean shapesVisible) {
         super(linesVisible, shapesVisible);
         this.errorIndicatorPaint = null;
-        this.errorIndicatorStroke = null;
     }
 
     /**
@@ -147,7 +128,7 @@ public class StatisticalLineAndShapeRenderer extends LineAndShapeRenderer
 
     /**
      * Sets the paint used for the error indicators (if <code>null</code>,
-     * the item paint is used instead) and sends a
+     * the item outline paint is used instead) and sends a
      * {@link RendererChangeEvent} to all registered listeners.
      *
      * @param paint  the paint (<code>null</code> permitted).
@@ -157,49 +138,6 @@ public class StatisticalLineAndShapeRenderer extends LineAndShapeRenderer
     public void setErrorIndicatorPaint(Paint paint) {
         this.errorIndicatorPaint = paint;
         fireChangeEvent();
-    }
-
-    /**
-     * Returns the stroke used for the error indicators.
-     *
-     * @return The stroke used for the error indicators (possibly
-     *         <code>null</code>).
-     *
-     * @see #setErrorIndicatorStroke(Stroke)
-     *
-     * @since 1.0.13
-     */
-    public Stroke getErrorIndicatorStroke() {
-        return this.errorIndicatorStroke;
-    }
-
-    /**
-     * Sets the stroke used for the error indicators (if <code>null</code>,
-     * the item outline stroke is used instead) and sends a
-     * {@link RendererChangeEvent} to all registered listeners.
-     *
-     * @param stroke  the stroke (<code>null</code> permitted).
-     *
-     * @see #getErrorIndicatorStroke()
-     *
-     * @since 1.0.13
-     */
-    public void setErrorIndicatorStroke(Stroke stroke) {
-        this.errorIndicatorStroke = stroke;
-        fireChangeEvent();
-    }
-
-    /**
-     * Returns the range of values the renderer requires to display all the
-     * items from the specified dataset.
-     *
-     * @param dataset  the dataset (<code>null</code> permitted).
-     *
-     * @return The range (or <code>null</code> if the dataset is
-     *         <code>null</code> or empty).
-     */
-    public Range findRangeBounds(CategoryDataset dataset) {
-        return findRangeBounds(dataset, true);
     }
 
     /**
@@ -233,6 +171,12 @@ public class StatisticalLineAndShapeRenderer extends LineAndShapeRenderer
             return;
         }
 
+        // nothing is drawn for null...
+        Number v = dataset.getValue(row, column);
+        if (v == null) {
+            return;
+        }
+
         // if the dataset is not a StatisticalCategoryDataset then just revert
         // to the superclass (LineAndShapeRenderer) behaviour...
         if (!(dataset instanceof StatisticalCategoryDataset)) {
@@ -241,119 +185,42 @@ public class StatisticalLineAndShapeRenderer extends LineAndShapeRenderer
             return;
         }
 
-        int visibleRow = state.getVisibleSeriesIndex(row);
-        if (visibleRow < 0) {
-            return;
-        }
-		int visibleRowCount = state.getVisibleSeriesCount();
-
-        StatisticalCategoryDataset statDataset
+        StatisticalCategoryDataset statData
                 = (StatisticalCategoryDataset) dataset;
-        Number meanValue = statDataset.getMeanValue(row, column);
-        if (meanValue == null) {
-            return;
-        }
+
+        Number meanValue = statData.getMeanValue(row, column);
+
         PlotOrientation orientation = plot.getOrientation();
 
         // current data point...
         double x1;
         if (getUseSeriesOffset()) {
-            x1 = domainAxis.getCategorySeriesMiddle(column,
-                    dataset.getColumnCount(),
-					visibleRow, visibleRowCount,
-                    getItemMargin(), dataArea, plot.getDomainAxisEdge());
+            x1 = domainAxis.getCategorySeriesMiddle(dataset.getColumnKey(
+                    column), dataset.getRowKey(row), dataset, getItemMargin(),
+                    dataArea, plot.getDomainAxisEdge());
         }
         else {
             x1 = domainAxis.getCategoryMiddle(column, getColumnCount(),
                     dataArea, plot.getDomainAxisEdge());
         }
+
         double y1 = rangeAxis.valueToJava2D(meanValue.doubleValue(), dataArea,
                 plot.getRangeAxisEdge());
 
-        // draw the standard deviation lines *before* the shapes (if they're
-        // visible) - it looks better if the shape fill colour is different to
-        // the line colour
-        Number sdv = statDataset.getStdDevValue(row, column);
-        if (pass == 1 && sdv != null) {
-            //standard deviation lines
-            RectangleEdge yAxisLocation = plot.getRangeAxisEdge();
-            double valueDelta = sdv.doubleValue();
-            double highVal, lowVal;
-            if ((meanValue.doubleValue() + valueDelta)
-                    > rangeAxis.getRange().getUpperBound()) {
-                highVal = rangeAxis.valueToJava2D(
-                        rangeAxis.getRange().getUpperBound(), dataArea,
-                        yAxisLocation);
-            }
-            else {
-                highVal = rangeAxis.valueToJava2D(meanValue.doubleValue()
-                        + valueDelta, dataArea, yAxisLocation);
-            }
-
-            if ((meanValue.doubleValue() + valueDelta)
-                    < rangeAxis.getRange().getLowerBound()) {
-                lowVal = rangeAxis.valueToJava2D(
-                        rangeAxis.getRange().getLowerBound(), dataArea,
-                        yAxisLocation);
-            }
-            else {
-                lowVal = rangeAxis.valueToJava2D(meanValue.doubleValue()
-                        - valueDelta, dataArea, yAxisLocation);
-            }
-
-            if (this.errorIndicatorPaint != null) {
-                g2.setPaint(this.errorIndicatorPaint);
-            }
-            else {
-                g2.setPaint(getItemPaint(row, column));
-            }
-            if (this.errorIndicatorStroke != null) {
-                g2.setStroke(this.errorIndicatorStroke);
-            }
-            else {
-                g2.setStroke(getItemOutlineStroke(row, column));
-            }
-            Line2D line = new Line2D.Double();
-            if (orientation == PlotOrientation.HORIZONTAL) {
-                line.setLine(lowVal, x1, highVal, x1);
-                g2.draw(line);
-                line.setLine(lowVal, x1 - 5.0d, lowVal, x1 + 5.0d);
-                g2.draw(line);
-                line.setLine(highVal, x1 - 5.0d, highVal, x1 + 5.0d);
-                g2.draw(line);
-            }
-            else {  // PlotOrientation.VERTICAL
-                line.setLine(x1, lowVal, x1, highVal);
-                g2.draw(line);
-                line.setLine(x1 - 5.0d, highVal, x1 + 5.0d, highVal);
-                g2.draw(line);
-                line.setLine(x1 - 5.0d, lowVal, x1 + 5.0d, lowVal);
-                g2.draw(line);
-            }
-
+        Shape shape = getItemShape(row, column);
+        if (orientation == PlotOrientation.HORIZONTAL) {
+            shape = ShapeUtilities.createTranslatedShape(shape, y1, x1);
         }
+        else if (orientation == PlotOrientation.VERTICAL) {
+            shape = ShapeUtilities.createTranslatedShape(shape, x1, y1);
+        }
+        if (getItemShapeVisible(row, column)) {
 
-        Shape hotspot = null;
-        if (pass == 1 && getItemShapeVisible(row, column)) {
-            Shape shape = getItemShape(row, column);
-            if (orientation == PlotOrientation.HORIZONTAL) {
-                shape = ShapeUtilities.createTranslatedShape(shape, y1, x1);
-            }
-            else if (orientation == PlotOrientation.VERTICAL) {
-                shape = ShapeUtilities.createTranslatedShape(shape, x1, y1);
-            }
-            hotspot = shape;
-            
             if (getItemShapeFilled(row, column)) {
-                if (getUseFillPaint()) {
-                    g2.setPaint(getItemFillPaint(row, column));
-                }
-                else {
-                    g2.setPaint(getItemPaint(row, column));
-                }
+                g2.setPaint(getItemPaint(row, column));
                 g2.fill(shape);
             }
-            if (getDrawOutlines()) {
+            else {
                 if (getUseOutlinePaint()) {
                     g2.setPaint(getItemOutlinePaint(row, column));
                 }
@@ -363,23 +230,12 @@ public class StatisticalLineAndShapeRenderer extends LineAndShapeRenderer
                 g2.setStroke(getItemOutlineStroke(row, column));
                 g2.draw(shape);
             }
-            // draw the item label if there is one...
-            if (isItemLabelVisible(row, column)) {
-                if (orientation == PlotOrientation.HORIZONTAL) {
-                    drawItemLabel(g2, orientation, dataset, row, column,
-                            y1, x1, (meanValue.doubleValue() < 0.0));
-                }
-                else if (orientation == PlotOrientation.VERTICAL) {
-                    drawItemLabel(g2, orientation, dataset, row, column,
-                            x1, y1, (meanValue.doubleValue() < 0.0));
-                }
-            }
         }
 
-        if (pass == 0 && getItemLineVisible(row, column)) {
+        if (getItemLineVisible(row, column)) {
             if (column != 0) {
 
-                Number previousValue = statDataset.getValue(row, column - 1);
+                Number previousValue = statData.getValue(row, column - 1);
                 if (previousValue != null) {
 
                     // previous data point...
@@ -387,8 +243,8 @@ public class StatisticalLineAndShapeRenderer extends LineAndShapeRenderer
                     double x0;
                     if (getUseSeriesOffset()) {
                         x0 = domainAxis.getCategorySeriesMiddle(
-                                column - 1, dataset.getColumnCount(),
-                                visibleRow, visibleRowCount,
+                                dataset.getColumnKey(column - 1),
+                                dataset.getRowKey(row), dataset,
                                 getItemMargin(), dataArea,
                                 plot.getDomainAxisEdge());
                     }
@@ -414,12 +270,75 @@ public class StatisticalLineAndShapeRenderer extends LineAndShapeRenderer
             }
         }
 
-        if (pass == 1) {
-            // add an item entity, if this information is being collected
-            EntityCollection entities = state.getEntityCollection();
-            if (entities != null) {
-                addEntity(entities, hotspot, dataset, row, column, x1, y1);
+        RectangleEdge yAxisLocation = plot.getRangeAxisEdge();
+        g2.setPaint(getItemPaint(row, column));
+
+        //standard deviation lines
+        double valueDelta = statData.getStdDevValue(row, column).doubleValue();
+
+        double highVal, lowVal;
+        if ((meanValue.doubleValue() + valueDelta)
+                > rangeAxis.getRange().getUpperBound()) {
+            highVal = rangeAxis.valueToJava2D(
+                    rangeAxis.getRange().getUpperBound(), dataArea,
+                    yAxisLocation);
+        }
+        else {
+            highVal = rangeAxis.valueToJava2D(meanValue.doubleValue()
+                    + valueDelta, dataArea, yAxisLocation);
+        }
+
+        if ((meanValue.doubleValue() + valueDelta)
+                < rangeAxis.getRange().getLowerBound()) {
+            lowVal = rangeAxis.valueToJava2D(
+                    rangeAxis.getRange().getLowerBound(), dataArea,
+                    yAxisLocation);
+        }
+        else {
+            lowVal = rangeAxis.valueToJava2D(meanValue.doubleValue()
+                    - valueDelta, dataArea, yAxisLocation);
+        }
+
+        if (this.errorIndicatorPaint != null) {
+            g2.setPaint(this.errorIndicatorPaint);
+        }
+        else {
+            g2.setPaint(getItemPaint(row, column));
+        }
+        Line2D line = new Line2D.Double();
+        if (orientation == PlotOrientation.HORIZONTAL) {
+            line.setLine(lowVal, x1, highVal, x1);
+            g2.draw(line);
+            line.setLine(lowVal, x1 - 5.0d, lowVal, x1 + 5.0d);
+            g2.draw(line);
+            line.setLine(highVal, x1 - 5.0d, highVal, x1 + 5.0d);
+            g2.draw(line);
+        }
+        else {  // PlotOrientation.VERTICAL
+            line.setLine(x1, lowVal, x1, highVal);
+            g2.draw(line);
+            line.setLine(x1 - 5.0d, highVal, x1 + 5.0d, highVal);
+            g2.draw(line);
+            line.setLine(x1 - 5.0d, lowVal, x1 + 5.0d, lowVal);
+            g2.draw(line);
+        }
+
+        // draw the item label if there is one...
+        if (isItemLabelVisible(row, column)) {
+            if (orientation == PlotOrientation.HORIZONTAL) {
+                drawItemLabel(g2, orientation, dataset, row, column,
+                        y1, x1, (meanValue.doubleValue() < 0.0));
             }
+            else if (orientation == PlotOrientation.VERTICAL) {
+                drawItemLabel(g2, orientation, dataset, row, column,
+                        x1, y1, (meanValue.doubleValue() < 0.0));
+            }
+        }
+
+        // add an item entity, if this information is being collected
+        EntityCollection entities = state.getEntityCollection();
+        if (entities != null && shape != null) {
+            addItemEntity(entities, dataset, row, column, shape);
         }
 
     }
@@ -444,22 +363,7 @@ public class StatisticalLineAndShapeRenderer extends LineAndShapeRenderer
                 that.errorIndicatorPaint)) {
             return false;
         }
-        if (!ObjectUtilities.equal(this.errorIndicatorStroke,
-                that.errorIndicatorStroke)) {
-            return false;
-        }
         return super.equals(obj);
-    }
-
-    /**
-     * Returns a hash code for this instance.
-     *
-     * @return A hash code.
-     */
-    public int hashCode() {
-        int hash = super.hashCode();
-        hash = HashUtilities.hashCode(hash, this.errorIndicatorPaint);
-        return hash;
     }
 
     /**
@@ -472,7 +376,6 @@ public class StatisticalLineAndShapeRenderer extends LineAndShapeRenderer
     private void writeObject(ObjectOutputStream stream) throws IOException {
         stream.defaultWriteObject();
         SerialUtilities.writePaint(this.errorIndicatorPaint, stream);
-        SerialUtilities.writeStroke(this.errorIndicatorStroke, stream);
     }
 
     /**
@@ -487,7 +390,6 @@ public class StatisticalLineAndShapeRenderer extends LineAndShapeRenderer
             throws IOException, ClassNotFoundException {
         stream.defaultReadObject();
         this.errorIndicatorPaint = SerialUtilities.readPaint(stream);
-        this.errorIndicatorStroke = SerialUtilities.readStroke(stream);
     }
 
 }
