@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,8 +21,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ----------------
  * XYPlotTests.java
@@ -44,8 +44,6 @@
  * 24-May-2007 : Added testDrawSeriesWithZeroItems() (DG);
  * 07-Apr-2008 : Added testRemoveDomainMarker() and
  *               testRemoveRangeMarker() (DG);
- * 10-May-2009 : Extended testEquals(), added testCloning3() (DG);
- * 06-Jul-2009 : Added testBug2817504() (DG);
  *
  */
 
@@ -74,7 +72,6 @@ import junit.framework.TestSuite;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.LegendItem;
 import org.jfree.chart.LegendItemCollection;
 import org.jfree.chart.annotations.XYTextAnnotation;
 import org.jfree.chart.axis.AxisLocation;
@@ -92,7 +89,6 @@ import org.jfree.chart.renderer.xy.StandardXYItemRenderer;
 import org.jfree.chart.renderer.xy.XYBarRenderer;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
-import org.jfree.chart.util.DefaultShadowGenerator;
 import org.jfree.data.time.Day;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
@@ -342,12 +338,6 @@ public class XYPlotTests extends TestCase {
         plot2.addRangeMarker(1, new ValueMarker(99.0), Layer.BACKGROUND);
         assertTrue(plot1.equals(plot2));
 
-        // fixed legend items
-        plot1.setFixedLegendItems(new LegendItemCollection());
-        assertFalse(plot1.equals(plot2));
-        plot2.setFixedLegendItems(new LegendItemCollection());
-        assertTrue(plot1.equals(plot2));
-
         // weight
         plot1.setWeight(3);
         assertFalse(plot1.equals(plot2));
@@ -437,28 +427,6 @@ public class XYPlotTests extends TestCase {
         assertFalse(plot1.equals(plot2));
         plot2.mapDatasetToRangeAxes(0, axisIndices);
         assertTrue(plot1.equals(plot2));
-        
-        // shadowGenerator
-        plot1.setShadowGenerator(new DefaultShadowGenerator(5, Color.gray,
-                0.6f, 4, -Math.PI / 4));
-        assertFalse(plot1.equals(plot2));
-        plot2.setShadowGenerator(new DefaultShadowGenerator(5, Color.gray,
-                0.6f, 4, -Math.PI / 4));
-        assertTrue(plot1.equals(plot2));
-
-        plot1.setShadowGenerator(null);
-        assertFalse(plot1.equals(plot2));
-        plot2.setShadowGenerator(null);
-        assertTrue(plot1.equals(plot2));
-
-        LegendItemCollection lic1 = new LegendItemCollection();
-        lic1.add(new LegendItem("XYZ", Color.red));
-        plot1.setFixedLegendItems(lic1);
-        assertFalse(plot1.equals(plot2));
-        LegendItemCollection lic2 = new LegendItemCollection();
-        lic2.add(new LegendItem("XYZ", Color.red));
-        plot2.setFixedLegendItems(lic2);
-        assertTrue(plot1.equals(plot2));
     }
 
     /**
@@ -500,55 +468,6 @@ public class XYPlotTests extends TestCase {
         assertTrue(p1 != p2);
         assertTrue(p1.getClass() == p2.getClass());
         assertTrue(p1.equals(p2));
-    }
-
-    /**
-     * Tests cloning for a plot where the fixed legend items have been
-     * specified.
-     */
-    public void testCloning3() {
-        XYPlot p1 = new XYPlot(null, new NumberAxis("Domain Axis"),
-                new NumberAxis("Range Axis"), new StandardXYItemRenderer());
-        LegendItemCollection c1 = new LegendItemCollection();
-        p1.setFixedLegendItems(c1);
-        XYPlot p2 = null;
-        try {
-            p2 = (XYPlot) p1.clone();
-        }
-        catch (CloneNotSupportedException e) {
-            e.printStackTrace();
-        }
-        assertTrue(p1 != p2);
-        assertTrue(p1.getClass() == p2.getClass());
-        assertTrue(p1.equals(p2));
-
-        // verify independence of fixed legend item collection
-        c1.add(new LegendItem("X"));
-        assertFalse(p1.equals(p2));
-    }
-
-    /**
-     * Tests cloning to ensure that the cloned plot is registered as a listener
-     * on the cloned renderer.
-     */
-    public void testCloning4() {
-        XYLineAndShapeRenderer r1 = new XYLineAndShapeRenderer();
-        XYPlot p1 = new XYPlot(null, new NumberAxis("Domain Axis"),
-                new NumberAxis("Range Axis"), r1);
-        XYPlot p2 = null;
-        try {
-            p2 = (XYPlot) p1.clone();
-        }
-        catch (CloneNotSupportedException e) {
-            e.printStackTrace();
-        }
-        assertTrue(p1 != p2);
-        assertTrue(p1.getClass() == p2.getClass());
-        assertTrue(p1.equals(p2));
-
-        // verify that the plot is listening to the cloned renderer
-        XYLineAndShapeRenderer r2 = (XYLineAndShapeRenderer) p2.getRenderer();
-        assertTrue(r2.hasListener(p2));
     }
 
     /**
@@ -594,30 +513,6 @@ public class XYPlotTests extends TestCase {
         assertFalse(p1.equals(p2));
         p2.setQuadrantPaint(1, Color.red);
         assertTrue(p1.equals(p2));
-    }
-
-    /**
-     * Renderers that belong to the plot are being cloned but they are
-     * retaining a reference to the original plot.
-     */
-    public void testBug2817504() {
-        XYPlot p1 = new XYPlot();
-        XYLineAndShapeRenderer r1 = new XYLineAndShapeRenderer();
-        p1.setRenderer(r1);
-        XYPlot p2 = null;
-        try {
-            p2 = (XYPlot) p1.clone();
-        }
-        catch (CloneNotSupportedException e) {
-            e.printStackTrace();
-        }
-        assertTrue(p1 != p2);
-        assertTrue(p1.getClass() == p2.getClass());
-        assertTrue(p1.equals(p2));
-
-        // check for independence
-        XYLineAndShapeRenderer r2 = (XYLineAndShapeRenderer) p2.getRenderer();
-        assertTrue(r2.getPlot() == p2);
     }
 
     /**
@@ -856,8 +751,9 @@ public class XYPlotTests extends TestCase {
             out.writeObject(chart);
             out.close();
 
-            ObjectInput in = new ObjectInputStream(new ByteArrayInputStream(
-                    buffer.toByteArray()));
+            ObjectInput in = new ObjectInputStream(
+                new ByteArrayInputStream(buffer.toByteArray())
+            );
             chart2 = (JFreeChart) in.readObject();
             in.close();
         }

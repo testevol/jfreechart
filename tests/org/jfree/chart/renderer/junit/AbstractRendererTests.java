@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,8 +21,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * --------------------------
  * AbstractRendererTests.java
@@ -40,7 +40,6 @@
  * 28-Feb-2007 : Added checks for cloning (DG);
  * 17-Jun-2008 : Added new fields to testEquals() and testCloning() (DG);
  * 28-Jan-2009 : Updated testEquals() (DG);
- * 28-Apr-2009 : Updated testEquals() (DG);
  *
  */
 
@@ -78,8 +77,6 @@ import org.jfree.chart.plot.DefaultDrawingSupplier;
 import org.jfree.chart.renderer.AbstractRenderer;
 import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.chart.renderer.category.LineAndShapeRenderer;
-import org.jfree.chart.renderer.xy.XYItemRenderer;
-import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.ui.TextAnchor;
 
 /**
@@ -446,26 +443,6 @@ public class AbstractRendererTests extends TestCase {
                 3.0f, 4.0f, Color.red));
         assertTrue(r1.equals(r2));
 
-    }
-
-    private static class TestRenderer extends XYLineAndShapeRenderer {
-        public void setTreatLegendShapeAsLine(boolean flag) {
-            super.setTreatLegendShapeAsLine(flag);
-        }
-    }
-
-    /**
-     * Check that the treatLegendShapeAsLine flag is included in the equals()
-     * comparison.
-     */
-    public void testEquals2() {
-        TestRenderer r1 = new TestRenderer();
-        TestRenderer r2 = new TestRenderer();
-        assertTrue(r1.equals(r2));
-        r1.setTreatLegendShapeAsLine(true);
-        assertFalse(r1.equals(r2));
-        r2.setTreatLegendShapeAsLine(true);
-        assertTrue(r1.equals(r2));
     }
 
     /**

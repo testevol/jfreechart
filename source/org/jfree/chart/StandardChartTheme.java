@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,13 +21,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * -----------------------
  * StandardChartTheme.java
  * -----------------------
- * (C) Copyright 2008-2011, by Object Refinery Limited.
+ * (C) Copyright 2008, 2009, by Object Refinery Limited.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   -;
@@ -36,8 +36,6 @@
  * -------
  * 14-Aug-2008 : Version 1 (DG);
  * 10-Apr-2009 : Added getter/setter for smallFont (DG);
- * 10-Jul-2009 : Added shadowGenerator field (DG);
- * 29-Oct-2011 : Fixed Eclipse warnings (DG);
  *
  */
 
@@ -101,8 +99,6 @@ import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.title.Title;
-import org.jfree.chart.util.DefaultShadowGenerator;
-import org.jfree.chart.util.ShadowGenerator;
 import org.jfree.io.SerialUtilities;
 import org.jfree.ui.RectangleInsets;
 import org.jfree.util.PaintUtilities;
@@ -178,9 +174,9 @@ public class StandardChartTheme implements ChartTheme, Cloneable,
     /** The range grid line paint. */
     private transient Paint rangeGridlinePaint;
 
-    /**
+    /** 
      * The baseline paint (used for domain and range zero baselines)
-     *
+     * 
      * @since 1.0.13
      */
     private transient Paint baselinePaint;
@@ -235,13 +231,6 @@ public class StandardChartTheme implements ChartTheme, Cloneable,
             = SymbolAxis.DEFAULT_GRID_BAND_ALTERNATE_PAINT;
 
     /**
-     * The shadow generator (can be null).
-     * 
-     * @since 1.0.14
-     */
-    private ShadowGenerator shadowGenerator;
-
-    /**
      * Creates and returns the default 'JFree' chart theme.
      *
      * @return A chart theme.
@@ -288,10 +277,8 @@ public class StandardChartTheme implements ChartTheme, Cloneable,
         theme.errorIndicatorPaint = Color.lightGray;
         theme.gridBandPaint = new Color(255, 255, 255, 20);
         theme.gridBandAlternatePaint = new Color(255, 255, 255, 40);
-        theme.shadowGenerator = null;
         return theme;
     }
-
     /**
      * Creates and returns a {@link ChartTheme} that doesn't apply any changes
      * to the JFreeChart defaults.  This produces the "legacy" look for
@@ -314,19 +301,6 @@ public class StandardChartTheme implements ChartTheme, Cloneable,
      * @param name  the name of the theme (<code>null</code> not permitted).
      */
     public StandardChartTheme(String name) {
-        this(name, false);
-    }
-
-    /**
-     * Creates a new default instance.
-     *
-     * @param name  the name of the theme (<code>null</code> not permitted).
-     * @param shadow  a flag that controls whether a shadow generator is 
-     *                included.
-     *
-     * @since 1.0.14
-     */
-    public StandardChartTheme(String name, boolean shadow) {
         if (name == null) {
             throw new IllegalArgumentException("Null 'name' argument.");
         }
@@ -354,13 +328,12 @@ public class StandardChartTheme implements ChartTheme, Cloneable,
         this.tickLabelPaint = Color.darkGray;
         this.barPainter = new GradientBarPainter();
         this.xyBarPainter = new GradientXYBarPainter();
-        this.shadowVisible = false;
+        this.shadowVisible = true;
         this.shadowPaint = Color.gray;
         this.itemLabelPaint = Color.black;
         this.thermometerPaint = Color.white;
         this.wallPaint = BarRenderer3D.DEFAULT_WALL_PAINT;
         this.errorIndicatorPaint = Color.black;
-        this.shadowGenerator = shadow ? new DefaultShadowGenerator() : null;
     }
 
     /**
@@ -695,7 +668,7 @@ public class StandardChartTheme implements ChartTheme, Cloneable,
     /**
      * Returns the domain grid line paint.
      *
-     * @return The domain grid line paint (never <code>null</code>).
+     * @return The domain grid line paint (never <code>null<code>).
      *
      * @see #setDomainGridlinePaint(Paint)
      */
@@ -744,9 +717,9 @@ public class StandardChartTheme implements ChartTheme, Cloneable,
 
     /**
      * Returns the baseline paint.
-     *
+     * 
      * @return The baseline paint.
-     *
+     * 
      * @since 1.0.13
      */
     public Paint getBaselinePaint() {
@@ -1315,7 +1288,6 @@ public class StandardChartTheme implements ChartTheme, Cloneable,
         plot.setLabelLinkPaint(this.labelLinkPaint);
         plot.setLabelLinkStyle(this.labelLinkStyle);
         plot.setLabelFont(this.regularFont);
-        plot.setShadowGenerator(this.shadowGenerator);
 
         // clear the section attributes so that the theme's DrawingSupplier
         // will be used
@@ -1349,7 +1321,6 @@ public class StandardChartTheme implements ChartTheme, Cloneable,
         plot.setDomainGridlinePaint(this.domainGridlinePaint);
         plot.setRangeGridlinePaint(this.rangeGridlinePaint);
         plot.setRangeZeroBaselinePaint(this.baselinePaint);
-        plot.setShadowGenerator(this.shadowGenerator);
 
         // process all domain axes
         int domainAxisCount = plot.getDomainAxisCount();
@@ -1363,7 +1334,7 @@ public class StandardChartTheme implements ChartTheme, Cloneable,
         // process all range axes
         int rangeAxisCount = plot.getRangeAxisCount();
         for (int i = 0; i < rangeAxisCount; i++) {
-            ValueAxis axis = plot.getRangeAxis(i);
+            ValueAxis axis = (ValueAxis) plot.getRangeAxis(i);
             if (axis != null) {
                 applyToValueAxis(axis);
             }
@@ -1413,8 +1384,6 @@ public class StandardChartTheme implements ChartTheme, Cloneable,
         plot.setRangeGridlinePaint(this.rangeGridlinePaint);
         plot.setDomainCrosshairPaint(this.crosshairPaint);
         plot.setRangeCrosshairPaint(this.crosshairPaint);
-        plot.setShadowGenerator(this.shadowGenerator);
-
         // process all domain axes
         int domainAxisCount = plot.getDomainAxisCount();
         for (int i = 0; i < domainAxisCount; i++) {
@@ -1427,7 +1396,7 @@ public class StandardChartTheme implements ChartTheme, Cloneable,
         // process all range axes
         int rangeAxisCount = plot.getRangeAxisCount();
         for (int i = 0; i < rangeAxisCount; i++) {
-            ValueAxis axis = plot.getRangeAxis(i);
+            ValueAxis axis = (ValueAxis) plot.getRangeAxis(i);
             if (axis != null) {
                 applyToValueAxis(axis);
             }

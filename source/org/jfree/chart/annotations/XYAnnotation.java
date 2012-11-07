@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,16 +21,16 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * -----------------
  * XYAnnotation.java
  * -----------------
- * (C) Copyright 2002-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2002-2008, by Object Refinery Limited.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
- * Contributor(s):   Peter Kolb (patch 2809117);
+ * Contributor(s):   -;
  *
  * Changes:
  * --------
@@ -41,7 +41,6 @@
  * 02-Jul-2003 : Eliminated the Annotation base interface (DG);
  * 29-Sep-2004 : Added 'rendererIndex' and 'info' parameter to draw() method
  *               to support chart entities (tool tips etc) (DG);
- * 24-Jun-2009 : Now extends Annotation (see patch 2809117 by PK) (DG);
  *
  */
 
@@ -58,7 +57,7 @@ import org.jfree.chart.plot.XYPlot;
  * The interface that must be supported by annotations that are to be added to
  * an {@link XYPlot}.
  */
-public interface XYAnnotation extends Annotation{
+public interface XYAnnotation {
 
     /**
      * Draws the annotation.

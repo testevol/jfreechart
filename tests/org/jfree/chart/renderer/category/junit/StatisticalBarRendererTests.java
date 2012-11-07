@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,13 +21,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * --------------------------------
  * StatisticalBarRendererTests.java
  * --------------------------------
- * (C) Copyright 2003-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2003-2008, by Object Refinery Limited and Contributors.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   -;
@@ -38,7 +38,6 @@
  * 28-Aug-2007 : Added tests for bug 1779941 (DG);
  * 14-Nov-2007 : Updated testEquals() (DG);
  * 23-Apr-2008 : Added testPublicCloneable() (DG);
- * 16-May-2009 : Added testFindRangeBounds (DG);
  *
  */
 
@@ -63,7 +62,6 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.StatisticalBarRenderer;
-import org.jfree.data.Range;
 import org.jfree.data.statistics.DefaultStatisticalCategoryDataset;
 import org.jfree.util.PublicCloneable;
 
@@ -306,39 +304,6 @@ public class StatisticalBarRendererTests extends TestCase {
             success = false;
         }
         assertTrue(success);
-    }
-
-    /**
-     * Some checks for the findRangeBounds() method.
-     */
-    public void testFindRangeBounds() {
-        StatisticalBarRenderer r = new StatisticalBarRenderer();
-        assertNull(r.findRangeBounds(null));
-
-        // an empty dataset should return a null range
-        DefaultStatisticalCategoryDataset dataset
-                = new DefaultStatisticalCategoryDataset();
-        assertNull(r.findRangeBounds(dataset));
-
-        dataset.add(1.0, 0.5, "R1", "C1");
-        assertEquals(new Range(0.0, 1.5), r.findRangeBounds(dataset));
-
-        r.setIncludeBaseInRange(false);
-        assertEquals(new Range(0.5, 1.5), r.findRangeBounds(dataset));
-        r.setIncludeBaseInRange(true);
-
-        dataset.add(-2.0, 0.2, "R1", "C2");
-        assertEquals(new Range(-2.2, 1.5), r.findRangeBounds(dataset));
-
-        dataset.add(null, null, "R1", "C3");
-        assertEquals(new Range(-2.2, 1.5), r.findRangeBounds(dataset));
-
-        dataset.add(5.0, 1.0, "R2", "C3");
-        assertEquals(new Range(-2.2, 6.0), r.findRangeBounds(dataset));
-
-        // check that the series visible flag is observed
-        r.setSeriesVisible(1, Boolean.FALSE);
-        assertEquals(new Range(-2.2, 1.5), r.findRangeBounds(dataset));
     }
 
 }

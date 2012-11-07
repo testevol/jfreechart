@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,13 +21,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ------------------------------
  * OHLCSeriesCollectionTests.java
  * ------------------------------
- * (C) Copyright 2006-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2006-2008, by Object Refinery Limited and Contributors.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   -;
@@ -36,7 +36,6 @@
  * -------
  * 04-Dec-2006 : Version 1 (DG);
  * 10-Jul-2008 : Updated testEquals() method (DG);
- * 26-Jun-2009 : Added tests for removeSeries() methods (DG);
  *
  */
 
@@ -53,8 +52,6 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-import org.jfree.data.general.DatasetChangeEvent;
-import org.jfree.data.general.DatasetChangeListener;
 import org.jfree.data.time.TimePeriodAnchor;
 import org.jfree.data.time.Year;
 import org.jfree.data.time.ohlc.OHLCSeries;
@@ -63,8 +60,7 @@ import org.jfree.data.time.ohlc.OHLCSeriesCollection;
 /**
  * Tests for the {@link OHLCSeriesCollectionTests} class.
  */
-public class OHLCSeriesCollectionTests extends TestCase
-        implements DatasetChangeListener {
+public class OHLCSeriesCollectionTests extends TestCase {
 
     /**
      * Returns the tests as a test suite.
@@ -183,100 +179,6 @@ public class OHLCSeriesCollectionTests extends TestCase
         catch (IndexOutOfBoundsException e) {
             assertTrue(false);  // wrong outcome
         }
-    }
-
-    /**
-     * Two objects that are equal are required to return the same hashCode.
-     */
-    public void testHashcode() {
-        OHLCSeriesCollection c1 = new OHLCSeriesCollection();
-        OHLCSeries s1 = new OHLCSeries("S");
-        s1.add(new Year(2009), 1.0, 4.0, 0.5, 2.0);
-        c1.addSeries(s1);
-        OHLCSeriesCollection c2 = new OHLCSeriesCollection();
-        OHLCSeries s2 = new OHLCSeries("S");
-        s2.add(new Year(2009), 1.0, 4.0, 0.5, 2.0);
-        c2.addSeries(s2);
-        assertTrue(c1.equals(c2));
-        int h1 = c1.hashCode();
-        int h2 = c2.hashCode();
-        assertEquals(h1, h2);
-    }
-
-    /**
-     * Some checks for the {@link OHLCSeriesCollection#removeSeries(int)}
-     * method.
-     */
-    public void testRemoveSeries_int() {
-        OHLCSeriesCollection c1 = new OHLCSeriesCollection();
-        OHLCSeries s1 = new OHLCSeries("Series 1");
-        OHLCSeries s2 = new OHLCSeries("Series 2");
-        OHLCSeries s3 = new OHLCSeries("Series 3");
-        OHLCSeries s4 = new OHLCSeries("Series 4");
-        c1.addSeries(s1);
-        c1.addSeries(s2);
-        c1.addSeries(s3);
-        c1.addSeries(s4);
-        c1.removeSeries(2);
-        assertTrue(c1.getSeries(2).equals(s4));
-        c1.removeSeries(0);
-        assertTrue(c1.getSeries(0).equals(s2));
-        assertEquals(2, c1.getSeriesCount());
-    }
-
-    /**
-     * Some checks for the
-     * {@link OHLCSeriesCollection#removeSeries(OHLCSeries)} method.
-     */
-    public void testRemoveSeries() {
-        OHLCSeriesCollection c1 = new OHLCSeriesCollection();
-        OHLCSeries s1 = new OHLCSeries("Series 1");
-        OHLCSeries s2 = new OHLCSeries("Series 2");
-        OHLCSeries s3 = new OHLCSeries("Series 3");
-        OHLCSeries s4 = new OHLCSeries("Series 4");
-        c1.addSeries(s1);
-        c1.addSeries(s2);
-        c1.addSeries(s3);
-        c1.addSeries(s4);
-        c1.removeSeries(s3);
-        assertTrue(c1.getSeries(2).equals(s4));
-        c1.removeSeries(s1);
-        assertTrue(c1.getSeries(0).equals(s2));
-        assertEquals(2, c1.getSeriesCount());
-    }
-
-    /**
-     * A simple check for the removeAllSeries() method.
-     */
-    public void testRemoveAllSeries() {
-        OHLCSeriesCollection c1 = new OHLCSeriesCollection();
-        c1.addChangeListener(this);
-
-        // there should be no change event when clearing an empty series
-        this.lastEvent = null;
-        c1.removeAllSeries();
-        assertNull(this.lastEvent);
-
-        OHLCSeries s1 = new OHLCSeries("Series 1");
-        OHLCSeries s2 = new OHLCSeries("Series 2");
-        c1.addSeries(s1);
-        c1.addSeries(s2);
-        c1.removeAllSeries();
-        assertEquals(0, c1.getSeriesCount());
-        assertNotNull(this.lastEvent);
-        this.lastEvent = null;  // clean up
-    }
-
-    /** The last received event. */
-    private DatasetChangeEvent lastEvent;
-
-    /**
-     * Receives dataset change events.
-     *
-     * @param event  the event.
-     */
-    public void datasetChanged(DatasetChangeEvent event) {
-        this.lastEvent = event;
     }
 
 }

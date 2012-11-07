@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,8 +21,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * -------------------------
  * TimeSeriesCollection.java
@@ -77,10 +77,6 @@
  *               by x-value (ascending) (DG);
  * 08-May-2007 : Added indexOf(TimeSeries) method (DG);
  * 18-Jan-2008 : Changed getSeries(String) to getSeries(Comparable) (DG);
- * 19-May-2009 : Implemented XYDomainInfo (DG);
- * 26-May-2009 : Implemented XYRangeInfo (DG);
- * 09-Jun-2009 : Apply some short-cuts to series value lookups (DG);
- * 26-Jun-2009 : Fixed clone() (DG);
  *
  */
 
@@ -101,19 +97,16 @@ import org.jfree.data.general.DatasetChangeEvent;
 import org.jfree.data.xy.AbstractIntervalXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
 import org.jfree.data.xy.XYDataset;
-import org.jfree.data.xy.XYDomainInfo;
-import org.jfree.data.xy.XYRangeInfo;
 import org.jfree.util.ObjectUtilities;
 
 /**
  * A collection of time series objects.  This class implements the
- * {@link XYDataset} interface, as well as the extended
+ * {@link org.jfree.data.xy.XYDataset} interface, as well as the extended
  * {@link IntervalXYDataset} interface.  This makes it a convenient dataset for
  * use with the {@link org.jfree.chart.plot.XYPlot} class.
  */
 public class TimeSeriesCollection extends AbstractIntervalXYDataset
-        implements XYDataset, IntervalXYDataset, DomainInfo, XYDomainInfo,
-        XYRangeInfo, Serializable {
+        implements XYDataset, IntervalXYDataset, DomainInfo, Serializable {
 
     /** For serialization. */
     private static final long serialVersionUID = 834149929022371137L;
@@ -425,7 +418,8 @@ public class TimeSeriesCollection extends AbstractIntervalXYDataset
      */
     public double getXValue(int series, int item) {
         TimeSeries s = (TimeSeries) this.data.get(series);
-        RegularTimePeriod period = s.getTimePeriod(item);
+        TimeSeriesDataItem i = s.getDataItem(item);
+        RegularTimePeriod period = i.getPeriod();
         return getX(period);
     }
 
@@ -439,7 +433,8 @@ public class TimeSeriesCollection extends AbstractIntervalXYDataset
      */
     public Number getX(int series, int item) {
         TimeSeries ts = (TimeSeries) this.data.get(series);
-        RegularTimePeriod period = ts.getTimePeriod(item);
+        TimeSeriesDataItem dp = ts.getDataItem(item);
+        RegularTimePeriod period = dp.getPeriod();
         return new Long(getX(period));
     }
 
@@ -474,7 +469,8 @@ public class TimeSeriesCollection extends AbstractIntervalXYDataset
      */
     public synchronized Number getStartX(int series, int item) {
         TimeSeries ts = (TimeSeries) this.data.get(series);
-        return new Long(ts.getTimePeriod(item).getFirstMillisecond(
+        TimeSeriesDataItem dp = ts.getDataItem(item);
+        return new Long(dp.getPeriod().getFirstMillisecond(
                 this.workingCalendar));
     }
 
@@ -488,7 +484,8 @@ public class TimeSeriesCollection extends AbstractIntervalXYDataset
      */
     public synchronized Number getEndX(int series, int item) {
         TimeSeries ts = (TimeSeries) this.data.get(series);
-        return new Long(ts.getTimePeriod(item).getLastMillisecond(
+        TimeSeriesDataItem dp = ts.getDataItem(item);
+        return new Long(dp.getPeriod().getLastMillisecond(
                 this.workingCalendar));
     }
 
@@ -502,7 +499,8 @@ public class TimeSeriesCollection extends AbstractIntervalXYDataset
      */
     public Number getY(int series, int item) {
         TimeSeries ts = (TimeSeries) this.data.get(series);
-        return ts.getValue(item);
+        TimeSeriesDataItem dp = ts.getDataItem(item);
+        return dp.getValue();
     }
 
     /**
@@ -624,68 +622,6 @@ public class TimeSeriesCollection extends AbstractIntervalXYDataset
     }
 
     /**
-     * Returns the bounds of the domain values for the specified series.
-     *
-     * @param visibleSeriesKeys  a list of keys for the visible series.
-     * @param includeInterval  include the x-interval?
-     *
-     * @return A range.
-     *
-     * @since 1.0.13
-     */
-    public Range getDomainBounds(List visibleSeriesKeys,
-            boolean includeInterval) {
-        Range result = null;
-        Iterator iterator = visibleSeriesKeys.iterator();
-        while (iterator.hasNext()) {
-            Comparable seriesKey = (Comparable) iterator.next();
-            TimeSeries series = getSeries(seriesKey);
-            int count = series.getItemCount();
-            if (count > 0) {
-                RegularTimePeriod start = series.getTimePeriod(0);
-                RegularTimePeriod end = series.getTimePeriod(count - 1);
-                Range temp;
-                if (!includeInterval) {
-                    temp = new Range(getX(start), getX(end));
-                }
-                else {
-                    temp = new Range(
-                            start.getFirstMillisecond(this.workingCalendar),
-                            end.getLastMillisecond(this.workingCalendar));
-                }
-                result = Range.combine(result, temp);
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Returns the bounds for the y-values in the dataset.
-     *
-     * @param visibleSeriesKeys  the visible series keys.
-     * @param xRange  the x-range (<code>null</code> not permitted).
-     * @param includeInterval  ignored.
-     *
-     * @return The bounds.
-     *
-     * @since 1.0.14
-     */
-    public Range getRangeBounds(List visibleSeriesKeys, Range xRange,
-            boolean includeInterval) {
-        Range result = null;
-        Iterator iterator = visibleSeriesKeys.iterator();
-        while (iterator.hasNext()) {
-            Comparable seriesKey = (Comparable) iterator.next();
-            TimeSeries series = getSeries(seriesKey);
-            Range r = null;
-            r = new Range(series.getMinY(), series.getMaxY());
-            // FIXME: Here we are ignoring the xRange
-            result = Range.combine(result, r);
-        }
-        return result;
-    }
-
-    /**
      * Tests this time series collection for equality with another object.
      *
      * @param obj  the other object.
@@ -726,20 +662,6 @@ public class TimeSeriesCollection extends AbstractIntervalXYDataset
                 ? this.xPosition.hashCode() : 0);
         result = 29 * result + (this.domainIsPointsInTime ? 1 : 0);
         return result;
-    }
-
-    /**
-     * Returns a clone of this time series collection.
-     *
-     * @return A clone.
-     *
-     * @throws java.lang.CloneNotSupportedException
-     */
-    public Object clone() throws CloneNotSupportedException {
-        TimeSeriesCollection clone = (TimeSeriesCollection) super.clone();
-        clone.data = (List) ObjectUtilities.deepClone(this.data);
-        clone.workingCalendar = (Calendar) this.workingCalendar.clone();
-        return clone;
     }
 
 }

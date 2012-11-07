@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,13 +21,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * --------------------------------------
  * DefaultStatisticalCategoryDataset.java
  * --------------------------------------
- * (C) Copyright 2002-2011, by Pascal Collet and Contributors.
+ * (C) Copyright 2002-2008, by Pascal Collet and Contributors.
  *
  * Original Author:  Pascal Collet;
  * Contributor(s):   David Gilbert (for Object Refinery Limited);
@@ -50,8 +50,6 @@
  * 02-Feb-2007 : Removed author tags from all over JFreeChart sources (DG);
  * 28-Sep-2007 : Fixed cloning bug (DG);
  * 02-Oct-2007 : Fixed bug updating cached range values (DG);
- * 19-May-2009 : Fixed FindBugs warnings, patch by Michal Wozniak (DG);
- * 20-Oct-2011 : Fixed getRangeBounds() bug 3072674 (DG);
  *
  */
 
@@ -551,13 +549,15 @@ public class DefaultStatisticalCategoryDataset extends AbstractDataset
         int columnCount = this.data.getColumnCount();
         for (int r = 0; r < rowCount; r++) {
             for (int c = 0; c < columnCount; c++) {
+                double m = Double.NaN;
+                double sd = Double.NaN;
                 MeanAndStandardDeviation masd = (MeanAndStandardDeviation)
                         this.data.getObject(r, c);
                 if (masd == null) {
                     continue;
                 }
-                double m = masd.getMeanValue();
-                double sd = masd.getStandardDeviationValue();
+                m = masd.getMeanValue();
+                sd = masd.getStandardDeviationValue();
 
                 if (!Double.isNaN(m)) {
 
@@ -634,7 +634,7 @@ public class DefaultStatisticalCategoryDataset extends AbstractDataset
      * @see #getRangeUpperBound(boolean)
      */
     public double getRangeLowerBound(boolean includeInterval) {
-        if (includeInterval && !Double.isNaN(this.minimumRangeValueIncStdDev)) {
+        if (includeInterval) {
             return this.minimumRangeValueIncStdDev;
         }
         else {
@@ -653,7 +653,7 @@ public class DefaultStatisticalCategoryDataset extends AbstractDataset
      * @see #getRangeLowerBound(boolean)
      */
     public double getRangeUpperBound(boolean includeInterval) {
-        if (includeInterval && !Double.isNaN(this.maximumRangeValueIncStdDev)) {
+        if (includeInterval) {
             return this.maximumRangeValueIncStdDev;
         }
         else {
@@ -662,7 +662,7 @@ public class DefaultStatisticalCategoryDataset extends AbstractDataset
     }
 
     /**
-     * Returns the bounds of the values in this dataset's y-values.
+     * Returns the range of the values in this dataset's range.
      *
      * @param includeInterval  a flag that determines whether or not the
      *                         y-interval is taken into account.
@@ -670,12 +670,22 @@ public class DefaultStatisticalCategoryDataset extends AbstractDataset
      * @return The range.
      */
     public Range getRangeBounds(boolean includeInterval) {
-        double lower = getRangeLowerBound(includeInterval);
-        double upper = getRangeUpperBound(includeInterval);
-        if (Double.isNaN(lower) && Double.isNaN(upper)) {
-            return null;
+        Range result = null;
+        if (includeInterval) {
+            if (!Double.isNaN(this.minimumRangeValueIncStdDev)
+                    && !Double.isNaN(this.maximumRangeValueIncStdDev)) {
+                result = new Range(this.minimumRangeValueIncStdDev,
+                        this.maximumRangeValueIncStdDev);
+            }
         }
-        return new Range(lower, upper);
+        else {
+            if (!Double.isNaN(this.minimumRangeValue)
+                    && !Double.isNaN(this.maximumRangeValue)) {
+                result = new Range(this.minimumRangeValue,
+                        this.maximumRangeValue);
+            }
+        }
+        return result;
     }
 
     /**

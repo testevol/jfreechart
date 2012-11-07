@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,8 +21,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ----------------
  * BarRenderer.java
@@ -31,7 +31,7 @@
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   Christian W. Zuckschwerdt;
- *                   Peter Kolb (patches 2497611, 2791407);
+ *                   Peter Kolb (patch 2497611);
  *
  * Changes
  * -------
@@ -122,6 +122,7 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.PlotRenderingInfo;
 import org.jfree.data.Range;
 import org.jfree.data.category.CategoryDataset;
+import org.jfree.data.general.DatasetUtilities;
 import org.jfree.io.SerialUtilities;
 import org.jfree.text.TextUtilities;
 import org.jfree.ui.GradientPaintTransformer;
@@ -894,17 +895,15 @@ public class BarRenderer extends AbstractCategoryItemRenderer
      * the base value for the bars should be included in the range.
      *
      * @param dataset  the dataset (<code>null</code> permitted).
-     * @param includeInterval  include the interval if the dataset has one?
      *
      * @return The range (or <code>null</code> if the dataset is
      *         <code>null</code> or empty).
      */
-    public Range findRangeBounds(CategoryDataset dataset,
-            boolean includeInterval) {
+    public Range findRangeBounds(CategoryDataset dataset) {
         if (dataset == null) {
             return null;
         }
-        Range result = super.findRangeBounds(dataset, includeInterval);
+        Range result = DatasetUtilities.findRangeBounds(dataset);
         if (result != null) {
             if (this.includeBaseInRange) {
                 result = Range.expandToInclude(result, this.base);

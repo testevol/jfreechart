@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,13 +21,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * -----------------------------
  * IntervalBarRendererTests.java
  * -----------------------------
- * (C) Copyright 2003-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2003-2008, by Object Refinery Limited and Contributors.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   -;
@@ -36,7 +36,6 @@
  * -------
  * 25-Mar-2003 : Version 1 (DG);
  * 23-Apr-2008 : Added testPublicCloneable (DG);
- * 16-May-2009 : Added testFindRangeBounds() (DG);
  *
  */
 
@@ -59,8 +58,6 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.chart.renderer.category.IntervalBarRenderer;
-import org.jfree.data.Range;
-import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.category.DefaultIntervalCategoryDataset;
 import org.jfree.util.PublicCloneable;
 
@@ -170,7 +167,7 @@ public class IntervalBarRendererTests extends TestCase {
                     {0.3, 0.4, 0.5}};
             double[][] ends = new double[][] {{0.5, 0.6, 0.7}, {0.7, 0.8, 0.9}};
             DefaultIntervalCategoryDataset dataset
-                    = new DefaultIntervalCategoryDataset(starts, ends);
+                = new DefaultIntervalCategoryDataset(starts, ends);
             IntervalBarRenderer renderer = new IntervalBarRenderer();
             CategoryPlot plot = new CategoryPlot(dataset,
                     new CategoryAxis("Category"), new NumberAxis("Value"),
@@ -185,31 +182,6 @@ public class IntervalBarRendererTests extends TestCase {
             success = false;
         }
         assertTrue(success);
-    }
-
-    /**
-     * Some checks for the findRangeBounds() method.
-     */
-    public void testFindRangeBounds() {
-        IntervalBarRenderer r = new IntervalBarRenderer();
-        assertNull(r.findRangeBounds(null));
-
-        // an empty dataset should return a null range
-        DefaultIntervalCategoryDataset dataset
-                = new DefaultIntervalCategoryDataset(new double[0][0],
-                new double[0][0]);
-        assertNull(r.findRangeBounds(dataset));
-
-        double[][] starts = new double[][] {{0.1, 0.2, 0.3}, {0.3, 0.4, 0.5}};
-        double[][] ends = new double[][] {{0.5, 0.6, 0.7}, {0.7, 0.8, 0.9}};
-        dataset = new DefaultIntervalCategoryDataset(starts, ends);
-        assertEquals(new Range(0.0, 0.9), r.findRangeBounds(dataset));
-        r.setIncludeBaseInRange(false);
-        assertEquals(new Range(0.1, 0.9), r.findRangeBounds(dataset));
-        r.setIncludeBaseInRange(true);
-
-        r.setSeriesVisible(1, Boolean.FALSE);
-        assertEquals(new Range(0.0, 0.7), r.findRangeBounds(dataset));
     }
 
 }

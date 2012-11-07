@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,8 +21,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ---------------
  * ChartPanel.java
@@ -43,7 +43,6 @@
  *                   Sergei Ivanov;
  *                   Ulrich Voigt - patch 2686040;
  *                   Alessandro Borges - patch 1460845;
- *                   Martin Hoeller;
  *
  * Changes (from 28-Jun-2001)
  * --------------------------
@@ -160,19 +159,13 @@
  *               by Alessandro Borges (DG);
  * 09-Apr-2009 : Added overlay support (DG);
  * 10-Apr-2009 : Set chartBuffer background to match ChartPanel (DG);
- * 05-May-2009 : Match scaling (and insets) in doCopy() (DG);
- * 01-Jun-2009 : Check for null chart in mousePressed() method (DG);
- * 08-Jun-2009 : Fixed bug in setMouseWheelEnabled() (DG);
- * 06-Jul-2009 : Clear off-screen buffer to fully transparent (DG);
- * 10-Oct-2011 : localization fix: bug #3353913 (MH);
+ *
  */
 
 package org.jfree.chart;
 
 import java.awt.AWTEvent;
-import java.awt.AlphaComposite;
 import java.awt.Color;
-import java.awt.Composite;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -1364,33 +1357,36 @@ public class ChartPanel extends JPanel implements ChartChangeListener,
                 e.printStackTrace();
             }
         }
-        else if (!flag && this.mouseWheelHandler != null) {
-            // use reflection to deregister the mouseWheelHandler
-            try {
-                Class mwl = Class.forName("java.awt.event.MouseWheelListener");
-                Class c2 = ChartPanel.class;
-                Method m = c2.getMethod("removeMouseWheelListener",
-                        new Class[] {mwl});
-                m.invoke(this, new Object[] {this.mouseWheelHandler});
-                this.mouseWheelHandler = null;
-            }
-            catch (ClassNotFoundException e) {
-                // must be running on JRE 1.3.1, so just ignore this
-            }
-            catch (SecurityException e) {
-                e.printStackTrace();
-            }
-            catch (NoSuchMethodException e) {
-                e.printStackTrace();
-            }
-            catch (IllegalArgumentException e) {
-                e.printStackTrace();
-            }
-            catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
-            catch (InvocationTargetException e) {
-                e.printStackTrace();
+        else {
+
+            if (this.mouseWheelHandler != null) {
+                // use reflection to deregister the mouseWheelHandler
+                try {
+                    Class mwl = Class.forName(
+                            "java.awt.event.MouseWheelListener");
+                    Class c2 = ChartPanel.class;
+                    Method m = c2.getMethod("removeMouseWheelListener",
+                            new Class[] {mwl});
+                    m.invoke(this, new Object[] {this.mouseWheelHandler});
+                }
+                catch (ClassNotFoundException e) {
+                    // must be running on JRE 1.3.1, so just ignore this
+                }
+                catch (SecurityException e) {
+                    e.printStackTrace();
+                }
+                catch (NoSuchMethodException e) {
+                    e.printStackTrace();
+                }
+                catch (IllegalArgumentException e) {
+                    e.printStackTrace();
+                }
+                catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+                catch (InvocationTargetException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -1653,17 +1649,12 @@ public class ChartPanel extends JPanel implements ChartChangeListener,
                 Rectangle2D bufferArea = new Rectangle2D.Double(
                         0, 0, this.chartBufferWidth, this.chartBufferHeight);
 
-                // make the background of the buffer clear and transparent
                 Graphics2D bufferG2 = (Graphics2D)
                         this.chartBuffer.getGraphics();
-                Composite savedComposite = bufferG2.getComposite();
-                bufferG2.setComposite(AlphaComposite.getInstance(
-                        AlphaComposite.CLEAR, 0.0f));
                 Rectangle r = new Rectangle(0, 0, this.chartBufferWidth,
                         this.chartBufferHeight);
+                bufferG2.setPaint(getBackground());
                 bufferG2.fill(r);
-                bufferG2.setComposite(savedComposite);
-                
                 if (scale) {
                     AffineTransform saved = bufferG2.getTransform();
                     AffineTransform st = AffineTransform.getScaleInstance(
@@ -1860,9 +1851,6 @@ public class ChartPanel extends JPanel implements ChartChangeListener,
      * @param e  The mouse event.
      */
     public void mousePressed(MouseEvent e) {
-        if (this.chart == null) {
-            return;
-        }
         Plot plot = this.chart.getPlot();
         int mods = e.getModifiers();
         if ((mods & this.panMask) == this.panMask) {
@@ -1877,8 +1865,7 @@ public class ChartPanel extends JPanel implements ChartChangeListener,
                         this.panW = screenDataArea.getWidth();
                         this.panH = screenDataArea.getHeight();
                         this.panLast = e.getPoint();
-                        setCursor(Cursor.getPredefinedCursor(
-                                Cursor.MOVE_CURSOR));
+                        setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
                     }
                 }
                 // the actual panning occurs later in the mouseDragged() 
@@ -2721,12 +2708,8 @@ public class ChartPanel extends JPanel implements ChartChangeListener,
     public void doCopy() {
         Clipboard systemClipboard
                 = Toolkit.getDefaultToolkit().getSystemClipboard();
-        Insets insets = getInsets();
-        int w = getWidth() - insets.left - insets.right;
-        int h = getHeight() - insets.top - insets.bottom;
-        ChartTransferable selection = new ChartTransferable(this.chart, w, h,
-                getMinimumDrawWidth(), getMinimumDrawHeight(),
-                getMaximumDrawWidth(), getMaximumDrawHeight(), true);
+        ChartTransferable selection = new ChartTransferable(this.chart, 
+                getWidth(), getHeight());
         systemClipboard.setContents(selection, null);
     }
 
@@ -2877,7 +2860,7 @@ public class ChartPanel extends JPanel implements ChartChangeListener,
     protected JPopupMenu createPopupMenu(boolean properties,
             boolean copy, boolean save, boolean print, boolean zoom) {
 
-        JPopupMenu result = new JPopupMenu(localizationResources.getString("Chart") + ":");
+        JPopupMenu result = new JPopupMenu("Chart:");
         boolean separator = false;
 
         if (properties) {
@@ -3028,56 +3011,55 @@ public class ChartPanel extends JPanel implements ChartChangeListener,
      */
     protected void displayPopupMenu(int x, int y) {
 
-        if (this.popup == null) {
-            return;
-        }
+        if (this.popup != null) {
 
-        // go through each zoom menu item and decide whether or not to
-        // enable it...
-        boolean isDomainZoomable = false;
-        boolean isRangeZoomable = false;
-        Plot plot = (this.chart != null ? this.chart.getPlot() : null);
-        if (plot instanceof Zoomable) {
-            Zoomable z = (Zoomable) plot;
-            isDomainZoomable = z.isDomainZoomable();
-            isRangeZoomable = z.isRangeZoomable();
-        }
+            // go through each zoom menu item and decide whether or not to
+            // enable it...
+            Plot plot = this.chart.getPlot();
+            boolean isDomainZoomable = false;
+            boolean isRangeZoomable = false;
+            if (plot instanceof Zoomable) {
+                Zoomable z = (Zoomable) plot;
+                isDomainZoomable = z.isDomainZoomable();
+                isRangeZoomable = z.isRangeZoomable();
+            }
 
-        if (this.zoomInDomainMenuItem != null) {
-            this.zoomInDomainMenuItem.setEnabled(isDomainZoomable);
-        }
-        if (this.zoomOutDomainMenuItem != null) {
-            this.zoomOutDomainMenuItem.setEnabled(isDomainZoomable);
-        }
-        if (this.zoomResetDomainMenuItem != null) {
-            this.zoomResetDomainMenuItem.setEnabled(isDomainZoomable);
-        }
+            if (this.zoomInDomainMenuItem != null) {
+                this.zoomInDomainMenuItem.setEnabled(isDomainZoomable);
+            }
+            if (this.zoomOutDomainMenuItem != null) {
+                this.zoomOutDomainMenuItem.setEnabled(isDomainZoomable);
+            }
+            if (this.zoomResetDomainMenuItem != null) {
+                this.zoomResetDomainMenuItem.setEnabled(isDomainZoomable);
+            }
 
-        if (this.zoomInRangeMenuItem != null) {
-            this.zoomInRangeMenuItem.setEnabled(isRangeZoomable);
-        }
-        if (this.zoomOutRangeMenuItem != null) {
-            this.zoomOutRangeMenuItem.setEnabled(isRangeZoomable);
-        }
+            if (this.zoomInRangeMenuItem != null) {
+                this.zoomInRangeMenuItem.setEnabled(isRangeZoomable);
+            }
+            if (this.zoomOutRangeMenuItem != null) {
+                this.zoomOutRangeMenuItem.setEnabled(isRangeZoomable);
+            }
 
-        if (this.zoomResetRangeMenuItem != null) {
-            this.zoomResetRangeMenuItem.setEnabled(isRangeZoomable);
-        }
+            if (this.zoomResetRangeMenuItem != null) {
+                this.zoomResetRangeMenuItem.setEnabled(isRangeZoomable);
+            }
 
-        if (this.zoomInBothMenuItem != null) {
-            this.zoomInBothMenuItem.setEnabled(isDomainZoomable
-                    && isRangeZoomable);
-        }
-        if (this.zoomOutBothMenuItem != null) {
-            this.zoomOutBothMenuItem.setEnabled(isDomainZoomable
-                    && isRangeZoomable);
-        }
-        if (this.zoomResetBothMenuItem != null) {
-            this.zoomResetBothMenuItem.setEnabled(isDomainZoomable
-                    && isRangeZoomable);
-        }
+            if (this.zoomInBothMenuItem != null) {
+                this.zoomInBothMenuItem.setEnabled(isDomainZoomable
+                        && isRangeZoomable);
+            }
+            if (this.zoomOutBothMenuItem != null) {
+                this.zoomOutBothMenuItem.setEnabled(isDomainZoomable
+                        && isRangeZoomable);
+            }
+            if (this.zoomResetBothMenuItem != null) {
+                this.zoomResetBothMenuItem.setEnabled(isDomainZoomable
+                        && isRangeZoomable);
+            }
 
-        this.popup.show(this, x, y);
+            this.popup.show(this, x, y);
+        }
 
     }
 

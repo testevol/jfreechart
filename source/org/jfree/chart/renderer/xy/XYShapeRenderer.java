@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,13 +21,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * --------------------
  * XYShapeRenderer.java
  * --------------------
- * (C) Copyright 2008-2011 by Andreas Haumer, xS+S and Contributors.
+ * (C) Copyright 2008, by Andreas Haumer, xS+S and Contributors.
  *
  * Original Author:  Martin Hoeller (x Software + Systeme  xS+S - Andreas
  *                       Haumer);
@@ -37,8 +37,6 @@
  * --------
  * 17-Sep-2008 : Version 1, based on a contribution from Martin Hoeller with
  *               amendments by David Gilbert (DG);
- * 16-Feb-2010 : Added findZBounds() (patch 2952086) (MH);
- * 19-Oct-2011 : Fixed NPE in findRangeBounds() (bug 3026341) (DG);
  *
  */
 
@@ -100,7 +98,7 @@ public class XYShapeRenderer extends AbstractXYItemRenderer
     /** Auto generated serial version id. */
     private static final long serialVersionUID = 8320552104211173221L;
 
-    /** The paint scale (never null). */
+    /** The paint scale. */
     private PaintScale paintScale;
 
     /** A flag that controls whether or not the shape outlines are drawn. */
@@ -121,10 +119,10 @@ public class XYShapeRenderer extends AbstractXYItemRenderer
     /** Flag indicating if guide lines should be drawn for every item. */
     private boolean guideLinesVisible;
 
-    /** The paint used for drawing the guide lines (never null). */
+    /** The paint used for drawing the guide lines. */
     private transient Paint guideLinePaint;
 
-    /** The stroke used for drawing the guide lines (never null). */
+    /** The stroke used for drawing the guide lines. */
     private transient Stroke guideLineStroke;
 
     /**
@@ -347,16 +345,15 @@ public class XYShapeRenderer extends AbstractXYItemRenderer
      *         or empty).
      */
     public Range findDomainBounds(XYDataset dataset) {
-        if (dataset == null) {
+        if (dataset != null) {
+            Range r = DatasetUtilities.findDomainBounds(dataset, false);
+            double offset = 0; // TODO getSeriesShape(n).getBounds().width / 2;
+            return new Range(r.getLowerBound() + offset,
+                             r.getUpperBound() + offset);
+        }
+        else {
             return null;
         }
-        Range r = DatasetUtilities.findDomainBounds(dataset, false);
-        if (r == null) {
-            return null;
-        }
-        double offset = 0; // TODO getSeriesShape(n).getBounds().width / 2;
-        return new Range(r.getLowerBound() + offset,
-                         r.getUpperBound() + offset);
     }
 
     /**
@@ -369,29 +366,11 @@ public class XYShapeRenderer extends AbstractXYItemRenderer
      *         or empty).
      */
     public Range findRangeBounds(XYDataset dataset) {
-        if (dataset == null) {
-            return null;
-        }
-        Range r = DatasetUtilities.findRangeBounds(dataset, false);
-        if (r == null) {
-            return null;
-        }
-        double offset = 0; // TODO getSeriesShape(n).getBounds().height / 2;
-        return new Range(r.getLowerBound() + offset, r.getUpperBound()
-                + offset);
-    }
-
-    /**
-     * Return the range of z-values in the specified dataset.
-     *  
-     * @param dataset  the dataset (<code>null</code> permitted).
-     * 
-     * @return The range (<code>null</code> if the dataset is <code>null</code>
-     *         or empty).
-     */
-    public Range findZBounds(XYZDataset dataset) {
         if (dataset != null) {
-            return DatasetUtilities.findZBounds(dataset);
+            Range r = DatasetUtilities.findRangeBounds(dataset, false);
+            double offset = 0; // TODO getSeriesShape(n).getBounds().height / 2;
+            return new Range(r.getLowerBound() + offset, r.getUpperBound()
+                    + offset);
         }
         else {
             return null;
@@ -549,7 +528,8 @@ public class XYShapeRenderer extends AbstractXYItemRenderer
             return false;
         }
         XYShapeRenderer that = (XYShapeRenderer) obj;
-        if (!this.paintScale.equals(that.paintScale)) {
+        if ((this.paintScale == null && that.paintScale != null)
+                || (!this.paintScale.equals(that.paintScale))) {
             return false;
         }
         if (this.drawOutlines != that.drawOutlines) {
@@ -564,12 +544,13 @@ public class XYShapeRenderer extends AbstractXYItemRenderer
         if (this.guideLinesVisible != that.guideLinesVisible) {
             return false;
         }
-        if (!this.guideLinePaint.equals(that.guideLinePaint)) {
+        if ((this.guideLinePaint == null && that.guideLinePaint != null)
+                || (!this.guideLinePaint.equals(that.guideLinePaint)))
             return false;
-        }
-        if (!this.guideLineStroke.equals(that.guideLineStroke)) {
+        if ((this.guideLineStroke == null && that.guideLineStroke != null)
+                || (!this.guideLineStroke.equals(that.guideLineStroke)))
             return false;
-        }
+
         return super.equals(obj);
     }
 

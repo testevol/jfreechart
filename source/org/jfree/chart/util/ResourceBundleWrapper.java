@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,13 +21,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * --------------------------
  * ResourceBundleWrapper.java
  * --------------------------
- * (C)opyright 2008, 2009, by Jess Thrysoee and Contributors.
+ * (C)opyright 2008, by Jess Thrysoee and Contributors.
  *
  * Original Author:  Jess Thrysoee;
  * Contributor(s):   David Gilbert (for Object Refinery Limited);
@@ -72,7 +72,7 @@ public class ResourceBundleWrapper {
     /**
      * A special class loader with no code base lookup.  This field may be
      * <code>null</code> (the field is only initialised if removeCodeBase() is
-     * called from an applet).
+     * called from an applet.
      */
     private static URLClassLoader noCodeBaseClassLoader;
 
@@ -99,7 +99,7 @@ public class ResourceBundleWrapper {
 
         URL[] urls = urlClassLoader.getURLs();
         for (int i = 0; i < urls.length; i++) {
-            if (!urls[i].sameFile(codeBase)) {
+            if (! urls[i].sameFile(codeBase)) {
                 urlsNoBase.add(urls[i]);
             }
         }

@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,8 +21,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ---------
  * Axis.java
@@ -644,9 +644,8 @@ public abstract class Axis implements Cloneable, Serializable {
     }
 
     /**
-     * Sets the flag that indicates whether or not the minor tick marks are 
-     * showing and sends an {@link AxisChangeEvent} to all registered
-     * listeners.
+     * Sets the flag that indicates whether or not the minor tick marks are showing
+     * and sends an {@link AxisChangeEvent} to all registered listeners.
      *
      * @param flag  the flag.
      *
@@ -1068,37 +1067,37 @@ public abstract class Axis implements Cloneable, Serializable {
      *
      * @since 1.0.13
      */
-    protected void createAndAddEntity(double cursor, AxisState state,
+	protected void createAndAddEntity(double cursor, AxisState state,
             Rectangle2D dataArea, RectangleEdge edge,
-            PlotRenderingInfo plotState) {
+            PlotRenderingInfo plotState){
 
-        if (plotState == null || plotState.getOwner() == null) {
+		if (plotState == null || plotState.getOwner() == null) {
             return;  // no need to create entity if we can´t save it anyways...
         }
-        Rectangle2D hotspot = null;
-        if (edge.equals(RectangleEdge.TOP)) {
-            hotspot = new Rectangle2D.Double(dataArea.getX(),
+		Rectangle2D hotspot = null;
+		if (edge.equals(RectangleEdge.TOP)){
+			hotspot = new Rectangle2D.Double(dataArea.getX(),
                     state.getCursor(), dataArea.getWidth(),
                     cursor - state.getCursor());
-        }
-        else if (edge.equals(RectangleEdge.BOTTOM)) {
-            hotspot = new Rectangle2D.Double(dataArea.getX(), cursor,
+		}
+		else if(edge.equals(RectangleEdge.BOTTOM)) {
+			hotspot = new Rectangle2D.Double(dataArea.getX(), cursor,
                     dataArea.getWidth(), state.getCursor() - cursor);
-        }
-        else if (edge.equals(RectangleEdge.LEFT)) {
-            hotspot = new Rectangle2D.Double(state.getCursor(),
+		}
+		else if(edge.equals(RectangleEdge.LEFT)) {
+			hotspot = new Rectangle2D.Double(state.getCursor(),
                     dataArea.getY(), cursor - state.getCursor(),
                     dataArea.getHeight());
-        }
-        else if (edge.equals(RectangleEdge.RIGHT)) {
-            hotspot = new Rectangle2D.Double(cursor, dataArea.getY(),
+		}
+		else if(edge.equals(RectangleEdge.RIGHT)){
+			hotspot = new Rectangle2D.Double(cursor, dataArea.getY(),
                     state.getCursor() - cursor, dataArea.getHeight());
-        }
-        EntityCollection e = plotState.getOwner().getEntityCollection();
-        if (e != null) {
+		}
+		EntityCollection e = plotState.getOwner().getEntityCollection();
+		if (e != null) {
             e.add(new AxisEntity(hotspot, this));
         }
-    }
+	}
 
     /**
      * Registers an object for notification of changes to the axis.
@@ -1420,8 +1419,7 @@ public abstract class Axis implements Cloneable, Serializable {
         if (this.minorTickMarkInsideLength != that.minorTickMarkInsideLength) {
             return false;
         }
-        if (this.minorTickMarkOutsideLength
-                != that.minorTickMarkOutsideLength) {
+        if (this.minorTickMarkOutsideLength != that.minorTickMarkOutsideLength) {
             return false;
         }
         if (this.fixedDimension != that.fixedDimension) {

@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,13 +21,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * --------------------------
  * DefaultTableXYDataset.java
  * --------------------------
- * (C) Copyright 2003-2009, by Richard Atkinson and Contributors.
+ * (C) Copyright 2003-2008, by Richard Atkinson and Contributors.
  *
  * Original Author:  Richard Atkinson;
  * Contributor(s):   Jody Brownell;
@@ -56,8 +56,7 @@
  * 05-Oct-2005 : Made the interval delegate a dataset listener (DG);
  * 02-Feb-2007 : Removed author tags all over JFreeChart sources (DG);
  * 22-Apr-2008 : Implemented PublicCloneable (DG);
- * 10-Jun-2009 : Simplified getX() and getY() (DG);
- * 
+ *
  */
 
 package org.jfree.data.xy;
@@ -278,8 +277,8 @@ public class DefaultTableXYDataset extends AbstractIntervalXYDataset
      */
     public Number getX(int series, int item) {
         XYSeries s = (XYSeries) this.data.get(series);
-        return s.getX(item);
-
+        XYDataItem dataItem = s.getDataItem(item);
+        return dataItem.getX();
     }
 
     /**
@@ -316,8 +315,9 @@ public class DefaultTableXYDataset extends AbstractIntervalXYDataset
      *         <code>null</code>).
      */
     public Number getY(int series, int index) {
-        XYSeries s = (XYSeries) this.data.get(series);
-        return s.getY(index);
+        XYSeries ts = (XYSeries) this.data.get(series);
+        XYDataItem dataItem = ts.getDataItem(index);
+        return dataItem.getY();
     }
 
     /**

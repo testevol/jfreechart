@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,8 +21,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * -------------------------
  * WaterfallBarRenderer.java
@@ -53,7 +53,6 @@
  *               applied (DG);
  * 04-Feb-2009 : Updated findRangeBounds to handle null dataset consistently
  *               with other renderers (DG);
- * 19-May-2009 : Fixed FindBugs warnings, patch by Michal Wozniak (DG);
  *
  */
 
@@ -398,7 +397,7 @@ public class WaterfallBarRenderer extends BarRenderer {
         }
         Rectangle2D bar = new Rectangle2D.Double(rectX, rectY, rectWidth,
                 rectHeight);
-        Paint seriesPaint;
+        Paint seriesPaint = getFirstBarPaint();
         if (column == 0) {
             seriesPaint = getFirstBarPaint();
         }

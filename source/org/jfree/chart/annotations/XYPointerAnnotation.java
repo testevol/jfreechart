@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,16 +21,16 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ------------------------
  * XYPointerAnnotation.java
  * ------------------------
- * (C) Copyright 2003-2011, by Object Refinery Limited.
+ * (C) Copyright 2003-2009, by Object Refinery Limited.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
- * Contributor(s):   Peter Kolb (patch 2809117);
+ * Contributor(s):   -;
  *
  * Changes:
  * --------
@@ -47,8 +47,6 @@
  *               Skunk (DG);
  * 12-Feb-2009 : Added support for rotated label, plus background and
  *               outline (DG);
- * 18-May-2009 : Fixed typo in hashCode() method (DG);
- * 24-Jun-2009 : Fire change events (see patch 2809117 by PK) (DG);
  *
  */
 
@@ -70,7 +68,6 @@ import java.io.Serializable;
 
 import org.jfree.chart.HashUtilities;
 import org.jfree.chart.axis.ValueAxis;
-import org.jfree.chart.event.AnnotationChangeEvent;
 import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.PlotRenderingInfo;
@@ -179,8 +176,7 @@ public class XYPointerAnnotation extends XYTextAnnotation
     }
 
     /**
-     * Sets the angle of the arrow and sends an
-     * {@link AnnotationChangeEvent} to all registered listeners.
+     * Sets the angle of the arrow.
      *
      * @param angle  the angle (in radians).
      *
@@ -188,7 +184,6 @@ public class XYPointerAnnotation extends XYTextAnnotation
      */
     public void setAngle(double angle) {
         this.angle = angle;
-        fireAnnotationChanged();
     }
 
     /**
@@ -203,8 +198,7 @@ public class XYPointerAnnotation extends XYTextAnnotation
     }
 
     /**
-     * Sets the tip radius and sends an
-     * {@link AnnotationChangeEvent} to all registered listeners.
+     * Sets the tip radius.
      *
      * @param radius  the radius (in Java2D units).
      *
@@ -212,7 +206,6 @@ public class XYPointerAnnotation extends XYTextAnnotation
      */
     public void setTipRadius(double radius) {
         this.tipRadius = radius;
-        fireAnnotationChanged();
     }
 
     /**
@@ -227,8 +220,7 @@ public class XYPointerAnnotation extends XYTextAnnotation
     }
 
     /**
-     * Sets the base radius and sends an
-     * {@link AnnotationChangeEvent} to all registered listeners.
+     * Sets the base radius.
      *
      * @param radius  the radius (in Java2D units).
      *
@@ -236,7 +228,6 @@ public class XYPointerAnnotation extends XYTextAnnotation
      */
     public void setBaseRadius(double radius) {
         this.baseRadius = radius;
-        fireAnnotationChanged();
     }
 
     /**
@@ -252,8 +243,7 @@ public class XYPointerAnnotation extends XYTextAnnotation
 
     /**
      * Sets the label offset (from the arrow base, continuing in a straight
-     * line, in Java2D units) and sends an
-     * {@link AnnotationChangeEvent} to all registered listeners.
+     * line, in Java2D units).
      *
      * @param offset  the offset (in Java2D units).
      *
@@ -261,7 +251,6 @@ public class XYPointerAnnotation extends XYTextAnnotation
      */
     public void setLabelOffset(double offset) {
         this.labelOffset = offset;
-        fireAnnotationChanged();
     }
 
     /**
@@ -276,8 +265,7 @@ public class XYPointerAnnotation extends XYTextAnnotation
     }
 
     /**
-     * Sets the arrow length and sends an
-     * {@link AnnotationChangeEvent} to all registered listeners.
+     * Sets the arrow length.
      *
      * @param length  the length.
      *
@@ -285,7 +273,6 @@ public class XYPointerAnnotation extends XYTextAnnotation
      */
     public void setArrowLength(double length) {
         this.arrowLength = length;
-        fireAnnotationChanged();
     }
 
     /**
@@ -300,8 +287,7 @@ public class XYPointerAnnotation extends XYTextAnnotation
     }
 
     /**
-     * Sets the arrow width and sends an
-     * {@link AnnotationChangeEvent} to all registered listeners.
+     * Sets the arrow width.
      *
      * @param width  the width (in Java2D units).
      *
@@ -309,7 +295,6 @@ public class XYPointerAnnotation extends XYTextAnnotation
      */
     public void setArrowWidth(double width) {
         this.arrowWidth = width;
-        fireAnnotationChanged();
     }
 
     /**
@@ -324,8 +309,7 @@ public class XYPointerAnnotation extends XYTextAnnotation
     }
 
     /**
-     * Sets the stroke used to draw the arrow line and sends an
-     * {@link AnnotationChangeEvent} to all registered listeners.
+     * Sets the stroke used to draw the arrow line.
      *
      * @param stroke  the stroke (<code>null</code> not permitted).
      *
@@ -336,7 +320,6 @@ public class XYPointerAnnotation extends XYTextAnnotation
             throw new IllegalArgumentException("Null 'stroke' not permitted.");
         }
         this.arrowStroke = stroke;
-        fireAnnotationChanged();
     }
 
     /**
@@ -351,8 +334,7 @@ public class XYPointerAnnotation extends XYTextAnnotation
     }
 
     /**
-     * Sets the paint used for the arrow and sends an
-     * {@link AnnotationChangeEvent} to all registered listeners.
+     * Sets the paint used for the arrow.
      *
      * @param paint  the arrow paint (<code>null</code> not permitted).
      *
@@ -363,7 +345,6 @@ public class XYPointerAnnotation extends XYTextAnnotation
             throw new IllegalArgumentException("Null 'paint' argument.");
         }
         this.arrowPaint = paint;
-        fireAnnotationChanged();
     }
 
     /**
@@ -421,7 +402,7 @@ public class XYPointerAnnotation extends XYTextAnnotation
 
         g2.setStroke(this.arrowStroke);
         g2.setPaint(this.arrowPaint);
-        Line2D line = new Line2D.Double(startX, startY, arrowBaseX, arrowBaseY);
+        Line2D line = new Line2D.Double(startX, startY, endX, endY);
         g2.draw(line);
         g2.fill(arrow);
 
@@ -519,7 +500,7 @@ public class XYPointerAnnotation extends XYTextAnnotation
         result = result * 37 + this.arrowStroke.hashCode();
         temp = Double.doubleToLongBits(this.labelOffset);
         result = 37 * result + (int) (temp ^ (temp >>> 32));
-        return result;
+        return super.hashCode();
     }
 
     /**

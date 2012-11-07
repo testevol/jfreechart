@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,8 +21,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ---------------------------------
  * NormalDistributionFunction2D.java
@@ -38,22 +38,16 @@
  * 21-Nov-2005 : Added getters for the mean and standard deviation (DG);
  * 12-Feb-2009 : Precompute some constants from the function - see bug
  *               2572016 (DG);
- * 28-May-2009 : Implemented equals() and hashCode(), and added serialization
- *               support (DG);
  *
  */
 
 package org.jfree.data.function;
 
-import java.io.Serializable;
-
-import org.jfree.chart.HashUtilities;
-
 /**
  * A normal distribution function.  See
  * http://en.wikipedia.org/wiki/Normal_distribution.
  */
-public class NormalDistributionFunction2D implements Function2D, Serializable {
+public class NormalDistributionFunction2D implements Function2D {
 
     /** The mean. */
     private double mean;
@@ -112,39 +106,6 @@ public class NormalDistributionFunction2D implements Function2D, Serializable {
     public double getValue(double x) {
         double z = x - this.mean;
         return this.factor * Math.exp(-z * z / this.denominator);
-    }
-
-    /**
-     * Tests this function for equality with an arbitrary object.
-     *
-     * @param obj  the object (<code>null</code> permitted).
-     *
-     * @return A boolean.
-     */
-    public boolean equals(Object obj) {
-        if (!(obj instanceof NormalDistributionFunction2D)) {
-            return false;
-        }
-        NormalDistributionFunction2D that = (NormalDistributionFunction2D) obj;
-        if (this.mean != that.mean) {
-            return false;
-        }
-        if (this.std != that.std) {
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * Returns a hash code for this instance.
-     *
-     * @return A hash code.
-     */
-    public int hashCode() {
-        int result = 29;
-        result = HashUtilities.hashCode(result, this.mean);
-        result = HashUtilities.hashCode(result, this.std);
-        return result;
     }
 
 }

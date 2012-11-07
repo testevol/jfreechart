@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,13 +21,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * -------------
  * RingPlot.java
  * -------------
- * (C) Copyright 2004-2011, by Object Refinery Limited.
+ * (C) Copyright 2004-2008, by Object Refinery Limited.
  *
  * Original Author:  David Gilbert (for Object Refinery Limtied);
  * Contributor(s):   Christoph Beck (bug 2121818);
@@ -44,8 +44,6 @@
  * 12-Oct-2006 : Added configurable section depth (DG);
  * 14-Feb-2007 : Added notification in setSectionDepth() method (DG);
  * 23-Sep-2008 : Fix for bug 2121818 by Christoph Beck (DG);
- * 13-Jul-2009 : Added support for shadow generator (DG);
- * 11-Oct-2011 : Check sectionOutlineVisible - bug 3237879 (DG);
  *
  */
 
@@ -402,7 +400,7 @@ public class RingPlot extends PiePlot implements Cloneable, Serializable {
                 Paint shadowPaint = getShadowPaint();
                 double shadowXOffset = getShadowXOffset();
                 double shadowYOffset = getShadowYOffset();
-                if (shadowPaint != null && getShadowGenerator() == null) {
+                if (shadowPaint != null) {
                     Shape shadowArc = ShapeUtilities.createTranslatedShape(
                             path, (float) shadowXOffset, (float) shadowYOffset);
                     g2.setPaint(shadowPaint);
@@ -415,8 +413,7 @@ public class RingPlot extends PiePlot implements Cloneable, Serializable {
                 g2.fill(path);
                 Paint outlinePaint = lookupSectionOutlinePaint(key);
                 Stroke outlineStroke = lookupSectionOutlineStroke(key);
-                if (getSectionOutlinesVisible() && outlinePaint != null 
-                        && outlineStroke != null) {
+                if (outlinePaint != null && outlineStroke != null) {
                     g2.setPaint(outlinePaint);
                     g2.setStroke(outlineStroke);
                     g2.draw(path);

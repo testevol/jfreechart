@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,19 +21,18 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * --------------------
  * XYAreaRenderer2.java
  * --------------------
- * (C) Copyright 2004-2011, by Hari and Contributors.
+ * (C) Copyright 2004-2008, by Hari and Contributors.
  *
  * Original Author:  Hari (ourhari@hotmail.com);
  * Contributor(s):   David Gilbert (for Object Refinery Limited);
  *                   Richard Atkinson;
  *                   Christian W. Zuckschwerdt;
- *                   Martin Krauskopf;
  *
  * Changes:
  * --------
@@ -76,7 +75,6 @@
  * 17-May-2007 : Set datasetIndex and seriesIndex in getLegendItem() (DG);
  * 18-May-2007 : Set dataset and seriesKey for LegendItem (DG);
  * 17-Jun-2008 : Apply legend font and paint attributes (DG);
- * 06-Oct-2011 : Avoid GeneralPath methods requiring Java 1.5 (MK);
  *
  */
 
@@ -84,6 +82,7 @@ package org.jfree.chart.renderer.xy;
 
 import java.awt.Graphics2D;
 import java.awt.Paint;
+import java.awt.Polygon;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.GeneralPath;
@@ -346,26 +345,31 @@ public class XYAreaRenderer2 extends AbstractXYItemRenderer
 
         double transZero = rangeAxis.valueToJava2D(0.0, dataArea,
                 plot.getRangeAxisEdge());
-        GeneralPath hotspot = new GeneralPath();
+        Polygon hotspot = null;
         if (plot.getOrientation() == PlotOrientation.HORIZONTAL) {
-            moveTo(hotspot, transZero, ((transX0 + transX1) / 2.0));
-            lineTo(hotspot, ((transY0 + transY1) / 2.0),
-                            ((transX0 + transX1) / 2.0));
-            lineTo(hotspot, transY1, transX1);
-            lineTo(hotspot, ((transY1 + transY2) / 2.0),
-                            ((transX1 + transX2) / 2.0));
-            lineTo(hotspot, transZero, ((transX1 + transX2) / 2.0));
+            hotspot = new Polygon();
+            hotspot.addPoint((int) transZero,
+                    (int) ((transX0 + transX1) / 2.0));
+            hotspot.addPoint((int) ((transY0 + transY1) / 2.0),
+                    (int) ((transX0 + transX1) / 2.0));
+            hotspot.addPoint((int) transY1, (int) transX1);
+            hotspot.addPoint((int) ((transY1 + transY2) / 2.0),
+                    (int) ((transX1 + transX2) / 2.0));
+            hotspot.addPoint((int) transZero,
+                    (int) ((transX1 + transX2) / 2.0));
         }
         else {  // vertical orientation
-            moveTo(hotspot, ((transX0 + transX1) / 2.0), transZero);
-            lineTo(hotspot, ((transX0 + transX1) / 2.0),
-                            ((transY0 + transY1) / 2.0));
-            lineTo(hotspot, transX1, transY1);
-            lineTo(hotspot, ((transX1 + transX2) / 2.0),
-                            ((transY1 + transY2) / 2.0));
-            lineTo(hotspot, ((transX1 + transX2) / 2.0), transZero);
+            hotspot = new Polygon();
+            hotspot.addPoint((int) ((transX0 + transX1) / 2.0),
+                    (int) transZero);
+            hotspot.addPoint((int) ((transX0 + transX1) / 2.0),
+                    (int) ((transY0 + transY1) / 2.0));
+            hotspot.addPoint((int) transX1, (int) transY1);
+            hotspot.addPoint((int) ((transX1 + transX2) / 2.0),
+                    (int) ((transY1 + transY2) / 2.0));
+            hotspot.addPoint((int) ((transX1 + transX2) / 2.0),
+                    (int) transZero);
         }
-        hotspot.closePath();
 
         PlotOrientation orientation = plot.getOrientation();
         Paint paint = getItemPaint(series, item);
@@ -391,7 +395,7 @@ public class XYAreaRenderer2 extends AbstractXYItemRenderer
         // collect entity and tool tip information...
         if (state.getInfo() != null) {
             EntityCollection entities = state.getEntityCollection();
-            if (entities != null) {
+            if (entities != null && hotspot != null) {
                 String tip = null;
                 XYToolTipGenerator generator = getToolTipGenerator(series,
                         item);

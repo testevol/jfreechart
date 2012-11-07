@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,23 +21,21 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ------------------------------
  * CategoryPointerAnnotation.java
  * ------------------------------
- * (C) Copyright 2006-2011, by Object Refinery Limited.
+ * (C) Copyright 2006-2008, by Object Refinery Limited.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
- * Contributor(s):   Peter Kolb (patch 2809117);
+ * Contributor(s):   -;
  *
  * Changes:
  * --------
  * 02-Oct-2006 : Version 1 (DG);
  * 06-Mar-2007 : Implemented hashCode() (DG);
- * 24-Jun-2009 : Fire change events (see patch 2809117 by PK) (DG);
- * 30-Mar-2010 : Correct calculation of pointer line (see patch 2954302) (DG);
  *
  */
 
@@ -59,7 +57,6 @@ import java.io.Serializable;
 import org.jfree.chart.HashUtilities;
 import org.jfree.chart.axis.CategoryAxis;
 import org.jfree.chart.axis.ValueAxis;
-import org.jfree.chart.event.AnnotationChangeEvent;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotOrientation;
@@ -86,7 +83,8 @@ import org.jfree.util.PublicCloneable;
  * @since 1.0.3
  */
 public class CategoryPointerAnnotation extends CategoryTextAnnotation
-        implements Cloneable, PublicCloneable, Serializable {
+                                 implements Cloneable, PublicCloneable,
+                                            Serializable {
 
     /** For serialization. */
     private static final long serialVersionUID = -4031161445009858551L;
@@ -171,8 +169,7 @@ public class CategoryPointerAnnotation extends CategoryTextAnnotation
     }
 
     /**
-     * Sets the angle of the arrow and sends an
-     * {@link AnnotationChangeEvent} to all registered listeners.
+     * Sets the angle of the arrow.
      *
      * @param angle  the angle (in radians).
      *
@@ -180,7 +177,6 @@ public class CategoryPointerAnnotation extends CategoryTextAnnotation
      */
     public void setAngle(double angle) {
         this.angle = angle;
-        fireAnnotationChanged();
     }
 
     /**
@@ -195,8 +191,7 @@ public class CategoryPointerAnnotation extends CategoryTextAnnotation
     }
 
     /**
-     * Sets the tip radius and sends an
-     * {@link AnnotationChangeEvent} to all registered listeners.
+     * Sets the tip radius.
      *
      * @param radius  the radius (in Java2D units).
      *
@@ -204,7 +199,6 @@ public class CategoryPointerAnnotation extends CategoryTextAnnotation
      */
     public void setTipRadius(double radius) {
         this.tipRadius = radius;
-        fireAnnotationChanged();
     }
 
     /**
@@ -219,8 +213,7 @@ public class CategoryPointerAnnotation extends CategoryTextAnnotation
     }
 
     /**
-     * Sets the base radius and sends an
-     * {@link AnnotationChangeEvent} to all registered listeners.
+     * Sets the base radius.
      *
      * @param radius  the radius (in Java2D units).
      *
@@ -228,7 +221,6 @@ public class CategoryPointerAnnotation extends CategoryTextAnnotation
      */
     public void setBaseRadius(double radius) {
         this.baseRadius = radius;
-        fireAnnotationChanged();
     }
 
     /**
@@ -244,8 +236,7 @@ public class CategoryPointerAnnotation extends CategoryTextAnnotation
 
     /**
      * Sets the label offset (from the arrow base, continuing in a straight
-     * line, in Java2D units) and sends an
-     * {@link AnnotationChangeEvent} to all registered listeners.
+     * line, in Java2D units).
      *
      * @param offset  the offset (in Java2D units).
      *
@@ -253,7 +244,6 @@ public class CategoryPointerAnnotation extends CategoryTextAnnotation
      */
     public void setLabelOffset(double offset) {
         this.labelOffset = offset;
-        fireAnnotationChanged();
     }
 
     /**
@@ -268,8 +258,7 @@ public class CategoryPointerAnnotation extends CategoryTextAnnotation
     }
 
     /**
-     * Sets the arrow length and sends an
-     * {@link AnnotationChangeEvent} to all registered listeners.
+     * Sets the arrow length.
      *
      * @param length  the length.
      *
@@ -277,7 +266,6 @@ public class CategoryPointerAnnotation extends CategoryTextAnnotation
      */
     public void setArrowLength(double length) {
         this.arrowLength = length;
-        fireAnnotationChanged();
     }
 
     /**
@@ -292,8 +280,7 @@ public class CategoryPointerAnnotation extends CategoryTextAnnotation
     }
 
     /**
-     * Sets the arrow width and sends an
-     * {@link AnnotationChangeEvent} to all registered listeners.
+     * Sets the arrow width.
      *
      * @param width  the width (in Java2D units).
      *
@@ -301,7 +288,6 @@ public class CategoryPointerAnnotation extends CategoryTextAnnotation
      */
     public void setArrowWidth(double width) {
         this.arrowWidth = width;
-        fireAnnotationChanged();
     }
 
     /**
@@ -316,8 +302,7 @@ public class CategoryPointerAnnotation extends CategoryTextAnnotation
     }
 
     /**
-     * Sets the stroke used to draw the arrow line and sends an
-     * {@link AnnotationChangeEvent} to all registered listeners.
+     * Sets the stroke used to draw the arrow line.
      *
      * @param stroke  the stroke (<code>null</code> not permitted).
      *
@@ -328,7 +313,6 @@ public class CategoryPointerAnnotation extends CategoryTextAnnotation
             throw new IllegalArgumentException("Null 'stroke' not permitted.");
         }
         this.arrowStroke = stroke;
-        fireAnnotationChanged();
     }
 
     /**
@@ -343,8 +327,7 @@ public class CategoryPointerAnnotation extends CategoryTextAnnotation
     }
 
     /**
-     * Sets the paint used for the arrow and sends an
-     * {@link AnnotationChangeEvent} to all registered listeners.
+     * Sets the paint used for the arrow.
      *
      * @param paint  the arrow paint (<code>null</code> not permitted).
      *
@@ -355,7 +338,6 @@ public class CategoryPointerAnnotation extends CategoryTextAnnotation
             throw new IllegalArgumentException("Null 'paint' argument.");
         }
         this.arrowPaint = paint;
-        fireAnnotationChanged();
     }
 
     /**
@@ -413,7 +395,7 @@ public class CategoryPointerAnnotation extends CategoryTextAnnotation
 
         g2.setStroke(this.arrowStroke);
         g2.setPaint(this.arrowPaint);
-        Line2D line = new Line2D.Double(startX, startY, arrowBaseX, arrowBaseY);
+        Line2D line = new Line2D.Double(startX, startY, endX, endY);
         g2.draw(line);
         g2.fill(arrow);
 

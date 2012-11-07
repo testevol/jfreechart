@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,13 +21,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ------------------
  * JDBCXYDataset.java
  * ------------------
- * (C) Copyright 2002-2009, by Bryan Scott and Contributors.
+ * (C) Copyright 2002-2008, by Bryan Scott and Contributors.
  *
  * Original Author:  Bryan Scott;
  * Contributor(s):   David Gilbert (for Object Refinery Limited);
@@ -66,7 +66,6 @@
  *               release (DG);
  * ------------- JFREECHART 1.0.x ---------------------------------------------
  * 17-Oct-2006 : Deprecated unused methods - see bug 1578293 (DG);
- * 19-May-2009 : Fixed FindBugs warnings, patch by Michal Wozniak (DG);
  *
  */
 
@@ -374,10 +373,11 @@ public class JDBCXYDataset extends AbstractXYDataset
                 this.minValue = 0.0;
             }
             else {
+                ArrayList row = (ArrayList) this.rows.get(0);
                 this.maxValue = Double.NEGATIVE_INFINITY;
                 this.minValue = Double.POSITIVE_INFINITY;
                 for (int rowNum = 0; rowNum < this.rows.size(); ++rowNum) {
-                    ArrayList row = (ArrayList) this.rows.get(rowNum);
+                    row = (ArrayList) this.rows.get(rowNum);
                     for (int column = 1; column < numberOfColumns; column++) {
                         Object testValue = row.get(column);
                         if (testValue != null) {

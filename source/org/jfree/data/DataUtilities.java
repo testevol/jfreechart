@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,8 +21,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ------------------
  * DataUtilities.java
@@ -155,13 +155,13 @@ public abstract class DataUtilities {
         double total = 0.0;
         int rowCount = data.getRowCount();
         for (int v = 0; v < validRows.length; v++) {
-            int row = validRows[v];
-            if (row < rowCount) {
-                Number n = data.getValue(row, column);
-                if (n != null) {
-                    total += n.doubleValue();
-                }
-            }
+        	int row = validRows[v];
+        	if (row < rowCount) {
+	            Number n = data.getValue(row, column);
+	            if (n != null) {
+	                total += n.doubleValue();
+	            }
+        	}
         }
         return total;
     }
@@ -210,13 +210,13 @@ public abstract class DataUtilities {
         double total = 0.0;
         int colCount = data.getColumnCount();
         for (int v = 0; v < validCols.length; v++) {
-            int col = validCols[v];
-            if (col < colCount) {
-                Number n = data.getValue(row, col);
-                if (n != null) {
-                    total += n.doubleValue();
-                }
-            }
+        	int col = validCols[v];
+        	if (col < colCount) {
+	            Number n = data.getValue(row, col);
+	            if (n != null) {
+	                total += n.doubleValue();
+	            }
+        	}
         }
         return total;
     }

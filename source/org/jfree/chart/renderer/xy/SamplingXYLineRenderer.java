@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,8 +21,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ---------------------------
  * SamplingXYLineRenderer.java
@@ -35,16 +35,13 @@
  * Changes:
  * --------
  * 02-Oct-2008 : Version 1 (DG);
- * 28-Apr-2009 : Fixed bug in legend shape display, and deprecated
- *               getLegendLine() and setLegendLine() - these methods
- *               are unnecessary because a mechanism already exists in the
- *               superclass for specifying a custom legend shape (DG);
  *
  */
 
 package org.jfree.chart.renderer.xy;
 
 import java.awt.Graphics2D;
+import java.awt.Paint;
 import java.awt.Shape;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
@@ -55,6 +52,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
+import org.jfree.chart.LegendItem;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.event.RendererChangeEvent;
 import org.jfree.chart.plot.CrosshairState;
@@ -68,12 +66,8 @@ import org.jfree.util.PublicCloneable;
 import org.jfree.util.ShapeUtilities;
 
 /**
- * A renderer that draws line charts.  The renderer doesn't necessarily plot
- * every data item - instead, it tries to plot only those data items that
- * make a difference to the visual output (the other data items are skipped).  
- * This renderer is designed for use with the {@link XYPlot} class.
- *
- * @since 1.0.13
+ * A renderer that...  This renderer is designed for use with the {@link XYPlot}
+ * class.
  */
 public class SamplingXYLineRenderer extends AbstractXYItemRenderer
         implements XYItemRenderer, Cloneable, PublicCloneable, Serializable {
@@ -86,8 +80,6 @@ public class SamplingXYLineRenderer extends AbstractXYItemRenderer
      */
     public SamplingXYLineRenderer() {
         this.legendLine = new Line2D.Double(-7.0, 0.0, 7.0, 0.0);
-        setBaseLegendShape(this.legendLine);
-        setTreatLegendShapeAsLine(true);
     }
 
     /**
@@ -96,9 +88,6 @@ public class SamplingXYLineRenderer extends AbstractXYItemRenderer
      * @return The legend line (never <code>null</code>).
      *
      * @see #setLegendLine(Shape)
-     *
-     * @deprecated As of version 1.0.14, this method is deprecated.  You
-     * should use the {@link #getBaseLegendShape()} method instead.
      */
     public Shape getLegendLine() {
         return this.legendLine;
@@ -111,9 +100,6 @@ public class SamplingXYLineRenderer extends AbstractXYItemRenderer
      * @param line  the line (<code>null</code> not permitted).
      *
      * @see #getLegendLine()
-     *
-     * @deprecated As of version 1.0.14, this method is deprecated.  You should
-     * use the {@link #setBaseLegendShape(java.awt.Shape)} method instead.
      */
     public void setLegendLine(Shape line) {
         if (line == null) {
@@ -200,7 +186,6 @@ public class SamplingXYLineRenderer extends AbstractXYItemRenderer
         public void startSeriesPass(XYDataset dataset, int series,
                 int firstItem, int lastItem, int pass, int passCount) {
             this.seriesPath.reset();
-            this.intervalPath.reset();
             this.lastPointGood = false;
             super.startSeriesPass(dataset, series, firstItem, lastItem, pass,
                     passCount);
@@ -340,6 +325,43 @@ public class SamplingXYLineRenderer extends AbstractXYItemRenderer
             g2.draw(s.seriesPath);
             g2.draw(s.intervalPath);
         }
+    }
+
+    /**
+     * Returns a legend item for the specified series.
+     *
+     * @param datasetIndex  the dataset index (zero-based).
+     * @param series  the series index (zero-based).
+     *
+     * @return A legend item for the series.
+     */
+    public LegendItem getLegendItem(int datasetIndex, int series) {
+
+        XYPlot plot = getPlot();
+        if (plot == null) {
+            return null;
+        }
+
+        LegendItem result = null;
+        XYDataset dataset = plot.getDataset(datasetIndex);
+        if (dataset != null) {
+            if (getItemVisible(series, 0)) {
+                String label = getLegendItemLabelGenerator().generateLabel(
+                        dataset, series);
+                result = new LegendItem(label);
+                result.setLabelFont(lookupLegendTextFont(series));
+                Paint labelPaint = lookupLegendTextPaint(series);
+                if (labelPaint != null) {
+                    result.setLabelPaint(labelPaint);
+                }
+                result.setSeriesKey(dataset.getSeriesKey(series));
+                result.setSeriesIndex(series);
+                result.setDataset(dataset);
+                result.setDatasetIndex(datasetIndex);
+            }
+        }
+        return result;
+
     }
 
     /**

@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,8 +21,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ----------------
  * LegendTitle.java
@@ -531,8 +531,8 @@ public class LegendTitle extends Title
         StandardEntityCollection sec = null;
         if (params instanceof EntityBlockParams
                 && ((EntityBlockParams) params).getGenerateEntities()) {
-            sec = new StandardEntityCollection();
-            sec.add(new TitleEntity(hotspot, this));
+			sec = new StandardEntityCollection();
+            sec.add(new TitleEntity(hotspot,this));
         }
         target = trimMargin(target);
         if (this.backgroundPaint != null) {
@@ -548,12 +548,12 @@ public class LegendTitle extends Title
         }
         target = trimPadding(target);
         Object val = container.draw(g2, target, params);
-        if (val instanceof BlockResult) {
-            EntityCollection ec = ((BlockResult) val).getEntityCollection();
-            if (ec != null && sec != null) {
-                sec.addAll(ec);
-                ((BlockResult) val).setEntityCollection(sec);
-            }
+        if (val instanceof BlockResult){
+        	EntityCollection ec = ((BlockResult) val).getEntityCollection();
+        	if (ec != null && sec != null){
+        		sec.addAll(ec);
+        		((BlockResult) val).setEntityCollection(sec);
+        	}
         }
         return val;
     }

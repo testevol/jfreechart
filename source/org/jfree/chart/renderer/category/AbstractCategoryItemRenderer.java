@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,13 +21,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ---------------------------------
  * AbstractCategoryItemRenderer.java
  * ---------------------------------
- * (C) Copyright 2002-2010, by Object Refinery Limited.
+ * (C) Copyright 2002-2009, by Object Refinery Limited.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   Richard Atkinson;
@@ -102,7 +102,6 @@
  * 27-Mar-2009 : Added new findRangeBounds() method to account for hidden
  *               series (DG);
  * 01-Apr-2009 : Added new addEntity() method (DG);
- * 09-Feb-2010 : Fixed bug 2947660 (DG);
  * 
  */
 
@@ -159,7 +158,6 @@ import org.jfree.ui.RectangleInsets;
 import org.jfree.util.ObjectList;
 import org.jfree.util.ObjectUtilities;
 import org.jfree.util.PublicCloneable;
-import org.jfree.util.SortOrder;
 
 /**
  * An abstract base class that you can use to implement a new
@@ -585,11 +583,11 @@ public abstract class AbstractCategoryItemRenderer extends AbstractRenderer
         CategoryItemRendererState state = createState(info);
         int[] visibleSeriesTemp = new int[this.rowCount];
         int visibleSeriesCount = 0;
-        for (int row = 0; row < this.rowCount; row++) {
-            if (isSeriesVisible(row)) {
-                visibleSeriesTemp[visibleSeriesCount] = row;
-                visibleSeriesCount++;
-            }
+        for (int row = 0; row < this.rowCount; row++){
+        	if (isSeriesVisible(row)) {
+        		visibleSeriesTemp[visibleSeriesCount] = row;
+        		visibleSeriesCount++;
+        	}
         }
         int[] visibleSeries = new int[visibleSeriesCount];
         System.arraycopy(visibleSeriesTemp, 0, visibleSeries, 0,
@@ -1555,17 +1553,14 @@ public abstract class AbstractCategoryItemRenderer extends AbstractRenderer
      * @see #getLegendItem(int, int)
      */
     public LegendItemCollection getLegendItems() {
-        LegendItemCollection result = new LegendItemCollection();
         if (this.plot == null) {
-            return result;
+            return new LegendItemCollection();
         }
+        LegendItemCollection result = new LegendItemCollection();
         int index = this.plot.getIndexOf(this);
         CategoryDataset dataset = this.plot.getDataset(index);
-        if (dataset == null) {
-            return result;
-        }
-        int seriesCount = dataset.getRowCount();
-        if (plot.getRowRenderingOrder().equals(SortOrder.ASCENDING)) {
+        if (dataset != null) {
+            int seriesCount = dataset.getRowCount();
             for (int i = 0; i < seriesCount; i++) {
                 if (isSeriesVisibleInLegend(i)) {
                     LegendItem item = getLegendItem(index, i);
@@ -1574,16 +1569,7 @@ public abstract class AbstractCategoryItemRenderer extends AbstractRenderer
                     }
                 }
             }
-        }
-        else {
-            for (int i = seriesCount - 1; i >= 0; i--) {
-                if (isSeriesVisibleInLegend(i)) {
-                    LegendItem item = getLegendItem(index, i);
-                    if (item != null) {
-                        result.add(item);
-                    }
-                }
-            }
+
         }
         return result;
     }

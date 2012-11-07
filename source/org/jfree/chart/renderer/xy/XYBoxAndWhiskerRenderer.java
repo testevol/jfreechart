@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,8 +21,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ----------------------------
  * XYBoxAndWhiskerRenderer.java
@@ -71,8 +71,6 @@
  * 03-Jan-2008 : Check visibility of average marker before drawing it (DG);
  * 27-Mar-2008 : If boxPaint is null, revert to itemPaint (DG);
  * 27-Mar-2009 : Added findRangeBounds() method override (DG);
- * 08-Dec-2009 : Fix for bug 2909215, NullPointerException for null
- *               outliers (DG);
  *
  */
 
@@ -335,10 +333,18 @@ public class XYBoxAndWhiskerRenderer extends AbstractXYItemRenderer
      *                        (<code>null</code> permitted).
      * @param pass  the pass index.
      */
-    public void drawItem(Graphics2D g2, XYItemRendererState state,
-            Rectangle2D dataArea, PlotRenderingInfo info, XYPlot plot,
-            ValueAxis domainAxis, ValueAxis rangeAxis, XYDataset dataset,
-            int series, int item, CrosshairState crosshairState, int pass) {
+    public void drawItem(Graphics2D g2,
+                         XYItemRendererState state,
+                         Rectangle2D dataArea,
+                         PlotRenderingInfo info,
+                         XYPlot plot,
+                         ValueAxis domainAxis,
+                         ValueAxis rangeAxis,
+                         XYDataset dataset,
+                         int series,
+                         int item,
+                         CrosshairState crosshairState,
+                         int pass) {
 
         PlotOrientation orientation = plot.getOrientation();
 
@@ -371,10 +377,17 @@ public class XYBoxAndWhiskerRenderer extends AbstractXYItemRenderer
      *                        (<code>null</code> permitted).
      * @param pass  the pass index.
      */
-    public void drawHorizontalItem(Graphics2D g2, Rectangle2D dataArea,
-            PlotRenderingInfo info, XYPlot plot, ValueAxis domainAxis,
-            ValueAxis rangeAxis, XYDataset dataset, int series,
-            int item, CrosshairState crosshairState, int pass) {
+    public void drawHorizontalItem(Graphics2D g2,
+                                   Rectangle2D dataArea,
+                                   PlotRenderingInfo info,
+                                   XYPlot plot,
+                                   ValueAxis domainAxis,
+                                   ValueAxis rangeAxis,
+                                   XYDataset dataset,
+                                   int series,
+                                   int item,
+                                   CrosshairState crosshairState,
+                                   int pass) {
 
         // setup for collecting optional entity info...
         EntityCollection entities = null;
@@ -511,10 +524,17 @@ public class XYBoxAndWhiskerRenderer extends AbstractXYItemRenderer
      *                        (<code>null</code> permitted).
      * @param pass  the pass index.
      */
-    public void drawVerticalItem(Graphics2D g2, Rectangle2D dataArea,
-            PlotRenderingInfo info, XYPlot plot, ValueAxis domainAxis,
-            ValueAxis rangeAxis, XYDataset dataset, int series,
-            int item, CrosshairState crosshairState, int pass) {
+    public void drawVerticalItem(Graphics2D g2,
+                                 Rectangle2D dataArea,
+                                 PlotRenderingInfo info,
+                                 XYPlot plot,
+                                 ValueAxis domainAxis,
+                                 ValueAxis rangeAxis,
+                                 XYDataset dataset,
+                                 int series,
+                                 int item,
+                                 CrosshairState crosshairState,
+                                 int pass) {
 
         // setup for collecting optional entity info...
         EntityCollection entities = null;
@@ -533,11 +553,6 @@ public class XYBoxAndWhiskerRenderer extends AbstractXYItemRenderer
         Number yQ1Median = boxAndWhiskerData.getQ1Value(series, item);
         Number yQ3Median = boxAndWhiskerData.getQ3Value(series, item);
         List yOutliers = boxAndWhiskerData.getOutliers(series, item);
-        // yOutliers can be null, but we'd prefer it to be an empty list in
-        // that case...
-        if (yOutliers == null) {
-            yOutliers = Collections.EMPTY_LIST;
-        }
 
         double xx = domainAxis.valueToJava2D(x.doubleValue(), dataArea,
                 plot.getDomainAxisEdge());
@@ -559,6 +574,7 @@ public class XYBoxAndWhiskerRenderer extends AbstractXYItemRenderer
         double yyQ3Median = rangeAxis.valueToJava2D(yQ3Median.doubleValue(),
                 dataArea, location);
         double yyOutlier;
+
 
         double exactBoxWidth = getBoxWidth();
         double width = exactBoxWidth;
@@ -641,6 +657,7 @@ public class XYBoxAndWhiskerRenderer extends AbstractXYItemRenderer
          * an arraylist. If there are any farouts, set the flag on the
          * OutlierListCollection
          */
+
         for (int i = 0; i < yOutliers.size(); i++) {
             double outlier = ((Number) yOutliers.get(i)).doubleValue();
             if (outlier > boxAndWhiskerData.getMaxOutlier(series,

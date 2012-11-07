@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,13 +21,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ------------
  * PiePlot.java
  * ------------
- * (C) Copyright 2000-2011, by Andrzej Porebski and Contributors.
+ * (C) Copyright 2000-2008, by Andrzej Porebski and Contributors.
  *
  * Original Author:  Andrzej Porebski;
  * Contributor(s):   David Gilbert (for Object Refinery Limited);
@@ -162,12 +162,7 @@
  *               by Christoph Beck (DG);
  * 18-Dec-2008 : Use ResourceBundleWrapper - see patch 1607918 by
  *               Jess Thrysoee (DG);
- * 10-Jul-2009 : Added optional drop shadow generator (DG);
- * 03-Sep-2009 : Fixed bug where sinmpleLabelOffset is ignored (DG);
- * 04-Nov-2009 : Add mouse wheel rotation support (DG);
- * 18-Oct-2011 : Fixed tooltip offset with shadow generator (DG);
- * 20-Nov-2011 : Initialise shadow generator as null (DG);
- * 
+ *
  */
 
 package org.jfree.chart.plot;
@@ -180,7 +175,6 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Paint;
-import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.Arc2D;
@@ -190,13 +184,10 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.QuadCurve2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -215,7 +206,6 @@ import org.jfree.chart.labels.PieToolTipGenerator;
 import org.jfree.chart.labels.StandardPieSectionLabelGenerator;
 import org.jfree.chart.urls.PieURLGenerator;
 import org.jfree.chart.util.ResourceBundleWrapper;
-import org.jfree.chart.util.ShadowGenerator;
 import org.jfree.data.DefaultKeyedValues;
 import org.jfree.data.KeyedValues;
 import org.jfree.data.general.DatasetChangeEvent;
@@ -512,13 +502,6 @@ public class PiePlot extends Plot implements Cloneable, Serializable {
      */
     private double minimumArcAngleToDraw;
 
-    /**
-     * The shadow generator for the plot (<code>null</code> permitted).
-     * 
-     * @since 1.0.14
-     */
-    private ShadowGenerator shadowGenerator;
-
     /** The resourceBundle for the localization. */
     protected static ResourceBundle localizationResources
             = ResourceBundleWrapper.getBundle(
@@ -612,8 +595,6 @@ public class PiePlot extends Plot implements Cloneable, Serializable {
 
         this.ignoreNullValues = false;
         this.ignoreZeroValues = false;
-
-        this.shadowGenerator = null;
     }
 
     /**
@@ -2345,45 +2326,6 @@ public class PiePlot extends Plot implements Cloneable, Serializable {
     }
 
     /**
-     * Returns the shadow generator for the plot, if any.
-     * 
-     * @return The shadow generator (possibly <code>null</code>).
-     * 
-     * @since 1.0.14
-     */
-    public ShadowGenerator getShadowGenerator() {
-        return this.shadowGenerator;
-    }
-
-    /**
-     * Sets the shadow generator for the plot and sends a
-     * {@link PlotChangeEvent} to all registered listeners.  Note that this is
-     * a bitmap drop-shadow generation facility and is separate from the
-     * vector based show option that is controlled via the
-     * {@link #setShadowPaint(java.awt.Paint)} method.
-     *
-     * @param generator  the generator (<code>null</code> permitted).
-     *
-     * @since 1.0.14
-     */
-    public void setShadowGenerator(ShadowGenerator generator) {
-        this.shadowGenerator = generator;
-        fireChangeEvent();
-    }
-
-    /**
-     * Handles a mouse wheel rotation (this method is intended for use by the
-     * {@link org.jfree.chart.MouseWheelHandler} class).
-     *
-     * @param rotateClicks  the number of rotate clicks on the the mouse wheel.
-     *
-     * @since 1.0.14
-     */
-    public void handleMouseWheelRotation(int rotateClicks) {
-        setStartAngle(this.startAngle + rotateClicks * 4.0);
-    }
-
-    /**
      * Initialises the drawing procedure.  This method will be called before
      * the first item is rendered, giving the plot an opportunity to initialise
      * any state information it wants to maintain.
@@ -2446,26 +2388,7 @@ public class PiePlot extends Plot implements Cloneable, Serializable {
                 getForegroundAlpha()));
 
         if (!DatasetUtilities.isEmptyOrNull(this.dataset)) {
-            Graphics2D savedG2 = g2;
-            BufferedImage dataImage = null;
-            if (this.shadowGenerator != null) {
-                dataImage = new BufferedImage((int) area.getWidth(),
-                    (int) area.getHeight(), BufferedImage.TYPE_INT_ARGB);
-                g2 = dataImage.createGraphics();
-                g2.translate(-area.getX(), -area.getY());
-                g2.setRenderingHints(savedG2.getRenderingHints());
-            }
             drawPie(g2, area, info);
-            if (this.shadowGenerator != null) {
-                BufferedImage shadowImage = this.shadowGenerator.createDropShadow(dataImage);
-                g2 = savedG2;
-                g2.drawImage(shadowImage, (int) area.getX() 
-                        + this.shadowGenerator.calculateOffsetX(), 
-                        (int) area.getY()
-                        + this.shadowGenerator.calculateOffsetY(), null);
-                g2.drawImage(dataImage, (int) area.getX(), (int) area.getY(), 
-                        null);
-            }
         }
         else {
             drawNoDataMessage(g2, area);
@@ -2657,7 +2580,7 @@ public class PiePlot extends Plot implements Cloneable, Serializable {
                     Arc2D.PIE);
 
             if (currentPass == 0) {
-                if (this.shadowPaint != null && this.shadowGenerator == null) {
+                if (this.shadowPaint != null) {
                     Shape shadowArc = ShapeUtilities.createTranslatedShape(
                             arc, (float) this.shadowXOffset,
                             (float) this.shadowYOffset);
@@ -2667,7 +2590,7 @@ public class PiePlot extends Plot implements Cloneable, Serializable {
             }
             else if (currentPass == 1) {
                 Comparable key = getSectionKey(section);
-                Paint paint = lookupSectionPaint(key, state);
+                Paint paint = lookupSectionPaint(key);
                 g2.setPaint(paint);
                 g2.fill(arc);
 
@@ -2725,8 +2648,9 @@ public class PiePlot extends Plot implements Cloneable, Serializable {
         g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
                 1.0f));
 
-        Rectangle2D labelsArea = this.simpleLabelOffset.createInsetRectangle(
-                pieArea);
+        RectangleInsets labelInsets = new RectangleInsets(UnitType.RELATIVE,
+                0.18, 0.18, 0.18, 0.18);
+        Rectangle2D labelsArea = labelInsets.createInsetRectangle(pieArea);
         double runningTotal = 0.0;
         Iterator iterator = keys.iterator();
         while (iterator.hasNext()) {
@@ -2770,8 +2694,7 @@ public class PiePlot extends Plot implements Cloneable, Serializable {
                         bounds);
                 Shape bg = ShapeUtilities.createTranslatedShape(out,
                         x - bounds.getCenterX(), y - bounds.getCenterY());
-                if (this.labelShadowPaint != null
-                        && this.shadowGenerator == null) {
+                if (this.labelShadowPaint != null) {
                     Shape shadow = ShapeUtilities.createTranslatedShape(bg,
                             this.shadowXOffset, this.shadowYOffset);
                     g2.setPaint(this.labelShadowPaint);
@@ -2904,12 +2827,7 @@ public class PiePlot extends Plot implements Cloneable, Serializable {
                 labelBox.setBackgroundPaint(this.labelBackgroundPaint);
                 labelBox.setOutlinePaint(this.labelOutlinePaint);
                 labelBox.setOutlineStroke(this.labelOutlineStroke);
-                if (this.shadowGenerator == null) {
-                    labelBox.setShadowPaint(this.labelShadowPaint);
-                }
-                else {
-                    labelBox.setShadowPaint(null);
-                }
+                labelBox.setShadowPaint(this.labelShadowPaint);
                 labelBox.setInteriorGap(this.labelPadding);
                 double theta = Math.toRadians(
                         leftKeys.getValue(i).doubleValue());
@@ -2965,12 +2883,7 @@ public class PiePlot extends Plot implements Cloneable, Serializable {
                 labelBox.setBackgroundPaint(this.labelBackgroundPaint);
                 labelBox.setOutlinePaint(this.labelOutlinePaint);
                 labelBox.setOutlineStroke(this.labelOutlineStroke);
-                if (this.shadowGenerator == null) {
-                    labelBox.setShadowPaint(this.labelShadowPaint);
-                }
-                else {
-                    labelBox.setShadowPaint(null);
-                }
+                labelBox.setShadowPaint(this.labelShadowPaint);
                 labelBox.setInteriorGap(this.labelPadding);
                 double theta = Math.toRadians(keys.getValue(i).doubleValue());
                 double baseY = state.getPieCenterY()
@@ -3093,17 +3006,19 @@ public class PiePlot extends Plot implements Cloneable, Serializable {
         if (explodePercent == 0.0) {
             return unexploded;
         }
-        Arc2D arc1 = new Arc2D.Double(unexploded, angle, extent / 2,
-                Arc2D.OPEN);
-        Point2D point1 = arc1.getEndPoint();
-        Arc2D.Double arc2 = new Arc2D.Double(exploded, angle, extent / 2,
-                Arc2D.OPEN);
-        Point2D point2 = arc2.getEndPoint();
-        double deltaX = (point1.getX() - point2.getX()) * explodePercent;
-        double deltaY = (point1.getY() - point2.getY()) * explodePercent;
-        return new Rectangle2D.Double(unexploded.getX() - deltaX,
-                unexploded.getY() - deltaY, unexploded.getWidth(),
-                unexploded.getHeight());
+        else {
+            Arc2D arc1 = new Arc2D.Double(unexploded, angle, extent / 2,
+                    Arc2D.OPEN);
+            Point2D point1 = arc1.getEndPoint();
+            Arc2D.Double arc2 = new Arc2D.Double(exploded, angle, extent / 2,
+                    Arc2D.OPEN);
+            Point2D point2 = arc2.getEndPoint();
+            double deltaX = (point1.getX() - point2.getX()) * explodePercent;
+            double deltaY = (point1.getY() - point2.getY()) * explodePercent;
+            return new Rectangle2D.Double(unexploded.getX() - deltaX,
+                    unexploded.getY() - deltaY, unexploded.getWidth(),
+                    unexploded.getHeight());
+        }
     }
 
     /**
@@ -3210,104 +3125,6 @@ public class PiePlot extends Plot implements Cloneable, Serializable {
     }
 
     /**
-     * Returns the center for the specified section.
-     * Checks to see if the section is exploded and recalculates the
-     * new center if so.
-     *
-     * @param state  PiePlotState
-     * @param key  section key.
-     *
-     * @return The center for the specified section.
-     *
-     * @since 1.0.14
-     */
-    protected Point2D getArcCenter(PiePlotState state, Comparable key) {
-        Point2D center = new Point2D.Double(state.getPieCenterX(), state
-            .getPieCenterY());
-
-        double ep = getExplodePercent(key);
-        double mep = getMaximumExplodePercent();
-        if (mep > 0.0) {
-            ep = ep / mep;
-        }
-        if (ep != 0) {
-            Rectangle2D pieArea = state.getPieArea();
-            Rectangle2D expPieArea = state.getExplodedPieArea();
-            double angle1, angle2;
-            Number n = this.dataset.getValue(key);
-            double value = n.doubleValue();
-
-            if (this.direction == Rotation.CLOCKWISE) {
-                angle1 = state.getLatestAngle();
-                angle2 = angle1 - value / state.getTotal() * 360.0;
-            } else if (this.direction == Rotation.ANTICLOCKWISE) {
-                angle1 = state.getLatestAngle();
-                angle2 = angle1 + value / state.getTotal() * 360.0;
-            } else {
-                throw new IllegalStateException("Rotation type not recognised.");
-            }
-            double angle = (angle2 - angle1);
-
-            Arc2D arc1 = new Arc2D.Double(pieArea, angle1, angle / 2,
-                    Arc2D.OPEN);
-            Point2D point1 = arc1.getEndPoint();
-            Arc2D.Double arc2 = new Arc2D.Double(expPieArea, angle1, angle / 2,
-                    Arc2D.OPEN);
-            Point2D point2 = arc2.getEndPoint();
-            double deltaX = (point1.getX() - point2.getX()) * ep;
-            double deltaY = (point1.getY() - point2.getY()) * ep;
-
-            center = new Point2D.Double(state.getPieCenterX() - deltaX,
-                     state.getPieCenterY() - deltaY);
-
-        }
-        return center;
-    }
-
-    /**
-     * Returns the paint for the specified section. This is equivalent to
-     * <code>lookupSectionPaint(section)</code>.
-     * Checks to see if the user set the Paint to be of type RadialGradientPaint
-     * If so it adjusts the center and radius to match the Pie
-     *
-     * @param key  the section key.
-     * @param state  PiePlotState.
-     *
-     * @return The paint for the specified section.
-     *
-     * @since 1.0.14
-     */
-    protected Paint lookupSectionPaint(Comparable key, PiePlotState state) {
-        Paint paint = lookupSectionPaint(key, getAutoPopulateSectionPaint());
-        // If using JDK 1.6 or later the passed Paint Object can be a RadialGradientPaint
-        // We need to adjust the radius and center for this object to match the Pie.
-        try {
-            Class c = Class.forName("java.awt.RadialGradientPaint");
-            Constructor cc = c.getConstructor(new Class[] {
-                    Point2D.class, float.class, float[].class, Color[].class});
-
-             if (c.isInstance(paint)) {
-                 // User did pass a RadialGradientPaint object
-                 Method m = c.getMethod("getFractions", new Class[] {});
-                 Object fractions = m.invoke(paint, new Object[] {});
-                 m = c.getMethod("getColors", new Class[] {});
-                 Object clrs = m.invoke(paint, new Object[] {});
-                 Point2D center = getArcCenter(state, key);
-                 float radius = (new Float(state.getPieHRadius())).floatValue();
-
-                 Paint radialPaint = (Paint) cc.newInstance(new Object[] {
-                         (Object) center, (Object) new Float(radius),
-                         fractions, clrs});
-                 // return the new RadialGradientPaint
-                 return radialPaint;
-             }
-        } catch (Exception e) {
-        }
-        // Return whatever it was
-        return paint;
-    }
-
-    /**
      * Tests this plot for equality with an arbitrary object.  Note that the
      * plot's dataset is NOT included in the test for equality.
      *
@@ -3369,8 +3186,9 @@ public class PiePlot extends Plot implements Cloneable, Serializable {
                 that.sectionOutlinePaintMap)) {
             return false;
         }
-        if (!PaintUtilities.equal(this.baseSectionOutlinePaint,
-                that.baseSectionOutlinePaint)) {
+        if (!PaintUtilities.equal(
+            this.baseSectionOutlinePaint, that.baseSectionOutlinePaint
+        )) {
             return false;
         }
         if (!ObjectUtilities.equal(this.sectionOutlineStroke,
@@ -3381,8 +3199,9 @@ public class PiePlot extends Plot implements Cloneable, Serializable {
                 that.sectionOutlineStrokeMap)) {
             return false;
         }
-        if (!ObjectUtilities.equal(this.baseSectionOutlineStroke,
-                that.baseSectionOutlineStroke)) {
+        if (!ObjectUtilities.equal(
+            this.baseSectionOutlineStroke, that.baseSectionOutlineStroke
+        )) {
             return false;
         }
         if (!PaintUtilities.equal(this.shadowPaint, that.shadowPaint)) {
@@ -3489,10 +3308,6 @@ public class PiePlot extends Plot implements Cloneable, Serializable {
         }
         if (this.autoPopulateSectionOutlineStroke
                 != that.autoPopulateSectionOutlineStroke) {
-            return false;
-        }
-        if (!ObjectUtilities.equal(this.shadowGenerator,
-                that.shadowGenerator)) {
             return false;
         }
         // can't find any difference...

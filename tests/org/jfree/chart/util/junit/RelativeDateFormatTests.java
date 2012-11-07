@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,13 +21,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ----------------------------
  * RelativeDateFormatTests.java
  * ----------------------------
- * (C) Copyright 2006-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2006-2008, by Object Refinery Limited and Contributors.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   -;
@@ -37,7 +37,6 @@
  * 23-Nov-2006 : Version 1 (DG);
  * 15-Feb-2008 : Added tests for negative dates (DG);
  * 01-Sep-2008 : Added a test for hours and minutes with leading zeroes (DG);
- * 06-Oct-2011 : Fixed bug 3418287 (DG);
  *
  */
 
@@ -46,7 +45,6 @@ package org.jfree.chart.util.junit;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Date;
-import java.util.Locale;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -75,25 +73,6 @@ public class RelativeDateFormatTests extends TestCase {
      */
     public RelativeDateFormatTests(String name) {
         super(name);
-    }
-
-    private Locale savedLocale;
-
-    /**
-     * Set a known locale for the tests.
-     */
-    protected void setUp() throws Exception {
-        super.setUp();
-        this.savedLocale = Locale.getDefault();
-        Locale.setDefault(Locale.UK);
-    }
-
-    /**
-     * Restore the default locale after the tests complete.
-     */
-    protected void tearDown() throws Exception {
-        super.tearDown();
-        Locale.setDefault(this.savedLocale);
     }
 
     /**

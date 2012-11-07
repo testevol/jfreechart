@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,13 +21,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * -------------------
  * JDBCPieDataset.java
  * -------------------
- * (C) Copyright 2002-2009, by Bryan Scott and Contributors.
+ * (C) Copyright 2002-2008, by Bryan Scott and Contributors.
  *
  * Original Author:  Bryan Scott; Andy
  * Contributor(s):   David Gilbert (for Object Refinery Limited);
@@ -52,7 +52,6 @@
  * 04-Dec-2003 : Added missing Javadocs (DG);
  * ------------- JFREECHART 1.0.x ---------------------------------------------
  * 02-Feb-2007 : Removed author tags all over JFreeChart sources (DG);
- * 19-May-2009 : Fixed FindBugs warnings, patch by Michal Wozniak (DG);
  *
  */
 
@@ -182,7 +181,7 @@ public class JDBCPieDataset extends DefaultPieDataset {
             }
 
             int columnType = metaData.getColumnType(2);
-            double value;
+            double value = Double.NaN;
             while (resultSet.next()) {
                 Comparable key = resultSet.getString(1);
                 switch (columnType) {
@@ -207,7 +206,8 @@ public class JDBCPieDataset extends DefaultPieDataset {
 
                     default:
                         System.err.println(
-                                "JDBCPieDataset - unknown data type");
+                            "JDBCPieDataset - unknown data type"
+                        );
                         break;
                 }
             }

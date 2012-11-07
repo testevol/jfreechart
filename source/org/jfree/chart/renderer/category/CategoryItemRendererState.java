@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,8 +21,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ------------------------------
  * CategoryItemRendererState.java
@@ -169,17 +169,17 @@ public class CategoryItemRendererState extends RendererState {
      * @since 1.0.13
      */
     public int getVisibleSeriesIndex(int rowIndex) {
-        if (this.visibleSeries == null) {
-            return rowIndex;
-        }
-        int index = -1;
-        for (int vRow = 0; vRow < this.visibleSeries.length; vRow++) {
-            if (this.visibleSeries[vRow] == rowIndex) {
-                index = vRow;
-                break;
-            }
-        }
-        return index;
+    	if (this.visibleSeries == null) {
+    	    return rowIndex;
+    	}
+		int index = -1;
+		for (int vRow = 0; vRow < this.visibleSeries.length ; vRow++){
+			if (this.visibleSeries[vRow] == rowIndex) {
+				index = vRow;
+				break;
+			}
+		}
+		return index;
     }
 
     /**
@@ -191,10 +191,10 @@ public class CategoryItemRendererState extends RendererState {
      * @since 1.0.13
      */
     public int getVisibleSeriesCount() {
-        if (this.visibleSeries == null) {
-            return -1;
-        }
-        return this.visibleSeries.length;
+    	if (this.visibleSeries == null) {
+    	    return -1;
+    	}
+    	return this.visibleSeries.length;
     }
 
     /**

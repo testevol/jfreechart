@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,8 +21,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * --------------
  * ValueAxis.java
@@ -711,13 +711,11 @@ public abstract class ValueAxis extends Axis
                     TickType.MAJOR)) || (isMinorTickMarksVisible()
                     && tick.getTickType().equals(TickType.MINOR))) {
 
-                double ol = (tick.getTickType().equals(TickType.MINOR)) 
-                        ? getMinorTickMarkOutsideLength()
-                        : getTickMarkOutsideLength();
+                double ol = (tick.getTickType().equals(TickType.MINOR)) ?
+                    getMinorTickMarkOutsideLength() : getTickMarkOutsideLength();
 
-                double il = (tick.getTickType().equals(TickType.MINOR)) 
-                        ? getMinorTickMarkInsideLength()
-                        : getTickMarkInsideLength();
+                double il = (tick.getTickType().equals(TickType.MINOR)) ?
+                    getMinorTickMarkInsideLength() : getTickMarkInsideLength();
 
                 float xx = (float) valueToJava2D(tick.getValue(), dataArea,
                         edge);

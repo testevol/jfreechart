@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,13 +21,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * -----------------------
  * LayeredBarRenderer.java
  * -----------------------
- * (C) Copyright 2003-2009, by Arnaud Lelievre and Contributors.
+ * (C) Copyright 2003-2008, by Arnaud Lelievre and Contributors.
  *
  * Original Author:  Arnaud Lelievre (for Garden);
  * Contributor(s):   David Gilbert (for Object Refinery Limited);
@@ -47,7 +47,6 @@
  * 18-Aug-2006 : Fixed the bar width calculation to respect the maximum bar
  *               width setting (thanks to Zoheb Borbora) (DG);
  * 02-Feb-2007 : Removed author tags all over JFreeChart sources (DG);
- * 19-May-2009 : Fixed FindBugs warnings, patch by Michal Wozniak (DG);
  *
  */
 
@@ -410,11 +409,12 @@ public class LayeredBarRenderer extends BarRenderer implements Serializable {
         double transY2 = rangeAxis.valueToJava2D(value, dataArea, edge);
         double rectY = Math.min(transY2, transY1);
 
-        double rectWidth = 0.0;
+        double rectWidth = state.getBarWidth();
         double rectHeight = Math.abs(transY2 - transY1);
 
         // draw the bar...
         double shift = 0.0;
+        rectWidth = 0.0;
         double widthFactor = 1.0;
         double seriesBarWidth = getSeriesBarWidth(row);
         if (!Double.isNaN(seriesBarWidth)) {

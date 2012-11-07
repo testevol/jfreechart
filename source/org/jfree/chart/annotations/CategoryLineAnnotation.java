@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,16 +21,16 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ---------------------------
  * CategoryLineAnnotation.java
  * ---------------------------
- * (C) Copyright 2005-2011, by Object Refinery Limited.
+ * (C) Copyright 2005-2008, by Object Refinery Limited.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
- * Contributor(s):   Peter Kolb (patch 2809117);
+ * Contributor(s):   -;
  *
  * Changes:
  * --------
@@ -38,7 +38,6 @@
  * ------------- JFREECHART 1.0.x ---------------------------------------------
  * 06-Mar-2007 : Reimplemented hashCode() (DG);
  * 23-Apr-2008 : Implemented PublicCloneable (DG);
- * 24-Jun-2009 : Now extends AbstractAnnotation (see patch 2809117 by PK) (DG);
  *
  */
 
@@ -59,7 +58,6 @@ import org.jfree.chart.HashUtilities;
 import org.jfree.chart.axis.CategoryAnchor;
 import org.jfree.chart.axis.CategoryAxis;
 import org.jfree.chart.axis.ValueAxis;
-import org.jfree.chart.event.AnnotationChangeEvent;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotOrientation;
@@ -73,9 +71,8 @@ import org.jfree.util.PublicCloneable;
 /**
  * A line annotation that can be placed on a {@link CategoryPlot}.
  */
-public class CategoryLineAnnotation extends AbstractAnnotation 
-        implements CategoryAnnotation, Cloneable, PublicCloneable,
-        Serializable {
+public class CategoryLineAnnotation implements CategoryAnnotation,
+        Cloneable, PublicCloneable, Serializable {
 
     /** For serialization. */
     static final long serialVersionUID = 3477740483341587984L;
@@ -112,7 +109,6 @@ public class CategoryLineAnnotation extends AbstractAnnotation
     public CategoryLineAnnotation(Comparable category1, double value1,
                                   Comparable category2, double value2,
                                   Paint paint, Stroke stroke) {
-        super();
         if (category1 == null) {
             throw new IllegalArgumentException("Null 'category1' argument.");
         }
@@ -145,8 +141,7 @@ public class CategoryLineAnnotation extends AbstractAnnotation
     }
 
     /**
-     * Sets the category for the start of the line and sends an
-     * {@link AnnotationChangeEvent} to all registered listeners.
+     * Sets the category for the start of the line.
      *
      * @param category  the category (<code>null</code> not permitted).
      *
@@ -157,7 +152,6 @@ public class CategoryLineAnnotation extends AbstractAnnotation
             throw new IllegalArgumentException("Null 'category' argument.");
         }
         this.category1 = category;
-        fireAnnotationChanged();
     }
 
     /**
@@ -172,8 +166,7 @@ public class CategoryLineAnnotation extends AbstractAnnotation
     }
 
     /**
-     * Sets the y-value for the start of the line and sends an
-     * {@link AnnotationChangeEvent} to all registered listeners.
+     * Sets the y-value for the start of the line.
      *
      * @param value  the value.
      *
@@ -181,7 +174,6 @@ public class CategoryLineAnnotation extends AbstractAnnotation
      */
     public void setValue1(double value) {
         this.value1 = value;
-        fireAnnotationChanged();
     }
 
     /**
@@ -196,8 +188,7 @@ public class CategoryLineAnnotation extends AbstractAnnotation
     }
 
     /**
-     * Sets the category for the end of the line and sends an
-     * {@link AnnotationChangeEvent} to all registered listeners.
+     * Sets the category for the end of the line.
      *
      * @param category  the category (<code>null</code> not permitted).
      *
@@ -208,7 +199,6 @@ public class CategoryLineAnnotation extends AbstractAnnotation
             throw new IllegalArgumentException("Null 'category' argument.");
         }
         this.category2 = category;
-        fireAnnotationChanged();
     }
 
     /**
@@ -223,8 +213,7 @@ public class CategoryLineAnnotation extends AbstractAnnotation
     }
 
     /**
-     * Sets the y-value for the end of the line and sends an
-     * {@link AnnotationChangeEvent} to all registered listeners.
+     * Sets the y-value for the end of the line.
      *
      * @param value  the value.
      *
@@ -232,7 +221,6 @@ public class CategoryLineAnnotation extends AbstractAnnotation
      */
     public void setValue2(double value) {
         this.value2 = value;
-        fireAnnotationChanged();
     }
 
     /**
@@ -247,8 +235,7 @@ public class CategoryLineAnnotation extends AbstractAnnotation
     }
 
     /**
-     * Sets the paint used to draw the connecting line and sends an
-     * {@link AnnotationChangeEvent} to all registered listeners.
+     * Sets the paint used to draw the connecting line.
      *
      * @param paint  the paint (<code>null</code> not permitted).
      *
@@ -259,7 +246,6 @@ public class CategoryLineAnnotation extends AbstractAnnotation
             throw new IllegalArgumentException("Null 'paint' argument.");
         }
         this.paint = paint;
-        fireAnnotationChanged();
     }
 
     /**
@@ -274,8 +260,7 @@ public class CategoryLineAnnotation extends AbstractAnnotation
     }
 
     /**
-     * Sets the stroke used to draw the connecting line and sends an
-     * {@link AnnotationChangeEvent} to all registered listeners.
+     * Sets the stroke used to draw the connecting line.
      *
      * @param stroke  the stroke (<code>null</code> not permitted).
      *
@@ -286,7 +271,6 @@ public class CategoryLineAnnotation extends AbstractAnnotation
             throw new IllegalArgumentException("Null 'stroke' argument.");
         }
         this.stroke = stroke;
-        fireAnnotationChanged();
     }
 
     /**

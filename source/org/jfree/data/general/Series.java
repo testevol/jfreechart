@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,13 +21,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * -----------
  * Series.java
  * -----------
- * (C) Copyright 2001-2011, by Object Refinery Limited.
+ * (C) Copyright 2001-2008, by Object Refinery Limited.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   -;
@@ -49,21 +49,17 @@
  * ------------- JFREECHART 1.0.x ---------------------------------------------
  * 04-May-2006 : Updated API docs (DG);
  * 26-Sep-2007 : Added isEmpty() and getItemCount() methods (DG);
- * 16-Oct-2011 : Added vetoable property change support for series name (DG);
+ *
  */
 
 package org.jfree.data.general;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.beans.PropertyVetoException;
-import java.beans.VetoableChangeListener;
-import java.beans.VetoableChangeSupport;
 import java.io.Serializable;
 
 import javax.swing.event.EventListenerList;
 
-import org.jfree.chart.util.ParamChecks;
 import org.jfree.util.ObjectUtilities;
 
 /**
@@ -93,9 +89,6 @@ public abstract class Series implements Cloneable, Serializable {
     /** Object to support property change notification. */
     private PropertyChangeSupport propertyChangeSupport;
 
-    /** Object to support property change notification. */
-    private VetoableChangeSupport vetoableChangeSupport;
-
     /** A flag that controls whether or not changes are notified. */
     private boolean notify;
 
@@ -122,7 +115,6 @@ public abstract class Series implements Cloneable, Serializable {
         this.description = description;
         this.listeners = new EventListenerList();
         this.propertyChangeSupport = new PropertyChangeSupport(this);
-        this.vetoableChangeSupport = new VetoableChangeSupport(this);
         this.notify = true;
     }
 
@@ -138,30 +130,20 @@ public abstract class Series implements Cloneable, Serializable {
     }
 
     /**
-     * Sets the key for the series and sends a <code>VetoableChangeEvent</code>
-     * (with the property name "Key") to all registered listeners.  For 
-     * backwards compatibility, this method also fires a regular 
-     * <code>PropertyChangeEvent</code>.
+     * Sets the key for the series and sends a <code>PropertyChangeEvent</code>
+     * (with the property name "Key") to all registered listeners.
      *
      * @param key  the key (<code>null</code> not permitted).
      *
      * @see #getKey()
      */
     public void setKey(Comparable key) {
-        ParamChecks.nullNotPermitted(key, "key");
-        Comparable old = this.key;
-        try {
-            // if this series belongs to a dataset, the dataset might veto the
-            // change if it results in two series within the dataset having the
-            // same key
-            this.vetoableChangeSupport.fireVetoableChange("Key", old, key);
-            this.key = key;
-            // prior to 1.0.14, we just fired a PropertyChange - so we need to
-            // keep doing this
-            this.propertyChangeSupport.firePropertyChange("Key", old, key);
-        } catch (PropertyVetoException e) {
-            throw new IllegalArgumentException(e.getMessage());
+        if (key == null) {
+            throw new IllegalArgumentException("Null 'key' argument.");
         }
+        Comparable old = this.key;
+        this.key = key;
+        this.propertyChangeSupport.firePropertyChange("Key", old, key);
     }
 
     /**
@@ -254,11 +236,12 @@ public abstract class Series implements Cloneable, Serializable {
      *         subclasses may differ.
      */
     public Object clone() throws CloneNotSupportedException {
+
         Series clone = (Series) super.clone();
         clone.listeners = new EventListenerList();
         clone.propertyChangeSupport = new PropertyChangeSupport(clone);
-        clone.vetoableChangeSupport = new VetoableChangeSupport(clone);
         return clone;
+
     }
 
     /**
@@ -361,7 +344,7 @@ public abstract class Series implements Cloneable, Serializable {
     /**
      * Removes a property change listener from the series.
      *
-     * @param listener  the listener.
+     * @param listener The listener.
      */
     public void removePropertyChangeListener(PropertyChangeListener listener) {
         this.propertyChangeSupport.removePropertyChangeListener(listener);
@@ -377,41 +360,6 @@ public abstract class Series implements Cloneable, Serializable {
     protected void firePropertyChange(String property, Object oldValue,
             Object newValue) {
         this.propertyChangeSupport.firePropertyChange(property, oldValue,
-                newValue);
-    }
-    
-    /**
-     * Adds a vetoable property change listener to the series.
-     *
-     * @param listener  the listener.
-     * 
-     * @since 1.0.14
-     */
-    public void addVetoableChangeListener(VetoableChangeListener listener) {
-        this.vetoableChangeSupport.addVetoableChangeListener(listener);
-    }
-
-    /**
-     * Removes a vetoable property change listener from the series.
-     *
-     * @param listener  the listener.
-     * 
-     * @since 1.0.14 
-     */
-    public void removeVetoableChangeListener(VetoableChangeListener listener) {
-        this.vetoableChangeSupport.removeVetoableChangeListener(listener);
-    }    
-
-    /**
-     * Fires a vetoable property change event.
-     *
-     * @param property  the property key.
-     * @param oldValue  the old value.
-     * @param newValue  the new value.
-     */
-    protected void fireVetoableChange(String property, Object oldValue,
-            Object newValue) throws PropertyVetoException {
-        this.vetoableChangeSupport.fireVetoableChange(property, oldValue,
                 newValue);
     }
 

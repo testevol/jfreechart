@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,16 +21,16 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ---------------------------
  * CategoryTextAnnotation.java
  * ---------------------------
- * (C) Copyright 2003-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2003-2008, by Object Refinery Limited.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
- * Contributor(s):   Peter Kolb (patch 2809117);
+ * Contributor(s):   -;
  *
  * Changes:
  * --------
@@ -44,7 +44,6 @@
  * ------------- JFREECHART 1.0.x -------------------------------------------
  * 06-Mar-2007 : Implemented hashCode() (DG);
  * 23-Apr-2008 : Implemented PublicCloneable (DG);
- * 24-Jun-2009 : Fire change events (see patch 2809117 by PK) (DG);
  *
  */
 
@@ -57,7 +56,6 @@ import java.io.Serializable;
 import org.jfree.chart.axis.CategoryAnchor;
 import org.jfree.chart.axis.CategoryAxis;
 import org.jfree.chart.axis.ValueAxis;
-import org.jfree.chart.event.AnnotationChangeEvent;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotOrientation;
@@ -115,8 +113,7 @@ public class CategoryTextAnnotation extends TextAnnotation
     }
 
     /**
-     * Sets the category that the annotation attaches to and sends an
-     * {@link AnnotationChangeEvent} to all registered listeners.
+     * Sets the category that the annotation attaches to.
      *
      * @param category  the category (<code>null</code> not permitted).
      *
@@ -127,7 +124,6 @@ public class CategoryTextAnnotation extends TextAnnotation
             throw new IllegalArgumentException("Null 'category' argument.");
         }
         this.category = category;
-        fireAnnotationChanged();
     }
 
     /**
@@ -142,8 +138,7 @@ public class CategoryTextAnnotation extends TextAnnotation
     }
 
     /**
-     * Sets the category anchor point and sends an
-     * {@link AnnotationChangeEvent} to all registered listeners.
+     * Sets the category anchor point.
      *
      * @param anchor  the anchor point (<code>null</code> not permitted).
      *
@@ -154,7 +149,6 @@ public class CategoryTextAnnotation extends TextAnnotation
             throw new IllegalArgumentException("Null 'anchor' argument.");
         }
         this.categoryAnchor = anchor;
-        fireAnnotationChanged();
     }
 
     /**
@@ -169,8 +163,7 @@ public class CategoryTextAnnotation extends TextAnnotation
     }
 
     /**
-     * Sets the value and sends an
-     * {@link AnnotationChangeEvent} to all registered listeners.
+     * Sets the value.
      *
      * @param value  the value.
      *
@@ -178,7 +171,6 @@ public class CategoryTextAnnotation extends TextAnnotation
      */
     public void setValue(double value) {
         this.value = value;
-        fireAnnotationChanged();
     }
 
     /**

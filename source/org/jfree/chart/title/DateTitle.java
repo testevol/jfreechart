@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,8 +21,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * --------------
  * DateTitle.java
@@ -95,7 +95,7 @@ public class DateTitle extends TextTitle implements Serializable {
      * <P>
      * The date style should be one of:  <code>SHORT</code>,
      * <code>MEDIUM</code>, <code>LONG</code> or <code>FULL</code>
-     * (defined in <code>java.util.DateFormat</code>).
+     * (defined in <code>java.util.DateFormat<code>).
      *
      * @param style  the date style.
      */
@@ -109,7 +109,7 @@ public class DateTitle extends TextTitle implements Serializable {
      * <p>
      * The date style should be one of:  <code>SHORT</code>,
      * <code>MEDIUM</code>, <code>LONG</code> or <code>FULL</code> (defined
-     * in <code>java.util.DateFormat</code>).
+     * in <code>java.util.DateFormat<code>).
      * <P>
      * For the locale, you can use <code>Locale.getDefault()</code> for the
      * default locale.
@@ -163,7 +163,7 @@ public class DateTitle extends TextTitle implements Serializable {
      * <P>
      * The date style should be one of:  <code>SHORT</code>,
      * <code>MEDIUM</code>, <code>LONG</code> or <code>FULL</code> (defined
-     * in <code>java.util.DateFormat</code>).
+     * in <code>java.util.DateFormat<code>).
      * <P>
      * For the locale, you can use <code>Locale.getDefault()</code> for the
      * default locale.

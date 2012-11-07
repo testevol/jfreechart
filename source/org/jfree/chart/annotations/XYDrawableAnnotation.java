@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,13 +21,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * -------------------------
  * XYDrawableAnnotation.java
  * -------------------------
- * (C) Copyright 2003-2009, by Object Refinery Limited.
+ * (C) Copyright 2003-2008, by Object Refinery Limited.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   -;
@@ -117,7 +117,6 @@ public class XYDrawableAnnotation extends AbstractXYAnnotation
     public XYDrawableAnnotation(double x, double y, double displayWidth,
             double displayHeight, double drawScaleFactor, Drawable drawable) {
 
-        super();
         if (drawable == null) {
             throw new IllegalArgumentException("Null 'drawable' argument.");
         }
@@ -169,7 +168,7 @@ public class XYDrawableAnnotation extends AbstractXYAnnotation
                 this.displayWidth * this.drawScaleFactor,
                 this.displayHeight * this.drawScaleFactor);
 
-        g2.scale(1 / this.drawScaleFactor, 1 / this.drawScaleFactor);
+        g2.scale(1/this.drawScaleFactor, 1/this.drawScaleFactor);
         g2.translate((j2DX - this.displayWidth / 2.0) * this.drawScaleFactor,
                 (j2DY - this.displayHeight / 2.0) * this.drawScaleFactor);
         this.drawable.draw(g2, drawArea);

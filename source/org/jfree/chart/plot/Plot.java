@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,13 +21,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ---------
  * Plot.java
  * ---------
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   Sylvain Vieujot;
@@ -37,7 +37,7 @@
  *                   Nicolas Brodu;
  *                   Michal Krause;
  *                   Richard West, Advanced Micro Devices, Inc.;
- *                   Peter Kolb - patches 2603321, 2809117;
+ *                   Peter Kolb - patch 2603321;
  *
  * Changes
  * -------
@@ -125,9 +125,6 @@
  * 15-Aug-2008 : Added setDrawingSupplier() method with notify flag (DG);
  * 13-Jan-2009 : Added notify flag (DG);
  * 19-Mar-2009 : Added entity support - see patch 2603321 by Peter Kolb (DG);
- * 24-Jun-2009 : Implemented AnnotationChangeListener (see patch 2809117 by
- *               PK) (DG);
- * 13-Jul-2009 : Plot background image should be clipped if necessary (DG);
  *
  */
 
@@ -157,12 +154,9 @@ import javax.swing.event.EventListenerList;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.LegendItemCollection;
 import org.jfree.chart.LegendItemSource;
-import org.jfree.chart.annotations.Annotation;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.entity.EntityCollection;
 import org.jfree.chart.entity.PlotEntity;
-import org.jfree.chart.event.AnnotationChangeEvent;
-import org.jfree.chart.event.AnnotationChangeListener;
 import org.jfree.chart.event.AxisChangeEvent;
 import org.jfree.chart.event.AxisChangeListener;
 import org.jfree.chart.event.ChartChangeEventType;
@@ -191,8 +185,8 @@ import org.jfree.util.PublicCloneable;
  * provides facilities common to most plot types.
  */
 public abstract class Plot implements AxisChangeListener,
-        DatasetChangeListener, AnnotationChangeListener, MarkerChangeListener,
-        LegendItemSource, PublicCloneable, Cloneable, Serializable {
+        DatasetChangeListener, MarkerChangeListener, LegendItemSource,
+        PublicCloneable, Cloneable, Serializable {
 
     /** For serialization. */
     private static final long serialVersionUID = -8831571430103671324L;
@@ -205,8 +199,7 @@ public abstract class Plot implements AxisChangeListener,
             = new RectangleInsets(4.0, 8.0, 4.0, 8.0);
 
     /** The default outline stroke. */
-    public static final Stroke DEFAULT_OUTLINE_STROKE = new BasicStroke(0.5f,
-            BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+    public static final Stroke DEFAULT_OUTLINE_STROKE = new BasicStroke(0.5f);
 
     /** The default outline color. */
     public static final Paint DEFAULT_OUTLINE_PAINT = Color.gray;
@@ -479,7 +472,9 @@ public abstract class Plot implements AxisChangeListener,
         if (p == null) {
             return this;
         }
-        return p.getRootPlot();
+        else {
+            return p.getRootPlot();
+        }
 
     }
 
@@ -830,7 +825,7 @@ public abstract class Plot implements AxisChangeListener,
     /**
      * Returns the color used to draw the outline of the plot area.
      *
-     * @return The color (possibly <code>null</code>).
+     * @return The color (possibly <code>null<code>).
      *
      * @see #setOutlinePaint(Paint)
      */
@@ -1091,23 +1086,19 @@ public abstract class Plot implements AxisChangeListener,
      * @see #getBackgroundImageAlpha()
      */
     public void drawBackgroundImage(Graphics2D g2, Rectangle2D area) {
-        if (this.backgroundImage == null) {
-            return;  // nothing to do
+        if (this.backgroundImage != null) {
+            Composite originalComposite = g2.getComposite();
+            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
+                    this.backgroundImageAlpha));
+            Rectangle2D dest = new Rectangle2D.Double(0.0, 0.0,
+                    this.backgroundImage.getWidth(null),
+                    this.backgroundImage.getHeight(null));
+            Align.align(dest, area, this.backgroundImageAlignment);
+            g2.drawImage(this.backgroundImage, (int) dest.getX(),
+                    (int) dest.getY(), (int) dest.getWidth() + 1,
+                    (int) dest.getHeight() + 1, null);
+            g2.setComposite(originalComposite);
         }
-        Composite savedComposite = g2.getComposite();
-        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
-                this.backgroundImageAlpha));
-        Rectangle2D dest = new Rectangle2D.Double(0.0, 0.0,
-                this.backgroundImage.getWidth(null),
-                this.backgroundImage.getHeight(null));
-        Align.align(dest, area, this.backgroundImageAlignment);
-        Shape savedClip = g2.getClip();
-        g2.clip(area);
-        g2.drawImage(this.backgroundImage, (int) dest.getX(),
-                (int) dest.getY(), (int) dest.getWidth() + 1,
-                (int) dest.getHeight() + 1, null);
-        g2.setClip(savedClip);
-        g2.setComposite(savedComposite);
     }
 
     /**
@@ -1167,15 +1158,15 @@ public abstract class Plot implements AxisChangeListener,
      *
      *  @since 1.0.13
      */
-    protected void createAndAddEntity(Rectangle2D dataArea,
-            PlotRenderingInfo plotState, String toolTip, String urlText) {
-        if (plotState != null && plotState.getOwner() != null) {
-            EntityCollection e = plotState.getOwner().getEntityCollection();
-            if (e != null) {
+ 	protected void createAndAddEntity(Rectangle2D dataArea,
+            PlotRenderingInfo plotState, String toolTip, String urlText){
+		if (plotState != null && plotState.getOwner() != null) {
+			EntityCollection e = plotState.getOwner().getEntityCollection();
+			if (e != null) {
                 e.add(new PlotEntity(dataArea, this, toolTip, urlText));
             }
-        }
-    }
+		}
+	}
 
     /**
      * Handles a 'click' on the plot.  Since the plot does not maintain any
@@ -1199,18 +1190,6 @@ public abstract class Plot implements AxisChangeListener,
      */
     public void zoom(double percent) {
         // do nothing by default.
-    }
-
-    /**
-     * Receives notification of a change to an {@link Annotation} added to
-     * this plot.
-     *
-     * @param event  information about the event (not used here).
-     *
-     * @since 1.0.14
-     */
-    public void annotationChanged(AnnotationChangeEvent event) {
-        fireChangeEvent();
     }
 
     /**

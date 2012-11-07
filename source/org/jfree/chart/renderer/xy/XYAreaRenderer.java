@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,19 +21,18 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * -------------------
  * XYAreaRenderer.java
  * -------------------
- * (C) Copyright 2002-2011, by Hari and Contributors.
+ * (C) Copyright 2002-2008, by Hari and Contributors.
  *
  * Original Author:  Hari (ourhari@hotmail.com);
  * Contributor(s):   David Gilbert (for Object Refinery Limited);
  *                   Richard Atkinson;
  *                   Christian W. Zuckschwerdt;
- *                   Martin Krauskopf;
  *
  * Changes:
  * --------
@@ -76,18 +75,15 @@
  * 18-May-2007 : Set dataset and seriesKey for LegendItem (DG);
  * 17-Jun-2008 : Apply legend font and paint attributes (DG);
  * 31-Dec-2008 : Fix for bug 2471906 - dashed outlines performance issue (DG);
- * 11-Jun-2009 : Added a useFillPaint flag and a GradientPaintTransformer for
- *               the paint under the series (DG);
- * 06-Oct-2011 : Avoid GeneralPath methods requiring Java 1.5 (MK);
  *
  */
 
 package org.jfree.chart.renderer.xy;
 
 import java.awt.BasicStroke;
-import java.awt.GradientPaint;
 import java.awt.Graphics2D;
 import java.awt.Paint;
+import java.awt.Polygon;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.Area;
@@ -98,7 +94,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import org.jfree.chart.HashUtilities;
 import org.jfree.chart.LegendItem;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.entity.EntityCollection;
@@ -112,8 +107,6 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.urls.XYURLGenerator;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.io.SerialUtilities;
-import org.jfree.ui.GradientPaintTransformer;
-import org.jfree.ui.StandardGradientPaintTransformer;
 import org.jfree.util.PublicCloneable;
 import org.jfree.util.ShapeUtilities;
 
@@ -139,7 +132,7 @@ public class XYAreaRenderer extends AbstractXYItemRenderer
     static class XYAreaRendererState extends XYItemRendererState {
 
         /** Working storage for the area under one series. */
-        public GeneralPath area;
+        public Polygon area;
 
         /** Working line that can be recycled. */
         public Line2D line;
@@ -151,7 +144,7 @@ public class XYAreaRenderer extends AbstractXYItemRenderer
          */
         public XYAreaRendererState(PlotRenderingInfo info) {
             super(info);
-            this.area = new GeneralPath();
+            this.area = new Polygon();
             this.line = new Line2D.Double();
         }
 
@@ -193,22 +186,6 @@ public class XYAreaRenderer extends AbstractXYItemRenderer
      * never be <code>null</code>).
      */
     private transient Shape legendArea;
-
-    /**
-     * A flag that can be set to specify that the fill paint should be used
-     * to fill the area under the renderer.
-     * 
-     * @since 1.0.14
-     */
-    private boolean useFillPaint;
-
-    /**
-     * A transformer that is applied to the paint used to fill under the
-     * area *if* it is an instance of GradientPaint.
-     *
-     * @since 1.0.14
-     */
-    private GradientPaintTransformer gradientTransformer;
 
     /**
      * Constructs a new renderer.
@@ -270,8 +247,7 @@ public class XYAreaRenderer extends AbstractXYItemRenderer
         area.lineTo(-3.0f, -2.0f);
         area.closePath();
         this.legendArea = area;
-        this.useFillPaint = false;
-        this.gradientTransformer = new StandardGradientPaintTransformer();
+
     }
 
     /**
@@ -346,59 +322,6 @@ public class XYAreaRenderer extends AbstractXYItemRenderer
             throw new IllegalArgumentException("Null 'area' argument.");
         }
         this.legendArea = area;
-        fireChangeEvent();
-    }
-
-    /**
-     * Returns the flag that controls whether the series fill paint is used to
-     * fill the area under the line.
-     *
-     * @return A boolean.
-     *
-     * @since 1.0.14
-     */
-    public boolean getUseFillPaint() {
-        return this.useFillPaint;
-    }
-
-    /**
-     * Sets the flag that controls whether or not the series fill paint is
-     * used to fill the area under the line and sends a
-     * {@link RendererChangeEvent} to all listeners.
-     *
-     * @param use  the new flag value.
-     *
-     * @since 1.0.14
-     */
-    public void setUseFillPaint(boolean use) {
-        this.useFillPaint = use;
-        fireChangeEvent();
-    }
-
-    /**
-     * Returns the gradient paint transformer.
-     *
-     * @return The gradient paint transformer (never <code>null</code>).
-     *
-     * @since 1.0.14
-     */
-    public GradientPaintTransformer getGradientTransformer() {
-        return this.gradientTransformer;
-    }
-
-    /**
-     * Sets the gradient paint transformer and sends a
-     * {@link RendererChangeEvent} to all registered listeners.
-     *
-     * @param transformer  the transformer (<code>null</code> not permitted).
-     *
-     * @since 1.0.14
-     */
-    public void setGradientTransformer(GradientPaintTransformer transformer) {
-        if (transformer == null) {
-            throw new IllegalArgumentException("Null 'transformer' argument.");
-        }
-        this.gradientTransformer = transformer;
         fireChangeEvent();
     }
 
@@ -536,46 +459,51 @@ public class XYAreaRenderer extends AbstractXYItemRenderer
 
         double transZero = rangeAxis.valueToJava2D(0.0, dataArea,
                 plot.getRangeAxisEdge());
-        GeneralPath hotspot = new GeneralPath();
+        Polygon hotspot = null;
         if (plot.getOrientation() == PlotOrientation.HORIZONTAL) {
-            moveTo(hotspot, transZero, ((transX0 + transX1) / 2.0));
-            lineTo(hotspot, ((transY0 + transY1) / 2.0), 
-                            ((transX0 + transX1) / 2.0));
-            lineTo(hotspot, transY1, transX1);
-            lineTo(hotspot, ((transY1 + transY2) / 2.0), 
-                            ((transX1 + transX2) / 2.0));
-            lineTo(hotspot, transZero, ((transX1 + transX2) / 2.0));
+            hotspot = new Polygon();
+            hotspot.addPoint((int) transZero,
+                    (int) ((transX0 + transX1) / 2.0));
+            hotspot.addPoint((int) ((transY0 + transY1) / 2.0),
+                    (int) ((transX0 + transX1) / 2.0));
+            hotspot.addPoint((int) transY1, (int) transX1);
+            hotspot.addPoint((int) ((transY1 + transY2) / 2.0),
+                    (int) ((transX1 + transX2) / 2.0));
+            hotspot.addPoint((int) transZero,
+                    (int) ((transX1 + transX2) / 2.0));
         }
         else {  // vertical orientation
-            moveTo(hotspot, ((transX0 + transX1) / 2.0), transZero);
-            lineTo(hotspot, ((transX0 + transX1) / 2.0),
-                            ((transY0 + transY1) / 2.0));
-            lineTo(hotspot, transX1, transY1);
-            lineTo(hotspot, ((transX1 + transX2) / 2.0),
-                            ((transY1 + transY2) / 2.0));
-            lineTo(hotspot, ((transX1 + transX2) / 2.0), transZero);
+            hotspot = new Polygon();
+            hotspot.addPoint((int) ((transX0 + transX1) / 2.0),
+                    (int) transZero);
+            hotspot.addPoint((int) ((transX0 + transX1) / 2.0),
+                    (int) ((transY0 + transY1) / 2.0));
+            hotspot.addPoint((int) transX1, (int) transY1);
+            hotspot.addPoint((int) ((transX1 + transX2) / 2.0),
+                    (int) ((transY1 + transY2) / 2.0));
+            hotspot.addPoint((int) ((transX1 + transX2) / 2.0),
+                    (int) transZero);
         }
-        hotspot.closePath();
 
         if (item == 0) {  // create a new area polygon for the series
-            areaState.area = new GeneralPath();
+            areaState.area = new Polygon();
             // the first point is (x, 0)
             double zero = rangeAxis.valueToJava2D(0.0, dataArea,
                     plot.getRangeAxisEdge());
             if (plot.getOrientation() == PlotOrientation.VERTICAL) {
-                moveTo(areaState.area, transX1, zero);
+                areaState.area.addPoint((int) transX1, (int) zero);
             }
             else if (plot.getOrientation() == PlotOrientation.HORIZONTAL) {
-                moveTo(areaState.area, zero, transX1);
+                areaState.area.addPoint((int) zero, (int) transX1);
             }
         }
 
         // Add each point to Area (x, y)
         if (plot.getOrientation() == PlotOrientation.VERTICAL) {
-            lineTo(areaState.area, transX1, transY1);
+            areaState.area.addPoint((int) transX1, (int) transY1);
         }
         else if (plot.getOrientation() == PlotOrientation.HORIZONTAL) {
-            lineTo(areaState.area, transY1, transX1);
+            areaState.area.addPoint((int) transY1, (int) transX1);
         }
 
         PlotOrientation orientation = plot.getOrientation();
@@ -616,24 +544,13 @@ public class XYAreaRenderer extends AbstractXYItemRenderer
 
             if (orientation == PlotOrientation.VERTICAL) {
                 // Add the last point (x,0)
-                lineTo(areaState.area, transX1, transZero);
-                areaState.area.closePath();
+                areaState.area.addPoint((int) transX1, (int) transZero);
             }
             else if (orientation == PlotOrientation.HORIZONTAL) {
                 // Add the last point (x,0)
-                lineTo(areaState.area, transZero, transX1);
-                areaState.area.closePath();
+                areaState.area.addPoint((int) transZero, (int) transX1);
             }
 
-            if (this.useFillPaint) {
-                paint = lookupSeriesFillPaint(series);
-            }
-            if (paint instanceof GradientPaint) {
-                GradientPaint gp = (GradientPaint) paint;
-                GradientPaint adjGP = this.gradientTransformer.transform(gp,
-                        dataArea);
-                g2.setPaint(adjGP);
-            }
             g2.fill(areaState.area);
 
             // draw an outline around the Area.
@@ -675,7 +592,7 @@ public class XYAreaRenderer extends AbstractXYItemRenderer
 
         // collect entity and tool tip information...
         EntityCollection entities = state.getEntityCollection();
-        if (entities != null) {
+        if (entities != null && hotspot != null) {
             addEntity(entities, hotspot, dataset, series, item, 0.0, 0.0);
         }
 
@@ -721,30 +638,10 @@ public class XYAreaRenderer extends AbstractXYItemRenderer
         if (this.showOutline != that.showOutline) {
             return false;
         }
-        if (this.useFillPaint != that.useFillPaint) {
-            return false;
-        }
-        if (!this.gradientTransformer.equals(that.gradientTransformer)) {
-            return false;
-        }
         if (!ShapeUtilities.equal(this.legendArea, that.legendArea)) {
             return false;
         }
         return true;
-    }
-
-    /**
-     * Returns a hash code for this instance.
-     *
-     * @return A hash code.
-     */
-    public int hashCode() {
-        int result = super.hashCode();
-        result = HashUtilities.hashCode(result, this.plotArea);
-        result = HashUtilities.hashCode(result, this.plotLines);
-        result = HashUtilities.hashCode(result, this.plotShapes);
-        result = HashUtilities.hashCode(result, this.useFillPaint);
-        return result;
     }
 
     /**

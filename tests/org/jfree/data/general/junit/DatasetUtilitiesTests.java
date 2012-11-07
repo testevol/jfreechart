@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,8 +21,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * --------------------------
  * DatasetUtilitiesTests.java
@@ -44,16 +44,12 @@
  * 08-Oct-2008 : New tests to support patch 2131001 and related 
  *               changes (DG);
  * 25-Mar-2009 : Added tests for new iterateToFindRangeBounds() method (DG);
- * 16-May-2009 : Added
- *               testIterateToFindRangeBounds_MultiValueCategoryDataset() (DG);
- * 10-Sep-2009 : Added tests for bug 2849731 (DG);
  *
  */
 
 package org.jfree.data.general.junit;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import junit.framework.Test;
@@ -72,17 +68,13 @@ import org.jfree.data.general.DefaultPieDataset;
 import org.jfree.data.general.PieDataset;
 import org.jfree.data.statistics.BoxAndWhiskerItem;
 import org.jfree.data.statistics.DefaultBoxAndWhiskerXYDataset;
-import org.jfree.data.statistics.DefaultMultiValueCategoryDataset;
 import org.jfree.data.statistics.DefaultStatisticalCategoryDataset;
-import org.jfree.data.statistics.MultiValueCategoryDataset;
 import org.jfree.data.xy.DefaultIntervalXYDataset;
 import org.jfree.data.xy.DefaultTableXYDataset;
 import org.jfree.data.xy.DefaultXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
 import org.jfree.data.xy.TableXYDataset;
 import org.jfree.data.xy.XYDataset;
-import org.jfree.data.xy.XYIntervalSeries;
-import org.jfree.data.xy.XYIntervalSeriesCollection;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import org.jfree.data.xy.YIntervalSeries;
@@ -1166,143 +1158,6 @@ public class DatasetUtilitiesTests extends TestCase {
         assertEquals(new Range(0.5, 1.5),
                 DatasetUtilities.iterateToFindRangeBounds(dataset,
                 visibleSeriesKeys, true));
-    }
-
-    /**
-     * Some checks for the iterateToFindRangeBounds(CategoryDataset...) method
-     * with a {@link MultiValueCategoryDataset}.
-     */
-    public void testIterateToFindRangeBounds_MultiValueCategoryDataset() {
-        DefaultMultiValueCategoryDataset dataset
-                = new DefaultMultiValueCategoryDataset();
-        List visibleSeriesKeys = new ArrayList();
-        assertNull(DatasetUtilities.iterateToFindRangeBounds(dataset,
-                visibleSeriesKeys, true));
-        List values = Arrays.asList(new Double[] {new Double(1.0)});
-        dataset.add(values, "R1", "C1");
-        visibleSeriesKeys.add("R1");
-        assertEquals(new Range(1.0, 1.0),
-                DatasetUtilities.iterateToFindRangeBounds(dataset,
-                visibleSeriesKeys, true));
-
-        values = Arrays.asList(new Double[] {new Double(2.0), new Double(3.0)});
-        dataset.add(values, "R1", "C2");
-        assertEquals(new Range(1.0, 3.0),
-                DatasetUtilities.iterateToFindRangeBounds(dataset,
-                visibleSeriesKeys, true));
-
-        values = Arrays.asList(new Double[] {new Double(-1.0),
-                new Double(-2.0)});
-        dataset.add(values, "R2", "C1");
-        assertEquals(new Range(1.0, 3.0),
-                DatasetUtilities.iterateToFindRangeBounds(dataset,
-                visibleSeriesKeys, true));
-        visibleSeriesKeys.add("R2");
-        assertEquals(new Range(-2.0, 3.0),
-                DatasetUtilities.iterateToFindRangeBounds(dataset,
-                visibleSeriesKeys, true));
-    }
-
-    /**
-     * Some checks for the iterateRangeBounds() method when passed an
-     * IntervalCategoryDataset.
-     */
-    public void testIterateRangeBounds_IntervalCategoryDataset() {
-        TestIntervalCategoryDataset d = new TestIntervalCategoryDataset();
-        d.addItem(1.0, 2.0, 3.0, "R1", "C1");
-        assertEquals(new Range(1.0, 3.0),
-                DatasetUtilities.iterateRangeBounds(d));
-
-        d = new TestIntervalCategoryDataset();
-        d.addItem(2.5, 2.0, 3.0, "R1", "C1");
-        assertEquals(new Range(2.0, 3.0),
-                DatasetUtilities.iterateRangeBounds(d));
-
-        d = new TestIntervalCategoryDataset();
-        d.addItem(4.0, 2.0, 3.0, "R1", "C1");
-        assertEquals(new Range(2.0, 4.0),
-                DatasetUtilities.iterateRangeBounds(d));
-
-        d = new TestIntervalCategoryDataset();
-        d.addItem(null, new Double(2.0), new Double(3.0), "R1", "C1");
-        assertEquals(new Range(2.0, 3.0),
-                DatasetUtilities.iterateRangeBounds(d));
-
-        // try some nulls
-        d = new TestIntervalCategoryDataset();
-        d.addItem(null, null, null, "R1", "C1");
-        assertNull(DatasetUtilities.iterateRangeBounds(d));
-
-        d = new TestIntervalCategoryDataset();
-        d.addItem(new Double(1.0), null, null, "R1", "C1");
-        assertEquals(new Range(1.0, 1.0),
-                DatasetUtilities.iterateRangeBounds(d));
-
-        d = new TestIntervalCategoryDataset();
-        d.addItem(null, new Double(1.0), null, "R1", "C1");
-        assertEquals(new Range(1.0, 1.0),
-                DatasetUtilities.iterateRangeBounds(d));
-
-        d = new TestIntervalCategoryDataset();
-        d.addItem(null, null, new Double(1.0), "R1", "C1");
-        assertEquals(new Range(1.0, 1.0),
-                DatasetUtilities.iterateRangeBounds(d));
-    }
-
-    /**
-     * A test for bug 2849731.
-     */
-    public void testBug2849731() {
-        TestIntervalCategoryDataset d = new TestIntervalCategoryDataset();
-        d.addItem(2.5, 2.0, 3.0, "R1", "C1");
-        d.addItem(new Double(4.0), null, null, "R2", "C1");
-        assertEquals(new Range(2.0, 4.0),
-                DatasetUtilities.iterateRangeBounds(d));
-    }
-
-    /**
-     * Another test for bug 2849731.
-     */
-    public void testBug2849731_2() {
-        XYIntervalSeriesCollection d = new XYIntervalSeriesCollection();
-        XYIntervalSeries s = new XYIntervalSeries("S1");
-        s.add(1.0, Double.NaN, Double.NaN, Double.NaN, 1.5, Double.NaN);
-        d.addSeries(s);
-        Range r = DatasetUtilities.iterateDomainBounds(d);
-        assertEquals(1.0, r.getLowerBound(), EPSILON);
-        assertEquals(1.0, r.getUpperBound(), EPSILON);
-
-        s.add(1.0, 1.5, Double.NaN, Double.NaN, 1.5, Double.NaN);
-        r = DatasetUtilities.iterateDomainBounds(d);
-        assertEquals(1.0, r.getLowerBound(), EPSILON);
-        assertEquals(1.5, r.getUpperBound(), EPSILON);
-
-        s.add(1.0, Double.NaN, 0.5, Double.NaN, 1.5, Double.NaN);
-        r = DatasetUtilities.iterateDomainBounds(d);
-        assertEquals(0.5, r.getLowerBound(), EPSILON);
-        assertEquals(1.5, r.getUpperBound(), EPSILON);
-    }
-    /**
-     * Yet another test for bug 2849731.
-     */
-    public void testBug2849731_3() {
-        XYIntervalSeriesCollection d = new XYIntervalSeriesCollection();
-        XYIntervalSeries s = new XYIntervalSeries("S1");
-        s.add(1.0, Double.NaN, Double.NaN, 1.5, Double.NaN, Double.NaN);
-        d.addSeries(s);
-        Range r = DatasetUtilities.iterateRangeBounds(d);
-        assertEquals(1.5, r.getLowerBound(), EPSILON);
-        assertEquals(1.5, r.getUpperBound(), EPSILON);
-
-        s.add(1.0, 1.5, Double.NaN, Double.NaN, Double.NaN, 2.5);
-        r = DatasetUtilities.iterateRangeBounds(d);
-        assertEquals(1.5, r.getLowerBound(), EPSILON);
-        assertEquals(2.5, r.getUpperBound(), EPSILON);
-
-        s.add(1.0, Double.NaN, 0.5, Double.NaN, 3.5, Double.NaN);
-        r = DatasetUtilities.iterateRangeBounds(d);
-        assertEquals(1.5, r.getLowerBound(), EPSILON);
-        assertEquals(3.5, r.getUpperBound(), EPSILON);
     }
 
 }

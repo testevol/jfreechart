@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,13 +21,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * -------------------------
  * TimeSeriesChartDemo1.java
  * -------------------------
- * (C) Copyright 2003-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2003-2009, by Object Refinery Limited and Contributors.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   ;
@@ -49,7 +49,6 @@ import javax.swing.JPanel;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.StandardChartTheme;
 import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
@@ -68,15 +67,6 @@ import org.jfree.ui.RefineryUtilities;
  * lines) at each data point.
  */
 public class TimeSeriesChartDemo1 extends ApplicationFrame {
-
-    private static final long serialVersionUID = 1L;
-
-    {
-        // set a theme using the new shadow generator feature available in
-        // 1.0.14 - for backwards compatibility it is not enabled by default
-        ChartFactory.setChartTheme(new StandardChartTheme("JFree/Shadow",
-                true));
-    }
 
     /**
      * A demonstration application showing how to create a simple time series

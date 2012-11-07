@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,20 +21,20 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * -----------------
  * CategoryPlot.java
  * -----------------
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   Jeremy Bowman;
  *                   Arnaud Lelievre;
  *                   Richard West, Advanced Micro Devices, Inc.;
  *                   Ulrich Voigt - patch 2686040;
- *                   Peter Kolb - patches 2603321 and 2809117;
+ *                   Peter Kolb - patch 2603321;
  *
  * Changes
  * -------
@@ -171,13 +171,6 @@
  * 18-Mar-2009 : Modified anchored zoom behaviour (DG);
  * 19-Mar-2009 : Implemented Pannable interface - see patch 2686040 (DG);
  * 19-Mar-2009 : Added entity support - see patch 2603321 by Peter Kolb (DG);
- * 24-Jun-2009 : Implemented AnnotationChangeListener (see patch 2809117 by
- *               PK) (DG);
- * 06-Jul-2009 : Fix for cloning of renderers - see bug 2817504 (DG)
- * 10-Jul-2009 : Added optional drop shadow generator (DG);
- * 27-Sep-2011 : Fixed annotation import (DG);
- * 18-Oct-2011 : Fixed tooltip offset with shadow generator (DG);
- * 20-Nov-2011 : Initialise shadow generator as null (DG);
  *
  */
 
@@ -190,13 +183,11 @@ import java.awt.Composite;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Paint;
-import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -212,8 +203,9 @@ import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.TreeMap;
+
+import org.jfree.chart.LegendItem;
 import org.jfree.chart.LegendItemCollection;
-import org.jfree.chart.annotations.Annotation;
 import org.jfree.chart.annotations.CategoryAnnotation;
 import org.jfree.chart.axis.Axis;
 import org.jfree.chart.axis.AxisCollection;
@@ -225,8 +217,6 @@ import org.jfree.chart.axis.CategoryAxis;
 import org.jfree.chart.axis.TickType;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.axis.ValueTick;
-import org.jfree.chart.event.AnnotationChangeEvent;
-import org.jfree.chart.event.AnnotationChangeListener;
 import org.jfree.chart.event.ChartChangeEventType;
 import org.jfree.chart.event.PlotChangeEvent;
 import org.jfree.chart.event.RendererChangeEvent;
@@ -235,7 +225,6 @@ import org.jfree.chart.renderer.category.AbstractCategoryItemRenderer;
 import org.jfree.chart.renderer.category.CategoryItemRenderer;
 import org.jfree.chart.renderer.category.CategoryItemRendererState;
 import org.jfree.chart.util.ResourceBundleWrapper;
-import org.jfree.chart.util.ShadowGenerator;
 import org.jfree.data.Range;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.general.Dataset;
@@ -257,8 +246,8 @@ import org.jfree.util.SortOrder;
  * renders each data item using a {@link CategoryItemRenderer}.
  */
 public class CategoryPlot extends Plot implements ValueAxisPlot, Pannable,
-        Zoomable, AnnotationChangeListener, RendererChangeListener, 
-        Cloneable, PublicCloneable, Serializable {
+        Zoomable, RendererChangeListener, Cloneable, PublicCloneable,
+        Serializable {
 
     /** For serialization. */
     private static final long serialVersionUID = -3537691700434728188L;
@@ -547,13 +536,6 @@ public class CategoryPlot extends Plot implements ValueAxisPlot, Pannable,
     private boolean rangePannable;
 
     /**
-     * The shadow generator for the plot (<code>null</code> permitted).
-     * 
-     * @since 1.0.14
-     */
-    private ShadowGenerator shadowGenerator;
-
-    /**
      * Default constructor.
      */
     public CategoryPlot() {
@@ -660,7 +642,6 @@ public class CategoryPlot extends Plot implements ValueAxisPlot, Pannable,
         this.annotations = new java.util.ArrayList();
         
         this.rangePannable = false;
-        this.shadowGenerator = null;
     }
 
     /**
@@ -2090,7 +2071,7 @@ public class CategoryPlot extends Plot implements ValueAxisPlot, Pannable,
 
     /**
      * Returns <code>true</code> if the range axis minor grid is visible, and
-     * <code>false</code> otherwise.
+     * <code>false<code> otherwise.
      *
      * @return A boolean.
      *
@@ -2219,18 +2200,25 @@ public class CategoryPlot extends Plot implements ValueAxisPlot, Pannable,
      * @return The legend items.
      */
     public LegendItemCollection getLegendItems() {
-        if (this.fixedLegendItems != null) {
-            return this.fixedLegendItems;
-        }
-        LegendItemCollection result = new LegendItemCollection();
-        // get the legend items for the datasets...
-        int count = this.datasets.size();
-        for (int datasetIndex = 0; datasetIndex < count; datasetIndex++) {
-            CategoryDataset dataset = getDataset(datasetIndex);
-            if (dataset != null) {
-                CategoryItemRenderer renderer = getRenderer(datasetIndex);
-                if (renderer != null) {
-                    result.addAll(renderer.getLegendItems());
+        LegendItemCollection result = this.fixedLegendItems;
+        if (result == null) {
+            result = new LegendItemCollection();
+            // get the legend items for the datasets...
+            int count = this.datasets.size();
+            for (int datasetIndex = 0; datasetIndex < count; datasetIndex++) {
+                CategoryDataset dataset = getDataset(datasetIndex);
+                if (dataset != null) {
+                    CategoryItemRenderer renderer = getRenderer(datasetIndex);
+                    if (renderer != null) {
+                        int seriesCount = dataset.getRowCount();
+                        for (int i = 0; i < seriesCount; i++) {
+                            LegendItem item = renderer.getLegendItem(
+                                    datasetIndex, i);
+                            if (item != null) {
+                                result.add(item);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -2288,24 +2276,6 @@ public class CategoryPlot extends Plot implements ValueAxisPlot, Pannable,
             getRangeAxis().setAutoRange(true);
         }
 
-    }
-
-    /**
-     * Receives notification of a change to an {@link Annotation} added to
-     * this plot.
-     *
-     * @param event  information about the event (not used here).
-     *
-     * @since 1.0.14
-     */
-    public void annotationChanged(AnnotationChangeEvent event) {
-        if (getParent() != null) {
-            getParent().annotationChanged(event);
-        }
-        else {
-            PlotChangeEvent e = new PlotChangeEvent(this);
-            notifyListeners(e);
-        }
     }
 
     /**
@@ -3329,7 +3299,6 @@ public class CategoryPlot extends Plot implements ValueAxisPlot, Pannable,
             throw new IllegalArgumentException("Null 'annotation' argument.");
         }
         this.annotations.add(annotation);
-        annotation.addChangeListener(this);
         if (notify) {
             fireChangeEvent();
         }
@@ -3366,7 +3335,6 @@ public class CategoryPlot extends Plot implements ValueAxisPlot, Pannable,
             throw new IllegalArgumentException("Null 'annotation' argument.");
         }
         boolean removed = this.annotations.remove(annotation);
-        annotation.removeChangeListener(this);
         if (removed && notify) {
             fireChangeEvent();
         }
@@ -3378,36 +3346,7 @@ public class CategoryPlot extends Plot implements ValueAxisPlot, Pannable,
      * registered listeners.
      */
     public void clearAnnotations() {
-        for(int i = 0; i < this.annotations.size(); i++) {
-            CategoryAnnotation annotation 
-                    = (CategoryAnnotation) this.annotations.get(i);
-            annotation.removeChangeListener(this);
-        }
         this.annotations.clear();
-        fireChangeEvent();
-    }
-
-    /**
-     * Returns the shadow generator for the plot, if any.
-     *
-     * @return The shadow generator (possibly <code>null</code>).
-     *
-     * @since 1.0.14
-     */
-    public ShadowGenerator getShadowGenerator() {
-        return this.shadowGenerator;
-    }
-
-    /**
-     * Sets the shadow generator for the plot and sends a
-     * {@link PlotChangeEvent} to all registered listeners.
-     *
-     * @param generator  the generator (<code>null</code> permitted).
-     *
-     * @since 1.0.14
-     */
-    public void setShadowGenerator(ShadowGenerator generator) {
-        this.shadowGenerator = generator;
         fireChangeEvent();
     }
 
@@ -3513,21 +3452,6 @@ public class CategoryPlot extends Plot implements ValueAxisPlot, Pannable,
     }
 
     /**
-     * Trims a rectangle to integer coordinates.
-     *
-     * @param rect  the incoming rectangle.
-     *
-     * @return A rectangle with integer coordinates.
-     */
-    private Rectangle integerise(Rectangle2D rect) {
-        int x0 = (int) Math.ceil(rect.getMinX());
-        int y0 = (int) Math.ceil(rect.getMinY());
-        int x1 = (int) Math.floor(rect.getMaxX());
-        int y1 = (int) Math.floor(rect.getMaxY());
-        return new Rectangle(x0, y0, (x1 - x0), (y1 - y0));
-    }
-
-    /**
      * Calculates the space required for the axes.
      *
      * @param g2  the graphics device.
@@ -3586,10 +3510,7 @@ public class CategoryPlot extends Plot implements ValueAxisPlot, Pannable,
         AxisSpace space = calculateAxisSpace(g2, area);
         Rectangle2D dataArea = space.shrink(area, null);
         this.axisOffset.trim(dataArea);
-        dataArea = integerise(dataArea);
-        if (dataArea.isEmpty()) {
-            return;
-        }
+
         state.setDataArea(dataArea);
         createAndAddEntity((Rectangle2D) dataArea.clone(), state, null, null);
 
@@ -3656,16 +3577,6 @@ public class CategoryPlot extends Plot implements ValueAxisPlot, Pannable,
             drawZeroRangeBaseline(g2, dataArea);
         }
 
-        Graphics2D savedG2 = g2;
-        BufferedImage dataImage = null;
-        if (this.shadowGenerator != null) {
-            dataImage = new BufferedImage((int) dataArea.getWidth(),
-                    (int)dataArea.getHeight(), BufferedImage.TYPE_INT_ARGB);
-            g2 = dataImage.createGraphics();
-            g2.translate(-dataArea.getX(), -dataArea.getY());
-            g2.setRenderingHints(savedG2.getRenderingHints());
-        }
-
         // draw the markers...
         for (int i = 0; i < this.renderers.size(); i++) {
             drawDomainMarkers(g2, dataArea, i, Layer.BACKGROUND);
@@ -3706,17 +3617,6 @@ public class CategoryPlot extends Plot implements ValueAxisPlot, Pannable,
         // draw the annotations (if any)...
         drawAnnotations(g2, dataArea);
 
-        if (this.shadowGenerator != null) {
-            BufferedImage shadowImage = this.shadowGenerator.createDropShadow(
-                    dataImage);
-            g2 = savedG2;
-            g2.drawImage(shadowImage, (int) dataArea.getX() 
-                    + this.shadowGenerator.calculateOffsetX(),
-                    (int) dataArea.getY() 
-                    + this.shadowGenerator.calculateOffsetY(), null);
-            g2.drawImage(dataImage, (int) dataArea.getX(),
-                    (int) dataArea.getY(), null);
-        }
         g2.setClip(savedClip);
         g2.setComposite(originalComposite);
 
@@ -4561,8 +4461,6 @@ public class CategoryPlot extends Plot implements ValueAxisPlot, Pannable,
      *
      * @return A boolean.
      *
-     * @see #isRangePannable()
-     *
      * @since 1.0.13
      */
     public boolean isDomainPannable() {
@@ -4575,9 +4473,6 @@ public class CategoryPlot extends Plot implements ValueAxisPlot, Pannable,
      *
      * @return A boolean.
      *
-     * @see #setRangePannable(boolean)
-     * @see #isDomainPannable()
-     *
      * @since 1.0.13
      */
     public boolean isRangePannable() {
@@ -4589,8 +4484,6 @@ public class CategoryPlot extends Plot implements ValueAxisPlot, Pannable,
      * the range axes.
      *
      * @param pannable  the new flag value.
-     *
-     * @see #isRangePannable() 
      *
      * @since 1.0.13
      */
@@ -4826,6 +4719,7 @@ public class CategoryPlot extends Plot implements ValueAxisPlot, Pannable,
      * @return A boolean.
      */
     public boolean equals(Object obj) {
+
         if (obj == this) {
             return true;
         }
@@ -4999,11 +4893,8 @@ public class CategoryPlot extends Plot implements ValueAxisPlot, Pannable,
                 that.rangeZeroBaselineStroke)) {
             return false;
         }
-        if (!ObjectUtilities.equal(this.shadowGenerator,
-                that.shadowGenerator)) {
-            return false;
-        }
         return super.equals(obj);
+
     }
 
     /**
@@ -5051,17 +4942,6 @@ public class CategoryPlot extends Plot implements ValueAxisPlot, Pannable,
         clone.datasetToRangeAxesMap.putAll(this.datasetToRangeAxesMap);
 
         clone.renderers = (ObjectList) this.renderers.clone();
-        for (int i = 0; i < this.renderers.size(); i++) {
-            CategoryItemRenderer renderer2 = (CategoryItemRenderer)
-                    this.renderers.get(i);
-            if (renderer2 instanceof PublicCloneable) {
-                PublicCloneable pc = (PublicCloneable) renderer2;
-                CategoryItemRenderer rc = (CategoryItemRenderer) pc.clone();
-                clone.renderers.set(i, rc);
-                rc.setPlot(clone);
-                rc.addChangeListener(clone);
-            }
-        }
         if (this.fixedDomainAxisSpace != null) {
             clone.fixedDomainAxisSpace = (AxisSpace) ObjectUtilities.clone(
                     this.fixedDomainAxisSpace);

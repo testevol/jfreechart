@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,8 +21,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ---------------
  * JFreeChart.java
@@ -146,8 +146,6 @@
  * 18-Dec-2008 : Use ResourceBundleWrapper - see patch 1607918 by
  *               Jess Thrysoee (DG);
  * 19-Mar-2009 : Added entity support - see patch 2603321 by Peter Kolb (DG);
- * 19-May-2009 : Fixed FindBugs warnings, patch by Michal Wozniak (DG);
- * 29-Jun-2009 : Check visibility flag in main title (DG);
  *
  */
 
@@ -1158,7 +1156,7 @@ public class JFreeChart implements Drawable,
             entities = info.getEntityCollection();
         }
         if (entities != null) {
-            entities.add(new JFreeChartEntity((Rectangle2D) chartArea.clone(),
+        	entities.add(new JFreeChartEntity((Rectangle2D) chartArea.clone(),
                     this));
         }
 
@@ -1207,7 +1205,7 @@ public class JFreeChart implements Drawable,
         nonTitleArea.setRect(chartArea);
         this.padding.trim(nonTitleArea);
 
-        if (this.title != null && this.title.isVisible()) {
+        if (this.title != null) {
             EntityCollection e = drawTitle(this.title, g2, nonTitleArea,
                     (entities != null));
             if (e != null) {
@@ -1303,7 +1301,7 @@ public class JFreeChart implements Drawable,
         if (area == null) {
             throw new IllegalArgumentException("Null 'area' argument.");
         }
-        Rectangle2D titleArea;
+        Rectangle2D titleArea = new Rectangle2D.Double();
         RectangleEdge position = t.getPosition();
         double ww = area.getWidth();
         if (ww <= 0.0) {
@@ -1741,7 +1739,7 @@ public class JFreeChart implements Drawable,
 
 /**
  * Information about the JFreeChart project.  One instance of this class is
- * assigned to <code>JFreeChart.INFO</code>.
+ * assigned to <code>JFreeChart.INFO<code>.
  */
 class JFreeChartInfo extends ProjectInfo {
 

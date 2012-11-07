@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,13 +21,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * -----------------------
  * TimeSeriesDataItem.java
  * -----------------------
- * (C) Copyright 2001-2009, by Object Refinery Limited.
+ * (C) Copyright 2001-2008, by Object Refinery Limited.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   -;
@@ -41,14 +41,11 @@
  * 07-Oct-2002 : Fixed errors reported by Checkstyle (DG);
  * 13-Mar-2003 : Renamed TimeSeriesDataPair --> TimeSeriesDataItem, moved to
  *               com.jrefinery.data.time package, implemented Serializable (DG)
- * ------------- JFREECHART 1.0.x ---------------------------------------------
- * 09-Jun-2009 : Tidied up equals() (DG);
  */
 
 package org.jfree.data.time;
 
 import java.io.Serializable;
-import org.jfree.util.ObjectUtilities;
 
 /**
  * Represents one data item in a time series.
@@ -123,8 +120,6 @@ public class TimeSeriesDataItem implements Cloneable, Comparable, Serializable {
      * Returns the value.
      *
      * @return The value (<code>null</code> possible).
-     *
-     * @see #setValue(java.lang.Number)
      */
     public Number getValue() {
         return this.value;
@@ -134,8 +129,6 @@ public class TimeSeriesDataItem implements Cloneable, Comparable, Serializable {
      * Sets the value for this data item.
      *
      * @param value  the value (<code>null</code> permitted).
-     *
-     * @see #getValue()
      */
     public void setValue(Number value) {
         this.value = value;
@@ -144,24 +137,36 @@ public class TimeSeriesDataItem implements Cloneable, Comparable, Serializable {
     /**
      * Tests this object for equality with an arbitrary object.
      *
-     * @param obj  the other object (<code>null</code> permitted).
+     * @param o  the other object.
      *
      * @return A boolean.
      */
-    public boolean equals(Object obj) {
-        if (this == obj) {
+    public boolean equals(Object o) {
+        if (this == o) {
             return true;
         }
-        if (!(obj instanceof TimeSeriesDataItem)) {
+        if (!(o instanceof TimeSeriesDataItem)) {
             return false;
         }
-        TimeSeriesDataItem that = (TimeSeriesDataItem) obj;
-        if (!ObjectUtilities.equal(this.period, that.period)) {
+        TimeSeriesDataItem timeSeriesDataItem = (TimeSeriesDataItem) o;
+        if (this.period != null) {
+            if (!this.period.equals(timeSeriesDataItem.period)) {
+                return false;
+            }
+        }
+        else if (timeSeriesDataItem.period != null) {
+           return false;
+        }
+
+        if (this.value != null) {
+            if (!this.value.equals(timeSeriesDataItem.value)) {
+                return false;
+            }
+        }
+        else if (timeSeriesDataItem.value != null) {
             return false;
         }
-        if (!ObjectUtilities.equal(this.value, that.value)) {
-            return false;
-        }
+
         return true;
     }
 

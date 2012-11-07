@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,21 +21,19 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ---------------------------
  * AbstractXYItemRenderer.java
  * ---------------------------
- * (C) Copyright 2002-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2002-2009, by Object Refinery Limited and Contributors.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   Richard Atkinson;
  *                   Focus Computer Services Limited;
  *                   Tim Bardzil;
  *                   Sergei Ivanov;
- *                   Peter Kolb (patch 2809117);
- *                   Martin Krauskopf;
  *
  * Changes:
  * --------
@@ -111,13 +109,6 @@
  * 27-Mar-2009 : Added new findDomainBounds() and findRangeBounds() methods to
  *               take account of hidden series (DG);
  * 01-Apr-2009 : Moved defaultEntityRadius up to superclass (DG);
- * 28-Apr-2009 : Updated getLegendItem() method to observe new
- *               'treatLegendShapeAsLine' flag (DG);
- * 24-Jun-2009 : Added support for annotation events - see patch 2809117
- *               by PK (DG);
- * 01-Sep-2009 : Bug 2840132 - set renderer index when drawing
- *               annotations (DG);
- * 06-Oct-2011 : Add utility methods to work with 1.4 API in GeneralPath (MK)
  * 
  */
 
@@ -132,7 +123,6 @@ import java.awt.Paint;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.Ellipse2D;
-import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -144,13 +134,10 @@ import java.util.List;
 
 import org.jfree.chart.LegendItem;
 import org.jfree.chart.LegendItemCollection;
-import org.jfree.chart.annotations.Annotation;
 import org.jfree.chart.annotations.XYAnnotation;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.entity.EntityCollection;
 import org.jfree.chart.entity.XYItemEntity;
-import org.jfree.chart.event.AnnotationChangeEvent;
-import org.jfree.chart.event.AnnotationChangeListener;
 import org.jfree.chart.event.RendererChangeEvent;
 import org.jfree.chart.labels.ItemLabelPosition;
 import org.jfree.chart.labels.StandardXYSeriesLabelGenerator;
@@ -186,8 +173,7 @@ import org.jfree.util.PublicCloneable;
  * implementations.
  */
 public abstract class AbstractXYItemRenderer extends AbstractRenderer
-        implements XYItemRenderer, AnnotationChangeListener,
-        Cloneable, Serializable {
+        implements XYItemRenderer, Cloneable, Serializable {
 
     /** For serialization. */
     private static final long serialVersionUID = 8019124836026607990L;
@@ -499,12 +485,10 @@ public abstract class AbstractXYItemRenderer extends AbstractRenderer
         }
         if (layer.equals(Layer.FOREGROUND)) {
             this.foregroundAnnotations.add(annotation);
-            annotation.addChangeListener(this);
             fireChangeEvent();
         }
         else if (layer.equals(Layer.BACKGROUND)) {
             this.backgroundAnnotations.add(annotation);
-            annotation.addChangeListener(this);
             fireChangeEvent();
         }
         else {
@@ -525,7 +509,6 @@ public abstract class AbstractXYItemRenderer extends AbstractRenderer
     public boolean removeAnnotation(XYAnnotation annotation) {
         boolean removed = this.foregroundAnnotations.remove(annotation);
         removed = removed & this.backgroundAnnotations.remove(annotation);
-        annotation.removeChangeListener(this);
         fireChangeEvent();
         return removed;
     }
@@ -535,31 +518,8 @@ public abstract class AbstractXYItemRenderer extends AbstractRenderer
      * to all registered listeners.
      */
     public void removeAnnotations() {
-        for(int i = 0; i < this.foregroundAnnotations.size(); i++){
-            XYAnnotation annotation 
-                    = (XYAnnotation) this.foregroundAnnotations.get(i);
-            annotation.removeChangeListener(this);
-        }
-         for(int i = 0; i < this.backgroundAnnotations.size(); i++){
-            XYAnnotation annotation 
-                    = (XYAnnotation) this.backgroundAnnotations.get(i);
-            annotation.removeChangeListener(this);
-        }
         this.foregroundAnnotations.clear();
         this.backgroundAnnotations.clear();
-        fireChangeEvent();
-    }
-
-
-    /**
-     * Receives notification of a change to an {@link Annotation} added to
-     * this renderer.
-     *
-     * @param event  information about the event (not used here).
-     *
-     * @since 1.0.14
-     */
-    public void annotationChanged(AnnotationChangeEvent event) {
         fireChangeEvent();
     }
 
@@ -674,7 +634,6 @@ public abstract class AbstractXYItemRenderer extends AbstractRenderer
      * specified dataset.
      *
      * @param dataset  the dataset (<code>null</code> permitted).
-     * @param includeInterval  include the interval (if any) for the dataset?
      *
      * @return The range (<code>null</code> if the dataset is <code>null</code>
      *         or empty).
@@ -697,7 +656,9 @@ public abstract class AbstractXYItemRenderer extends AbstractRenderer
             return DatasetUtilities.findDomainBounds(dataset,
                     visibleSeriesKeys, includeInterval);
         }
-        return DatasetUtilities.findDomainBounds(dataset, includeInterval);
+        else {
+            return DatasetUtilities.findDomainBounds(dataset, includeInterval);
+        }
     }
 
     /**
@@ -720,7 +681,6 @@ public abstract class AbstractXYItemRenderer extends AbstractRenderer
      * items from the specified dataset.
      *
      * @param dataset  the dataset (<code>null</code> permitted).
-     * @param includeInterval  include the interval (if any) for the dataset?
      *
      * @return The range (<code>null</code> if the dataset is <code>null</code>
      *         or empty).
@@ -748,7 +708,7 @@ public abstract class AbstractXYItemRenderer extends AbstractRenderer
                 ValueAxis xAxis = null;
                 int index = p.getIndexOf(this);
                 if (index >= 0) {
-                    xAxis = this.plot.getDomainAxisForDataset(index);
+                    xAxis = plot.getDomainAxisForDataset(index);
                 }
                 if (xAxis != null) {
                     xRange = xAxis.getRange();
@@ -761,7 +721,9 @@ public abstract class AbstractXYItemRenderer extends AbstractRenderer
             return DatasetUtilities.findRangeBounds(dataset,
                     visibleSeriesKeys, xRange, includeInterval);
         }
-        return DatasetUtilities.findRangeBounds(dataset, includeInterval);
+        else {
+            return DatasetUtilities.findRangeBounds(dataset, includeInterval);
+        }
     }
 
     /**
@@ -802,55 +764,42 @@ public abstract class AbstractXYItemRenderer extends AbstractRenderer
      * @return A legend item for the series.
      */
     public LegendItem getLegendItem(int datasetIndex, int series) {
+        LegendItem result = null;
         XYPlot xyplot = getPlot();
-        if (xyplot == null) {
-            return null;
+        if (xyplot != null) {
+            XYDataset dataset = xyplot.getDataset(datasetIndex);
+            if (dataset != null) {
+                String label = this.legendItemLabelGenerator.generateLabel(
+                        dataset, series);
+                String description = label;
+                String toolTipText = null;
+                if (getLegendItemToolTipGenerator() != null) {
+                    toolTipText = getLegendItemToolTipGenerator().generateLabel(
+                            dataset, series);
+                }
+                String urlText = null;
+                if (getLegendItemURLGenerator() != null) {
+                    urlText = getLegendItemURLGenerator().generateLabel(
+                            dataset, series);
+                }
+                Shape shape = lookupLegendShape(series);
+                Paint paint = lookupSeriesPaint(series);
+                Paint outlinePaint = lookupSeriesOutlinePaint(series);
+                Stroke outlineStroke = lookupSeriesOutlineStroke(series);
+                result = new LegendItem(label, description, toolTipText,
+                        urlText, shape, paint, outlineStroke, outlinePaint);
+                Paint labelPaint = lookupLegendTextPaint(series);
+                result.setLabelFont(lookupLegendTextFont(series));
+                if (labelPaint != null) {
+                    result.setLabelPaint(labelPaint);
+                }
+                result.setSeriesKey(dataset.getSeriesKey(series));
+                result.setSeriesIndex(series);
+                result.setDataset(dataset);
+                result.setDatasetIndex(datasetIndex);
+            }
         }
-        XYDataset dataset = xyplot.getDataset(datasetIndex);
-        if (dataset == null) {
-            return null;
-        }
-        String label = this.legendItemLabelGenerator.generateLabel(dataset,
-                series);
-        String description = label;
-        String toolTipText = null;
-        if (getLegendItemToolTipGenerator() != null) {
-            toolTipText = getLegendItemToolTipGenerator().generateLabel(
-                    dataset, series);
-        }
-        String urlText = null;
-        if (getLegendItemURLGenerator() != null) {
-            urlText = getLegendItemURLGenerator().generateLabel(dataset,
-                    series);
-        }
-        Shape shape = lookupLegendShape(series);
-        Paint paint = lookupSeriesPaint(series);
-        LegendItem item = new LegendItem(label, paint);
-        item.setToolTipText(toolTipText);
-        item.setURLText(urlText);
-        item.setLabelFont(lookupLegendTextFont(series));
-        Paint labelPaint = lookupLegendTextPaint(series);
-        if (labelPaint != null) {
-            item.setLabelPaint(labelPaint);
-        }
-        item.setSeriesKey(dataset.getSeriesKey(series));
-        item.setSeriesIndex(series);
-        item.setDataset(dataset);
-        item.setDatasetIndex(datasetIndex);
-
-        if (getTreatLegendShapeAsLine()) {
-            item.setLineVisible(true);
-            item.setLine(shape);
-            item.setLinePaint(paint);
-            item.setShapeVisible(false);
-        }
-        else {
-            Paint outlinePaint = lookupSeriesOutlinePaint(series);
-            Stroke outlineStroke = lookupSeriesOutlineStroke(series);
-            item.setOutlinePaint(outlinePaint);
-            item.setOutlineStroke(outlineStroke);
-        }
-        return item;
+        return result;
     }
 
     /**
@@ -1285,9 +1234,6 @@ public abstract class AbstractXYItemRenderer extends AbstractRenderer
                 line = new Line2D.Double(dataArea.getMinX(), v,
                         dataArea.getMaxX(), v);
             }
-            else {
-                throw new IllegalStateException("Unknown orientation.");
-            }
 
             final Composite originalComposite = g2.getComposite();
             g2.setComposite(AlphaComposite.getInstance(
@@ -1488,15 +1434,15 @@ public abstract class AbstractXYItemRenderer extends AbstractRenderer
             clone.baseToolTipGenerator = (XYToolTipGenerator) pc.clone();
         }
 
-        if (this.legendItemLabelGenerator instanceof PublicCloneable) {
+        if (clone.legendItemLabelGenerator instanceof PublicCloneable) {
             clone.legendItemLabelGenerator = (XYSeriesLabelGenerator)
                     ObjectUtilities.clone(this.legendItemLabelGenerator);
         }
-        if (this.legendItemToolTipGenerator instanceof PublicCloneable) {
+        if (clone.legendItemToolTipGenerator instanceof PublicCloneable) {
             clone.legendItemToolTipGenerator = (XYSeriesLabelGenerator)
                     ObjectUtilities.clone(this.legendItemToolTipGenerator);
         }
-        if (this.legendItemURLGenerator instanceof PublicCloneable) {
+        if (clone.legendItemURLGenerator instanceof PublicCloneable) {
             clone.legendItemURLGenerator = (XYSeriesLabelGenerator)
                     ObjectUtilities.clone(this.legendItemURLGenerator);
         }
@@ -1505,6 +1451,19 @@ public abstract class AbstractXYItemRenderer extends AbstractRenderer
                 this.foregroundAnnotations);
         clone.backgroundAnnotations = (List) ObjectUtilities.deepClone(
                 this.backgroundAnnotations);
+
+        if (clone.legendItemLabelGenerator instanceof PublicCloneable) {
+            clone.legendItemLabelGenerator = (XYSeriesLabelGenerator)
+                    ObjectUtilities.clone(this.legendItemLabelGenerator);
+        }
+        if (clone.legendItemToolTipGenerator instanceof PublicCloneable) {
+            clone.legendItemToolTipGenerator = (XYSeriesLabelGenerator)
+                    ObjectUtilities.clone(this.legendItemToolTipGenerator);
+        }
+        if (clone.legendItemURLGenerator instanceof PublicCloneable) {
+            clone.legendItemURLGenerator = (XYSeriesLabelGenerator)
+                    ObjectUtilities.clone(this.legendItemURLGenerator);
+        }
 
         return clone;
     }
@@ -1708,9 +1667,8 @@ public abstract class AbstractXYItemRenderer extends AbstractRenderer
         }
         while (iterator.hasNext()) {
             XYAnnotation annotation = (XYAnnotation) iterator.next();
-            int index = this.plot.getIndexOf(this);
             annotation.draw(g2, this.plot, dataArea, domainAxis, rangeAxis,
-                    index, info);
+                    0, info);
         }
 
     }
@@ -1777,36 +1735,6 @@ public abstract class AbstractXYItemRenderer extends AbstractRenderer
         //       ShapeUtilities class
         return (x >= rect.getMinX() && x <= rect.getMaxX()
                 && y >= rect.getMinY() && y <= rect.getMaxY());
-    }
-
-    /**
-     * Utility method delegating to {@link GeneralPath#moveTo} taking double as
-     * parameters.
-     *
-     * @param hotspot  the region under construction (<code>null</code> not 
-     *           permitted);
-     * @param x  the x coordinate;
-     * @param y  the y coordinate;
-     *
-     * @since 1.0.14
-     */
-    protected static void moveTo(GeneralPath hotspot, double x, double y) {
-        hotspot.moveTo((float) x, (float) y);
-    }
-
-    /**
-     * Utility method delegating to {@link GeneralPath#lineTo} taking double as
-     * parameters.
-     *
-     * @param hotspot  the region under construction (<code>null</code> not 
-     *           permitted);
-     * @param x  the x coordinate;
-     * @param y  the y coordinate;
-     *
-     * @since 1.0.14
-     */
-    protected static void lineTo(GeneralPath hotspot, double x, double y) {
-        hotspot.lineTo((float) x, (float) y);
     }
 
     // === DEPRECATED CODE ===

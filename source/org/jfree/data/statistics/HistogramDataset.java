@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,19 +21,18 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ---------------------
  * HistogramDataset.java
  * ---------------------
- * (C) Copyright 2003-2009, by Jelai Wang and Contributors.
+ * (C) Copyright 2003-2008, by Jelai Wang and Contributors.
  *
  * Original Author:  Jelai Wang (jelaiw AT mindspring.com);
  * Contributor(s):   David Gilbert (for Object Refinery Limited);
  *                   Cameron Hayne;
  *                   Rikard Bj?rklind;
- *                   Thomas A Caswell (patch 2902842);
  *
  * Changes
  * -------
@@ -54,8 +53,6 @@
  * 03-Aug-2006 : Improved precision of bin boundary calculation (DG);
  * 07-Sep-2006 : Fixed bug 1553088 (DG);
  * 22-May-2008 : Implemented clone() method override (DG);
- * 08-Dec-2009 : Fire change event in addSeries() - see patch 2902842
- *               contributed by Thomas A Caswell (DG);
  *
  */
 
@@ -120,12 +117,11 @@ public class HistogramDataset extends AbstractIntervalXYDataset
             throw new IllegalArgumentException("Null 'type' argument");
         }
         this.type = type;
-        fireDatasetChanged();
+        notifyListeners(new DatasetChangeEvent(this, this));
     }
 
     /**
-     * Adds a series to the dataset, using the specified number of bins,
-     * and sends a {@link DatasetChangeEvent} to all registered listeners.
+     * Adds a series to the dataset, using the specified number of bins.
      *
      * @param key  the series key (<code>null</code> not permitted).
      * @param values the values (<code>null</code> not permitted).
@@ -150,8 +146,11 @@ public class HistogramDataset extends AbstractIntervalXYDataset
      * @param minimum  the lower bound of the bin range.
      * @param maximum  the upper bound of the bin range.
      */
-    public void addSeries(Comparable key, double[] values, int bins,
-            double minimum, double maximum) {
+    public void addSeries(Comparable key,
+                          double[] values,
+                          int bins,
+                          double minimum,
+                          double maximum) {
 
         if (key == null) {
             throw new IllegalArgumentException("Null 'key' argument.");
@@ -209,7 +208,6 @@ public class HistogramDataset extends AbstractIntervalXYDataset
         map.put("values.length", new Integer(values.length));
         map.put("bin width", new Double(binWidth));
         this.list.add(map);
-        fireDatasetChanged();
     }
 
     /**

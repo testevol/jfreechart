@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,13 +21,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * --------------
  * OHLCTests.java
  * --------------
- * (C) Copyright 2006-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2006, 2007, by Object Refinery Limited and Contributors.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   -;
@@ -35,7 +35,6 @@
  * Changes
  * -------
  * 04-Dec-2006 : Version 1 (DG);
- * 23-May-2009 : Added testHashCode() (DG);
  *
  */
 
@@ -136,18 +135,6 @@ public class OHLCTests extends TestCase {
             e.printStackTrace();
         }
         assertEquals(i1, i2);
-    }
-
-    /**
-     * Two objects that are equal are required to return the same hashCode.
-     */
-    public void testHashcode() {
-        OHLC i1 = new OHLC(2.0, 4.0, 1.0, 3.0);
-        OHLC i2 = new OHLC(2.0, 4.0, 1.0, 3.0);
-        assertTrue(i1.equals(i2));
-        int h1 = i1.hashCode();
-        int h2 = i2.hashCode();
-        assertEquals(h1, h2);
     }
 
 }

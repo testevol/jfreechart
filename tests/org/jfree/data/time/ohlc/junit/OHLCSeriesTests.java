@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,13 +21,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * --------------------
  * OHLCSeriesTests.java
  * --------------------
- * (C) Copyright 2006-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2006-2008, by Object Refinery Limited and Contributors.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   -;
@@ -36,8 +36,6 @@
  * -------
  * 04-Dec-2006 : Version 1, based on XYSeriesTests (DG);
  * 27-Nov-2007 : Added testClear() method (DG);
- * 23-May-2009 : Added testHashCode() (DG);
- * 17-Jun-2009 : Added testRemove_int() (DG);
  *
  */
 
@@ -129,20 +127,6 @@ public class OHLCSeriesTests extends TestCase
     }
 
     /**
-     * Two objects that are equal are required to return the same hashCode.
-     */
-    public void testHashcode() {
-        OHLCSeries s1 = new OHLCSeries("Test");
-        s1.add(new Year(2009), 1.0, 3.0, 2.0, 1.4);
-        OHLCSeries s2 = new OHLCSeries("Test");
-        s2.add(new Year(2009), 1.0, 3.0, 2.0, 1.4);
-        assertTrue(s1.equals(s2));
-        int h1 = s1.hashCode();
-        int h2 = s2.hashCode();
-        assertEquals(h1, h2);
-    }
-
-    /**
      * Confirm that cloning works.
      */
     public void testCloning() {
@@ -215,21 +199,6 @@ public class OHLCSeriesTests extends TestCase
 
         s1.remove(new Year(2006));
         assertEquals(new Year(2011), s1.getPeriod(0));
-    }
-
-    /**
-     * A check for the remove(int) method.
-     */
-    public void testRemove_int() {
-        OHLCSeries s1 = new OHLCSeries("s1");
-        s1.add(new Year(2006), 2.0, 4.0, 1.0, 3.0);
-        s1.add(new Year(2011), 2.1, 4.1, 1.1, 3.1);
-        s1.add(new Year(2010), 2.2, 4.2, 1.2, 3.2);
-        assertEquals(3, s1.getItemCount());
-
-        s1.remove(s1.getItemCount() - 1);
-        assertEquals(2, s1.getItemCount());
-        assertEquals(new Year(2010), s1.getPeriod(1));
     }
 
     /**

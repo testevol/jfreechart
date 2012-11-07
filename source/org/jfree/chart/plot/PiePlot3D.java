@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,13 +21,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * --------------
  * PiePlot3D.java
  * --------------
- * (C) Copyright 2000-2009, by Object Refinery and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery and Contributors.
  *
  * Original Author:  Tomer Peretz;
  * Contributor(s):   Richard Atkinson;
@@ -36,7 +36,6 @@
  *                   Christian W. Zuckschwerdt;
  *                   Arnaud Lelievre;
  *                   Dave Crane;
- *                   Martin Hoeller;
  *
  * Changes
  * -------
@@ -79,11 +78,7 @@
  *               debug code - see debug flags in PiePlot class (DG);
  * 20-Mar-2008 : Fixed bug 1920854 - multiple redraws of the section
  *               labels (DG);
- * 19-May-2009 : Fixed FindBugs warnings, patch by Michal Wozniak (DG);
- * 10-Jul-2009 : Added drop shaow support (DG);
- * 10-Oct-2011 : Localization fix: bug #3353913 (MH);
- * 18-Oct-2011 : Fix tooltip offset with shadow generator (DG);
- * 
+ *
  */
 
 package org.jfree.chart.plot;
@@ -96,7 +91,6 @@ import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.Polygon;
-import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.Arc2D;
@@ -104,7 +98,6 @@ import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -249,16 +242,6 @@ public class PiePlot3D extends PiePlot implements Serializable {
         Shape savedClip = g2.getClip();
         g2.clip(plotArea);
 
-        Graphics2D savedG2 = g2;
-        BufferedImage dataImage = null;
-        if (getShadowGenerator() != null) {
-            dataImage = new BufferedImage((int) plotArea.getWidth(),
-                (int) plotArea.getHeight(), BufferedImage.TYPE_INT_ARGB);
-            g2 = dataImage.createGraphics();
-            g2.translate(-plotArea.getX(), -plotArea.getY());
-            g2.setRenderingHints(savedG2.getRenderingHints());
-            originalPlotArea = (Rectangle2D) plotArea.clone();
-        }
         // adjust the plot area by the interior spacing value
         double gapPercent = getInteriorGap();
         double labelPercent = 0.0;
@@ -357,7 +340,7 @@ public class PiePlot3D extends PiePlot implements Serializable {
 
         // if too any elements
         if (dataset.getKeys().size() > plotArea.getWidth()) {
-            String text = localizationResources.getString("Too_many_elements");
+            String text = "Too many elements";
             Font sfont = new Font("dialog", Font.BOLD, 10);
             g2.setFont(sfont);
             FontMetrics fm = g2.getFontMetrics(sfont);
@@ -467,6 +450,8 @@ public class PiePlot3D extends PiePlot implements Serializable {
         // draw the bottom circle
         int[] xs;
         int[] ys;
+        arc = new Arc2D.Double(arcX, arcY + depth, pieArea.getWidth(),
+                pieArea.getHeight() - depth, 0, 360, Arc2D.PIE);
 
         int categoryCount = arcList.size();
         for (int categoryIndex = 0; categoryIndex < categoryCount;
@@ -599,18 +584,6 @@ public class PiePlot3D extends PiePlot implements Serializable {
         else {
             drawLabels(g2, keys, totalValue, adjustedPlotArea, linkArea,
                     state);
-        }
-
-        if (getShadowGenerator() != null) {
-            BufferedImage shadowImage 
-                    = getShadowGenerator().createDropShadow(dataImage);
-            g2 = savedG2;
-            g2.drawImage(shadowImage, (int) plotArea.getX() 
-                    + getShadowGenerator().calculateOffsetX(),
-                    (int) plotArea.getY() 
-                    + getShadowGenerator().calculateOffsetY(), null);
-            g2.drawImage(dataImage, (int) plotArea.getX(),
-                    (int) plotArea.getY(), null);
         }
 
         g2.setClip(savedClip);

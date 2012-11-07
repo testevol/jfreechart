@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,17 +21,16 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ----------------------
  * XYImageAnnotation.java
  * ----------------------
- * (C) Copyright 2003-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2003-2008, by Object Refinery Limited and Contributors.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   Mike Harris;
- *                   Peter Kolb (patch 2809117);
  *
  * Changes:
  * --------
@@ -43,7 +42,6 @@
  * ------------- JFREECHART 1.0.x ---------------------------------------------
  * 01-Dec-2006 : Added anchor attribute (see patch 1584860 from
  *               Mike Harris) (DG);
- *
  */
 
 package org.jfree.chart.annotations;
@@ -121,7 +119,6 @@ public class XYImageAnnotation extends AbstractXYAnnotation
      */
     public XYImageAnnotation(double x, double y, Image image,
             RectangleAnchor anchor) {
-        super();
         if (image == null) {
             throw new IllegalArgumentException("Null 'image' argument.");
         }

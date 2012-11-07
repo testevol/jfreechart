@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,17 +21,17 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * --------------
  * PolarPlot.java
  * --------------
- * (C) Copyright 2004-2011, by Solution Engineering, Inc. and Contributors.
+ * (C) Copyright 2004-2008, by Solution Engineering, Inc. and Contributors.
  *
  * Original Author:  Daniel Bridenbecker, Solution Engineering, Inc.;
  * Contributor(s):   David Gilbert (for Object Refinery Limited);
- *                   Martin Hoeller (patches 1871902 and 2850344);
+ *                   Martin Hoeller (patch 1871902);
  *
  * Changes
  * -------
@@ -48,13 +48,7 @@
  *               Martin Hoeller) (DG);
  * 18-Dec-2008 : Use ResourceBundleWrapper - see patch 1607918 by
  *               Jess Thrysoee (DG);
- * 03-Sep-2009 : Applied patch 2850344 by Martin Hoeller (DG);
- * 27-Nov-2009 : Added support for multiple datasets, renderers and axes (DG);
- * 09-Dec-2009 : Extended getLegendItems() to handle multiple datasets (DG);
- * 25-Jun-2010 : Better support for multiple axes (MH);
- * 03-Oct-2011 : Added support for angleOffset and direction (MH);
- * 12-Nov-2011 : Fixed bug 3432721, log-axis doesn't work (MH);
- * 
+ *
  */
 
 package org.jfree.chart.plot;
@@ -77,16 +71,12 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.ResourceBundle;
-import java.util.TreeMap;
 
 import org.jfree.chart.LegendItem;
 import org.jfree.chart.LegendItemCollection;
-import org.jfree.chart.axis.Axis;
 import org.jfree.chart.axis.AxisState;
 import org.jfree.chart.axis.NumberTick;
 import org.jfree.chart.axis.NumberTickUnit;
@@ -98,7 +88,6 @@ import org.jfree.chart.event.RendererChangeListener;
 import org.jfree.chart.renderer.PolarItemRenderer;
 import org.jfree.chart.util.ResourceBundleWrapper;
 import org.jfree.data.Range;
-import org.jfree.data.general.Dataset;
 import org.jfree.data.general.DatasetChangeEvent;
 import org.jfree.data.general.DatasetUtilities;
 import org.jfree.data.xy.XYDataset;
@@ -107,10 +96,8 @@ import org.jfree.text.TextUtilities;
 import org.jfree.ui.RectangleEdge;
 import org.jfree.ui.RectangleInsets;
 import org.jfree.ui.TextAnchor;
-import org.jfree.util.ObjectList;
 import org.jfree.util.ObjectUtilities;
 import org.jfree.util.PaintUtilities;
-import org.jfree.util.PublicCloneable;
 
 /**
  * Plots data that is in (theta, radius) pairs where
@@ -123,8 +110,8 @@ public class PolarPlot extends Plot implements ValueAxisPlot, Zoomable,
     private static final long serialVersionUID = 3794383185924179525L;
 
     /** The default margin. */
-    private static final int DEFAULT_MARGIN = 20;
-   
+    private static final int MARGIN = 20;
+
     /** The annotation margin. */
     private static final double ANNOTATION_MARGIN = 7.0;
 
@@ -135,13 +122,6 @@ public class PolarPlot extends Plot implements ValueAxisPlot, Zoomable,
      */
     public static final double DEFAULT_ANGLE_TICK_UNIT_SIZE = 45.0;
 
-    /**
-     * The default angle offset.
-     * 
-     * @since 1.0.14
-     */
-    public static final double DEFAULT_ANGLE_OFFSET = -90.0;
-    
     /** The default grid line stroke. */
     public static final Stroke DEFAULT_GRIDLINE_STROKE = new BasicStroke(
             0.5f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
@@ -158,17 +138,17 @@ public class PolarPlot extends Plot implements ValueAxisPlot, Zoomable,
     /** The angles that are marked with gridlines. */
     private List angleTicks;
 
-    /** The range axis (used for the y-values). */
-    private ObjectList axes;
+    /** The axis (used for the y-values). */
+    private ValueAxis axis;
 
-    /** The axis locations. */
-    private ObjectList axisLocations;
+    /** The dataset. */
+    private XYDataset dataset;
 
-    /** Storage for the datasets. */
-    private ObjectList datasets;
-
-    /** Storage for the renderers. */
-    private ObjectList renderers;
+    /**
+     * Object responsible for drawing the visual representation of each point
+     * on the plot.
+     */
+    private PolarItemRenderer renderer;
 
     /**
      * The tick unit that controls the spacing between the angular grid lines.
@@ -177,21 +157,6 @@ public class PolarPlot extends Plot implements ValueAxisPlot, Zoomable,
      */
     private TickUnit angleTickUnit;
 
-    /**
-     * An offset for the angles, to start with 0 degrees at north, east, south
-     * or west.
-     * 
-     * @since 1.0.14
-     */
-    private double angleOffset;
-
-    /**
-     * A flag indicating if the angles increase counterclockwise or clockwise.
-     * 
-     * @since 1.0.14
-     */
-    private boolean counterClockwise;
-    
     /** A flag that controls whether or not the angle labels are visible. */
     private boolean angleLabelsVisible = true;
 
@@ -222,29 +187,6 @@ public class PolarPlot extends Plot implements ValueAxisPlot, Zoomable,
     /** The annotations for the plot. */
     private List cornerTextItems = new ArrayList();
 
-    /** 
-     * The actual margin in pixels.
-     *
-     * @since 1.0.14
-     */
-    private int margin;
-    
-    /**
-     * An optional collection of legend items that can be returned by the
-     * getLegendItems() method.
-     */
-    private LegendItemCollection fixedLegendItems;
-
-    /**
-     * Storage for the mapping between datasets/renderers and range axes.  The
-     * keys in the map are Integer objects, corresponding to the dataset
-     * index.  The values in the map are List objects containing Integer
-     * objects (corresponding to the axis indices).  If the map contains no
-     * entry for a dataset, it is assumed to map to the primary domain axis
-     * (index = 0).
-     */
-    private Map datasetToAxesMap;
-
     /**
      * Default constructor.
      */
@@ -259,46 +201,30 @@ public class PolarPlot extends Plot implements ValueAxisPlot, Zoomable,
      * @param radiusAxis  the radius axis (<code>null</code> permitted).
      * @param renderer  the renderer (<code>null</code> permitted).
      */
-    public PolarPlot(XYDataset dataset, ValueAxis radiusAxis,
-                PolarItemRenderer renderer) {
+    public PolarPlot(XYDataset dataset,
+                     ValueAxis radiusAxis,
+                     PolarItemRenderer renderer) {
 
         super();
 
-        this.datasets = new ObjectList();
-        this.datasets.set(0, dataset);
-        if (dataset != null) {
-            dataset.addChangeListener(this);
+        this.dataset = dataset;
+        if (this.dataset != null) {
+            this.dataset.addChangeListener(this);
         }
         this.angleTickUnit = new NumberTickUnit(DEFAULT_ANGLE_TICK_UNIT_SIZE);
 
-        this.axes = new ObjectList();
-        this.datasetToAxesMap = new TreeMap();
-        this.axes.set(0, radiusAxis);
-        if (radiusAxis != null) {
-            radiusAxis.setPlot(this);
-            radiusAxis.addChangeListener(this);
+        this.axis = radiusAxis;
+        if (this.axis != null) {
+            this.axis.setPlot(this);
+            this.axis.addChangeListener(this);
         }
 
-        // define the default locations for up to 8 axes...
-        this.axisLocations = new ObjectList();
-        this.axisLocations.set(0, PolarAxisLocation.EAST_ABOVE);
-        this.axisLocations.set(1, PolarAxisLocation.NORTH_LEFT);
-        this.axisLocations.set(2, PolarAxisLocation.WEST_BELOW);
-        this.axisLocations.set(3, PolarAxisLocation.SOUTH_RIGHT);
-        this.axisLocations.set(4, PolarAxisLocation.EAST_BELOW);
-        this.axisLocations.set(5, PolarAxisLocation.NORTH_RIGHT);
-        this.axisLocations.set(6, PolarAxisLocation.WEST_ABOVE);
-        this.axisLocations.set(7, PolarAxisLocation.SOUTH_LEFT);
-        
-        this.renderers = new ObjectList();
-        this.renderers.set(0, renderer);
-        if (renderer != null) {
-            renderer.setPlot(this);
-            renderer.addChangeListener(this);
+        this.renderer = renderer;
+        if (this.renderer != null) {
+            this.renderer.setPlot(this);
+            this.renderer.addChangeListener(this);
         }
 
-        this.angleOffset = DEFAULT_ANGLE_OFFSET;
-        this.counterClockwise = false;
         this.angleGridlinesVisible = true;
         this.angleGridlineStroke = DEFAULT_GRIDLINE_STROKE;
         this.angleGridlinePaint = DEFAULT_GRIDLINE_PAINT;
@@ -306,7 +232,51 @@ public class PolarPlot extends Plot implements ValueAxisPlot, Zoomable,
         this.radiusGridlinesVisible = true;
         this.radiusGridlineStroke = DEFAULT_GRIDLINE_STROKE;
         this.radiusGridlinePaint = DEFAULT_GRIDLINE_PAINT;
-        this.margin = DEFAULT_MARGIN;
+    }
+
+    /**
+     * Add text to be displayed in the lower right hand corner and sends a
+     * {@link PlotChangeEvent} to all registered listeners.
+     *
+     * @param text  the text to display (<code>null</code> not permitted).
+     *
+     * @see #removeCornerTextItem(String)
+     */
+    public void addCornerTextItem(String text) {
+        if (text == null) {
+            throw new IllegalArgumentException("Null 'text' argument.");
+        }
+        this.cornerTextItems.add(text);
+        fireChangeEvent();
+    }
+
+    /**
+     * Remove the given text from the list of corner text items and
+     * sends a {@link PlotChangeEvent} to all registered listeners.
+     *
+     * @param text  the text to remove (<code>null</code> ignored).
+     *
+     * @see #addCornerTextItem(String)
+     */
+    public void removeCornerTextItem(String text) {
+        boolean removed = this.cornerTextItems.remove(text);
+        if (removed) {
+            fireChangeEvent();
+        }
+    }
+
+    /**
+     * Clear the list of corner text items and sends a {@link PlotChangeEvent}
+     * to all registered listeners.
+     *
+     * @see #addCornerTextItem(String)
+     * @see #removeCornerTextItem(String)
+     */
+    public void clearCornerTextItems() {
+        if (this.cornerTextItems.size() > 0) {
+            this.cornerTextItems.clear();
+            fireChangeEvent();
+        }
     }
 
     /**
@@ -319,199 +289,38 @@ public class PolarPlot extends Plot implements ValueAxisPlot, Zoomable,
     }
 
     /**
-     * Returns the primary axis for the plot.
+     * Returns the axis for the plot.
      *
-     * @return The primary axis (possibly <code>null</code>).
+     * @return The radius axis (possibly <code>null</code>).
      *
      * @see #setAxis(ValueAxis)
      */
     public ValueAxis getAxis() {
-        return getAxis(0);
+        return this.axis;
     }
 
     /**
-     * Returns an axis for the plot.
-     *
-     * @param index  the axis index.
-     *
-     * @return The axis (<code>null</code> possible).
-     *
-     * @see #setAxis(int, ValueAxis)
-     * 
-     * @since 1.0.14
-     */
-    public ValueAxis getAxis(int index) {
-        ValueAxis result = null;
-        if (index < this.axes.size()) {
-            result = (ValueAxis) this.axes.get(index);
-        }
-        return result;
-    }
-
-    /**
-     * Sets the primary axis for the plot and sends a {@link PlotChangeEvent}
-     * to all registered listeners.
-     *
-     * @param axis  the new primary axis (<code>null</code> permitted).
-     */
-    public void setAxis(ValueAxis axis) {
-        setAxis(0, axis);
-    }
-
-    /**
-     * Sets an axis for the plot and sends a {@link PlotChangeEvent} to all
+     * Sets the axis for the plot and sends a {@link PlotChangeEvent} to all
      * registered listeners.
      *
-     * @param index  the axis index.
-     * @param axis  the axis (<code>null</code> permitted).
-     *
-     * @see #getAxis(int)
-     *
-     * @since 1.0.14
+     * @param axis  the new axis (<code>null</code> permitted).
      */
-    public void setAxis(int index, ValueAxis axis) {
-        setAxis(index, axis, true);
-    }
-
-    /**
-     * Sets an axis for the plot and, if requested, sends a
-     * {@link PlotChangeEvent} to all registered listeners.
-     *
-     * @param index  the axis index.
-     * @param axis  the axis (<code>null</code> permitted).
-     * @param notify  notify listeners?
-     *
-     * @see #getAxis(int)
-     *
-     * @since 1.0.14
-     */
-    public void setAxis(int index, ValueAxis axis, boolean notify) {
-        ValueAxis existing = getAxis(index);
-        if (existing != null) {
-            existing.removeChangeListener(this);
-        }
+    public void setAxis(ValueAxis axis) {
         if (axis != null) {
             axis.setPlot(this);
         }
-        this.axes.set(index, axis);
-        if (axis != null) {
-            axis.configure();
-            axis.addChangeListener(this);
+
+        // plot is likely registered as a listener with the existing axis...
+        if (this.axis != null) {
+            this.axis.removeChangeListener(this);
         }
-        if (notify) {
-            fireChangeEvent();
+
+        this.axis = axis;
+        if (this.axis != null) {
+            this.axis.configure();
+            this.axis.addChangeListener(this);
         }
-    }
-
-    /**
-     * Returns the location of the primary axis.
-     *
-     * @return The location (never <code>null</code>).
-     *
-     * @see #setAxisLocation(PolarAxisLocation)
-     *
-     * @since 1.0.14
-     */
-    public PolarAxisLocation getAxisLocation() {
-        return getAxisLocation(0);
-    }
-
-    /**
-     * Returns the location for an axis.
-     *
-     * @param index  the axis index.
-     *
-     * @return The location (never <code>null</code>).
-     *
-     * @see #setAxisLocation(int, PolarAxisLocation)
-     *
-     * @since 1.0.14
-     */
-    public PolarAxisLocation getAxisLocation(int index) {
-        PolarAxisLocation result = null;
-        if (index < this.axisLocations.size()) {
-            result = (PolarAxisLocation) this.axisLocations.get(index);
-        }
-        return result;
-    }
-
-    /**
-     * Sets the location of the primary axis and sends a
-     * {@link PlotChangeEvent} to all registered listeners.
-     *
-     * @param location  the location (<code>null</code> not permitted).
-     *
-     * @see #getAxisLocation()
-     *
-     * @since 1.0.14
-     */
-    public void setAxisLocation(PolarAxisLocation location) {
-        // delegate...
-        setAxisLocation(0, location, true);
-    }
-
-    /**
-     * Sets the location of the primary axis and, if requested, sends a
-     * {@link PlotChangeEvent} to all registered listeners.
-     *
-     * @param location  the location (<code>null</code> not permitted).
-     * @param notify  notify listeners?
-     *
-     * @see #getAxisLocation()
-     *
-     * @since 1.0.14
-     */
-    public void setAxisLocation(PolarAxisLocation location, boolean notify) {
-        // delegate...
-        setAxisLocation(0, location, notify);
-    }
-
-    /**
-     * Sets the location for an axis and sends a {@link PlotChangeEvent}
-     * to all registered listeners.
-     *
-     * @param index  the axis index.
-     * @param location  the location (<code>null</code> not permitted).
-     *
-     * @see #getAxisLocation(int)
-     *
-     * @since 1.0.14
-     */
-    public void setAxisLocation(int index, PolarAxisLocation location) {
-        // delegate...
-        setAxisLocation(index, location, true);
-    }
-
-    /**
-     * Sets the axis location for an axis and, if requested, sends a
-     * {@link PlotChangeEvent} to all registered listeners.
-     *
-     * @param index  the axis index.
-     * @param location  the location (<code>null</code> not permitted).
-     * @param notify  notify listeners?
-     *
-     * @since 1.0.14
-     */
-    public void setAxisLocation(int index, PolarAxisLocation location,
-            boolean notify) {
-        if (location == null) {
-            throw new IllegalArgumentException("Null 'location' argument.");
-        }
-        this.axisLocations.set(index, location);
-        if (notify) {
-            fireChangeEvent();
-        }
-    }
-
-    /**
-     * Returns the number of domain axes.
-     *
-     * @return The axis count.
-     *
-     * @since 1.0.14
-     **/
-    public int getAxisCount() {
-        return this.axes.size();
+        fireChangeEvent();
     }
 
     /**
@@ -522,184 +331,68 @@ public class PolarPlot extends Plot implements ValueAxisPlot, Zoomable,
      * @see #setDataset(XYDataset)
      */
     public XYDataset getDataset() {
-        return getDataset(0);
+        return this.dataset;
     }
 
     /**
-     * Returns the dataset with the specified index, if any.
-     *
-     * @param index  the dataset index.
-     *
-     * @return The dataset (possibly <code>null</code>).
-     *
-     * @see #setDataset(int, XYDataset)
-     *
-     * @since 1.0.14
-     */
-    public XYDataset getDataset(int index) {
-        XYDataset result = null;
-        if (index < this.datasets.size()) {
-            result = (XYDataset) this.datasets.get(index);
-        }
-        return result;
-    }
-
-    /**
-     * Sets the primary dataset for the plot, replacing the existing dataset
-     * if there is one, and sends a {@code link PlotChangeEvent} to all
-     * registered listeners.
+     * Sets the dataset for the plot, replacing the existing dataset if there
+     * is one.
      *
      * @param dataset  the dataset (<code>null</code> permitted).
      *
      * @see #getDataset()
      */
     public void setDataset(XYDataset dataset) {
-        setDataset(0, dataset);
-    }
-
-    /**
-     * Sets a dataset for the plot, replacing the existing dataset at the same
-     * index if there is one, and sends a {@code link PlotChangeEvent} to all
-     * registered listeners.
-     *
-     * @param index  the dataset index.
-     * @param dataset  the dataset (<code>null</code> permitted).
-     *
-     * @see #getDataset(int)
-     * 
-     * @since 1.0.14
-     */
-    public void setDataset(int index, XYDataset dataset) {
-        XYDataset existing = getDataset(index);
+        // if there is an existing dataset, remove the plot from the list of
+        // change listeners...
+        XYDataset existing = this.dataset;
         if (existing != null) {
             existing.removeChangeListener(this);
         }
-        this.datasets.set(index, dataset);
-        if (dataset != null) {
-            dataset.addChangeListener(this);
+
+        // set the new m_Dataset, and register the chart as a change listener...
+        this.dataset = dataset;
+        if (this.dataset != null) {
+            setDatasetGroup(this.dataset.getGroup());
+            this.dataset.addChangeListener(this);
         }
 
-        // send a dataset change event to self...
-        DatasetChangeEvent event = new DatasetChangeEvent(this, dataset);
+        // send a m_Dataset change event to self...
+        DatasetChangeEvent event = new DatasetChangeEvent(this, this.dataset);
         datasetChanged(event);
     }
 
     /**
-     * Returns the number of datasets.
-     *
-     * @return The number of datasets.
-     *
-     * @since 1.0.14
-     */
-    public int getDatasetCount() {
-        return this.datasets.size();
-    }
-
-    /**
-     * Returns the index of the specified dataset, or <code>-1</code> if the
-     * dataset does not belong to the plot.
-     *
-     * @param dataset  the dataset (<code>null</code> not permitted).
-     *
-     * @return The index.
-     *
-     * @since 1.0.14
-     */
-    public int indexOf(XYDataset dataset) {
-        int result = -1;
-        for (int i = 0; i < this.datasets.size(); i++) {
-            if (dataset == this.datasets.get(i)) {
-                result = i;
-                break;
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Returns the primary renderer.
+     * Returns the item renderer.
      *
      * @return The renderer (possibly <code>null</code>).
      *
      * @see #setRenderer(PolarItemRenderer)
      */
     public PolarItemRenderer getRenderer() {
-        return getRenderer(0);
+        return this.renderer;
     }
 
     /**
-     * Returns the renderer at the specified index, if there is one.
-     *
-     * @param index  the renderer index.
-     *
-     * @return The renderer (possibly <code>null</code>).
-     *
-     * @see #setRenderer(int, PolarItemRenderer)
-     *
-     * @since 1.0.14
-     */
-    public PolarItemRenderer getRenderer(int index) {
-        PolarItemRenderer result = null;
-        if (index < this.renderers.size()) {
-            result = (PolarItemRenderer) this.renderers.get(index);
-        }
-        return result;
-    }
-
-    /**
-     * Sets the primary renderer, and notifies all listeners of a change to the
-     * plot.  If the renderer is set to <code>null</code>, no data items will
-     * be drawn for the corresponding dataset.
+     * Sets the item renderer, and notifies all listeners of a change to the
+     * plot.
+     * <P>
+     * If the renderer is set to <code>null</code>, no chart will be drawn.
      *
      * @param renderer  the new renderer (<code>null</code> permitted).
      *
      * @see #getRenderer()
      */
     public void setRenderer(PolarItemRenderer renderer) {
-        setRenderer(0, renderer);
-    }
+        if (this.renderer != null) {
+            this.renderer.removeChangeListener(this);
+        }
 
-    /**
-     * Sets a renderer and sends a {@link PlotChangeEvent} to all
-     * registered listeners.
-     *
-     * @param index  the index.
-     * @param renderer  the renderer.
-     *
-     * @see #getRenderer(int)
-     *
-     * @since 1.0.14
-     */
-    public void setRenderer(int index, PolarItemRenderer renderer) {
-        setRenderer(index, renderer, true);
-    }
-
-    /**
-     * Sets a renderer and, if requested, sends a {@link PlotChangeEvent} to
-     * all registered listeners.
-     *
-     * @param index  the index.
-     * @param renderer  the renderer.
-     * @param notify  notify listeners?
-     *
-     * @see #getRenderer(int)
-     *
-     * @since 1.0.14
-     */
-    public void setRenderer(int index, PolarItemRenderer renderer,
-                            boolean notify) {
-        PolarItemRenderer existing = getRenderer(index);
-        if (existing != null) {
-            existing.removeChangeListener(this);
+        this.renderer = renderer;
+        if (this.renderer != null) {
+            this.renderer.setPlot(this);
         }
-        this.renderers.set(index, renderer);
-        if (renderer != null) {
-            renderer.setPlot(this);
-            renderer.addChangeListener(this);
-        }
-        if (notify) {
-            fireChangeEvent();
-        }
+        fireChangeEvent();
     }
 
     /**
@@ -728,56 +421,6 @@ public class PolarPlot extends Plot implements ValueAxisPlot, Zoomable,
         }
         this.angleTickUnit = unit;
         fireChangeEvent();
-    }
-
-    /**
-     * Returns the offset that is used for all angles.
-     * 
-     * @return The offset for the angles.
-     * @since 1.0.14
-     */
-    public double getAngleOffset() {
-        return this.angleOffset;
-    }
-
-    /**
-     * Sets the offset that is used for all angles and sends a
-     * {@link PlotChangeEvent} to all registered listeners.
-     * 
-     * This is useful to let 0 degrees be at the north, east, south or west
-     * side of the chart.
-     * 
-     * @param offset The offset
-     * @since 1.0.14
-     */
-    public void setAngleOffset(double offset) {
-        this.angleOffset = offset;
-        fireChangeEvent();
-    }
-
-    /**
-     * Get the direction for growing angle degrees.
-     * 
-     * @return <code>true</code> if angle increases counterclockwise,
-     *         <code>false</code> otherwise.
-     * @since 1.0.14
-     */
-    public boolean isCounterClockwise() {
-        return this.counterClockwise;
-    }
-
-    /**
-     * Sets the flag for increasing angle degrees direction.
-     * 
-     * <code>true</code> for counterclockwise, <code>false</code> for
-     * clockwise.
-     * 
-     * @param counterClockwise The flag.
-     * @since 1.0.14
-     */
-    public void setCounterClockwise(boolean counterClockwise)
-    {
-        this.counterClockwise = counterClockwise;
     }
 
     /**
@@ -860,7 +503,7 @@ public class PolarPlot extends Plot implements ValueAxisPlot, Zoomable,
 
     /**
      * Returns <code>true</code> if the angular gridlines are visible, and
-     * <code>false</code> otherwise.
+     * <code>false<code> otherwise.
      *
      * @return <code>true</code> or <code>false</code>.
      *
@@ -943,7 +586,7 @@ public class PolarPlot extends Plot implements ValueAxisPlot, Zoomable,
 
     /**
      * Returns <code>true</code> if the radius axis grid is visible, and
-     * <code>false</code> otherwise.
+     * <code>false<code> otherwise.
      *
      * @return <code>true</code> or <code>false</code>.
      *
@@ -1024,104 +667,6 @@ public class PolarPlot extends Plot implements ValueAxisPlot, Zoomable,
         this.radiusGridlinePaint = paint;
         fireChangeEvent();
     }
-    
-    /**
-     * Returns the margin around the plot area.
-     * 
-     * @return The actual margin in pixels.
-     *
-     * @since 1.0.14
-     */
-    public int getMargin() {
-        return this.margin;
-    }
-
-    /**
-     * Set the margin around the plot area and sends a
-     * {@link PlotChangeEvent} to all registered listeners.
-     * 
-     * @param margin The new margin in pixels.
-     *
-     * @since 1.0.14
-     */
-    public void setMargin(int margin) {
-        this.margin = margin;
-        fireChangeEvent();
-    }
-
-    /**
-     * Returns the fixed legend items, if any.
-     *
-     * @return The legend items (possibly <code>null</code>).
-     *
-     * @see #setFixedLegendItems(LegendItemCollection)
-     *
-     * @since 1.0.14
-     */
-    public LegendItemCollection getFixedLegendItems() {
-        return this.fixedLegendItems;
-    }
-
-    /**
-     * Sets the fixed legend items for the plot.  Leave this set to
-     * <code>null</code> if you prefer the legend items to be created
-     * automatically.
-     *
-     * @param items  the legend items (<code>null</code> permitted).
-     *
-     * @see #getFixedLegendItems()
-     *
-     * @since 1.0.14
-     */
-    public void setFixedLegendItems(LegendItemCollection items) {
-        this.fixedLegendItems = items;
-        fireChangeEvent();
-    }
-
-    /**
-     * Add text to be displayed in the lower right hand corner and sends a
-     * {@link PlotChangeEvent} to all registered listeners.
-     *
-     * @param text  the text to display (<code>null</code> not permitted).
-     *
-     * @see #removeCornerTextItem(String)
-     */
-    public void addCornerTextItem(String text) {
-        if (text == null) {
-            throw new IllegalArgumentException("Null 'text' argument.");
-        }
-        this.cornerTextItems.add(text);
-        fireChangeEvent();
-    }
-
-    /**
-     * Remove the given text from the list of corner text items and
-     * sends a {@link PlotChangeEvent} to all registered listeners.
-     *
-     * @param text  the text to remove (<code>null</code> ignored).
-     *
-     * @see #addCornerTextItem(String)
-     */
-    public void removeCornerTextItem(String text) {
-        boolean removed = this.cornerTextItems.remove(text);
-        if (removed) {
-            fireChangeEvent();
-        }
-    }
-
-    /**
-     * Clear the list of corner text items and sends a {@link PlotChangeEvent}
-     * to all registered listeners.
-     *
-     * @see #addCornerTextItem(String)
-     * @see #removeCornerTextItem(String)
-     */
-    public void clearCornerTextItems() {
-        if (this.cornerTextItems.size() > 0) {
-            this.cornerTextItems.clear();
-            fireChangeEvent();
-        }
-    }
 
     /**
      * Generates a list of tick values for the angular tick marks.
@@ -1134,187 +679,12 @@ public class PolarPlot extends Plot implements ValueAxisPlot, Zoomable,
         List ticks = new ArrayList();
         for (double currentTickVal = 0.0; currentTickVal < 360.0;
                 currentTickVal += this.angleTickUnit.getSize()) {
-            
-            TextAnchor ta = calculateTextAnchor(currentTickVal);
             NumberTick tick = new NumberTick(new Double(currentTickVal),
                 this.angleTickUnit.valueToString(currentTickVal),
-                ta, TextAnchor.CENTER, 0.0);
+                TextAnchor.CENTER, TextAnchor.CENTER, 0.0);
             ticks.add(tick);
         }
         return ticks;
-    }
-
-    /**
-     * Calculate the text position for the given degrees.
-     * 
-     * @return The optimal text anchor.
-     * @since 1.0.14
-     */
-    protected TextAnchor calculateTextAnchor(double angleDegrees)
-    {
-        TextAnchor ta = TextAnchor.CENTER;
-
-        // normalize angle
-        double offset = angleOffset;
-        while (offset < 0.0)
-            offset += 360.0;
-        double normalizedAngle = (((counterClockwise ? -1 : 1) * angleDegrees)
-                + offset) % 360;
-        while (counterClockwise && (normalizedAngle < 0.0))
-            normalizedAngle += 360.0;
-        
-        if (normalizedAngle == 0.0) {
-            ta = TextAnchor.CENTER_LEFT;
-        }
-        else if (normalizedAngle > 0.0 && normalizedAngle < 90.0) {
-            ta = TextAnchor.TOP_LEFT;
-        }
-        else if (normalizedAngle == 90.0) {
-            ta = TextAnchor.TOP_CENTER;
-        }
-        else if (normalizedAngle > 90.0 && normalizedAngle < 180.0) {
-            ta = TextAnchor.TOP_RIGHT;
-        }
-        else if (normalizedAngle == 180) {
-            ta = TextAnchor.CENTER_RIGHT;
-        }
-        else if (normalizedAngle > 180.0 && normalizedAngle < 270.0) {
-            ta = TextAnchor.BOTTOM_RIGHT;
-        }
-        else if (normalizedAngle == 270) {
-            ta = TextAnchor.BOTTOM_CENTER;
-        }
-        else if (normalizedAngle > 270.0 && normalizedAngle < 360.0) {
-            ta = TextAnchor.BOTTOM_LEFT;
-        }
-        return ta;
-    }
-
-    /**
-     * Maps a dataset to a particular axis.  All data will be plotted
-     * against axis zero by default, no mapping is required for this case.
-     *
-     * @param index  the dataset index (zero-based).
-     * @param axisIndex  the axis index.
-     *
-     * @since 1.0.14
-     */
-    public void mapDatasetToAxis(int index, int axisIndex) {
-        List axisIndices = new java.util.ArrayList(1);
-        axisIndices.add(new Integer(axisIndex));
-        mapDatasetToAxes(index, axisIndices);
-    }
-
-    /**
-     * Maps the specified dataset to the axes in the list.  Note that the
-     * conversion of data values into Java2D space is always performed using
-     * the first axis in the list.
-     *
-     * @param index  the dataset index (zero-based).
-     * @param axisIndices  the axis indices (<code>null</code> permitted).
-     *
-     * @since 1.0.14
-     */
-    public void mapDatasetToAxes(int index, List axisIndices) {
-        if (index < 0) {
-            throw new IllegalArgumentException("Requires 'index' >= 0.");
-        }
-        checkAxisIndices(axisIndices);
-        Integer key = new Integer(index);
-        this.datasetToAxesMap.put(key, new ArrayList(axisIndices));
-        // fake a dataset change event to update axes...
-        datasetChanged(new DatasetChangeEvent(this, getDataset(index)));
-    }
-
-    /**
-     * This method is used to perform argument checking on the list of
-     * axis indices passed to mapDatasetToAxes().
-     *
-     * @param indices  the list of indices (<code>null</code> permitted).
-     */
-    private void checkAxisIndices(List indices) {
-        // axisIndices can be:
-        // 1.  null;
-        // 2.  non-empty, containing only Integer objects that are unique.
-        if (indices == null) {
-            return;  // OK
-        }
-        int count = indices.size();
-        if (count == 0) {
-            throw new IllegalArgumentException("Empty list not permitted.");
-        }
-        HashSet set = new HashSet();
-        for (int i = 0; i < count; i++) {
-            Object item = indices.get(i);
-            if (!(item instanceof Integer)) {
-                throw new IllegalArgumentException(
-                        "Indices must be Integer instances.");
-            }
-            if (set.contains(item)) {
-                throw new IllegalArgumentException("Indices must be unique.");
-            }
-            set.add(item);
-        }
-    }
-
-    /**
-     * Returns the axis for a dataset.
-     *
-     * @param index  the dataset index.
-     *
-     * @return The axis.
-     *
-     * @since 1.0.14
-     */
-    public ValueAxis getAxisForDataset(int index) {
-        ValueAxis valueAxis = null;
-        List axisIndices = (List) this.datasetToAxesMap.get(
-                new Integer(index));
-        if (axisIndices != null) {
-            // the first axis in the list is used for data <--> Java2D
-            Integer axisIndex = (Integer) axisIndices.get(0);
-            valueAxis = getAxis(axisIndex.intValue());
-        }
-        else {
-            valueAxis = getAxis(0);
-        }
-        return valueAxis;
-    }
-    
-    /**
-     * Returns the index of the given axis.
-     *
-     * @param axis  the axis.
-     *
-     * @return The axis index or -1 if axis is not used in this plot.
-     *
-     * @since 1.0.14
-     */
-    public int getAxisIndex(ValueAxis axis) {
-        int result = this.axes.indexOf(axis);
-        if (result < 0) {
-            // try the parent plot
-            Plot parent = getParent();
-            if (parent instanceof PolarPlot) {
-                PolarPlot p = (PolarPlot) parent;
-                result = p.getAxisIndex(axis);
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Returns the index of the specified renderer, or <code>-1</code> if the
-     * renderer is not assigned to this plot.
-     *
-     * @param renderer  the renderer (<code>null</code> permitted).
-     *
-     * @return The renderer index.
-     *
-     * @since 1.0.14
-     */
-    public int getIndexOf(PolarItemRenderer renderer) {
-        return this.renderers.indexOf(renderer);
     }
 
     /**
@@ -1337,8 +707,11 @@ public class PolarPlot extends Plot implements ValueAxisPlot, Zoomable,
      * @param info  collects chart drawing information (<code>null</code>
      *              permitted).
      */
-    public void draw(Graphics2D g2, Rectangle2D area, Point2D anchor,
-            PlotState parentState, PlotRenderingInfo info) {
+    public void draw(Graphics2D g2,
+                     Rectangle2D area,
+                     Point2D anchor,
+                     PlotState parentState,
+                     PlotRenderingInfo info) {
 
         // if the plot area is too small, just return...
         boolean b1 = (area.getWidth() <= MINIMUM_WIDTH_TO_DRAW);
@@ -1363,33 +736,28 @@ public class PolarPlot extends Plot implements ValueAxisPlot, Zoomable,
 
         // draw the plot background and axes...
         drawBackground(g2, dataArea);
-        int axisCount = this.axes.size();
-        AxisState state = null;
-        for (int i = 0; i < axisCount; i++) {
-            ValueAxis axis = getAxis(i);
-            if (axis != null) {
-                PolarAxisLocation location
-                        = (PolarAxisLocation) this.axisLocations.get(i);
-                AxisState s = this.drawAxis(axis, location, g2, dataArea);
-                if (i == 0) {
-                    state = s;
-                }
-            }
+        double h = Math.min(dataArea.getWidth() / 2.0,
+                dataArea.getHeight() / 2.0) - MARGIN;
+        Rectangle2D quadrant = new Rectangle2D.Double(dataArea.getCenterX(),
+                dataArea.getCenterY(), h, h);
+        AxisState state = drawAxis(g2, area, quadrant);
+        if (this.renderer != null) {
+            Shape originalClip = g2.getClip();
+            Composite originalComposite = g2.getComposite();
+
+            g2.clip(dataArea);
+            g2.setComposite(AlphaComposite.getInstance(
+                    AlphaComposite.SRC_OVER, getForegroundAlpha()));
+
+            this.angleTicks = refreshAngleTicks();
+            drawGridlines(g2, dataArea, this.angleTicks, state.getTicks());
+
+            // draw...
+            render(g2, dataArea, info);
+
+            g2.setClip(originalClip);
+            g2.setComposite(originalComposite);
         }
-
-        // now for each dataset, get the renderer and the appropriate axis
-        // and render the dataset...
-        Shape originalClip = g2.getClip();
-        Composite originalComposite = g2.getComposite();
-
-        g2.clip(dataArea);
-        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
-                getForegroundAlpha()));
-        this.angleTicks = refreshAngleTicks();
-        drawGridlines(g2, dataArea, this.angleTicks, state.getTicks());
-        render(g2, dataArea, info);
-        g2.setClip(originalClip);
-        g2.setComposite(originalComposite);
         drawOutline(g2, dataArea);
         drawCornerTextItems(g2, dataArea);
     }
@@ -1435,71 +803,18 @@ public class PolarPlot extends Plot implements ValueAxisPlot, Zoomable,
     }
 
     /**
-     * Draws the axis with the specified index.
+     * A utility method for drawing the axes.
      *
-     * @param axis  the axis.
-     * @param location  the axis location.
-     * @param g2  the graphics target.
+     * @param g2  the graphics device.
      * @param plotArea  the plot area.
+     * @param dataArea  the data area.
      *
-     * @return The axis state.
-     *
-     * @since 1.0.14
+     * @return A map containing the axis states.
      */
-    protected AxisState drawAxis(ValueAxis axis, PolarAxisLocation location,
-            Graphics2D g2, Rectangle2D plotArea) {
-
-        double centerX = plotArea.getCenterX();
-        double centerY = plotArea.getCenterY();
-        double r = Math.min(plotArea.getWidth() / 2.0,
-                plotArea.getHeight() / 2.0) - this.margin;
-        double x = centerX - r;
-        double y = centerY - r;
-
-        Rectangle2D dataArea = null;
-        AxisState result = null;
-        if (location == PolarAxisLocation.NORTH_RIGHT) {
-            dataArea = new Rectangle2D.Double(x, y, r, r);
-            result = axis.draw(g2, centerX, plotArea, dataArea,
-                    RectangleEdge.RIGHT, null);
-        }
-        else if (location == PolarAxisLocation.NORTH_LEFT) {
-            dataArea = new Rectangle2D.Double(centerX, y, r, r);
-            result = axis.draw(g2, centerX, plotArea, dataArea,
-                    RectangleEdge.LEFT, null);
-        }
-        else if (location == PolarAxisLocation.SOUTH_LEFT) {
-            dataArea = new Rectangle2D.Double(centerX, centerY, r, r);
-            result = axis.draw(g2, centerX, plotArea, dataArea,
-                    RectangleEdge.LEFT, null);
-        }
-        else if (location == PolarAxisLocation.SOUTH_RIGHT) {
-            dataArea = new Rectangle2D.Double(x, centerY, r, r);
-            result = axis.draw(g2, centerX, plotArea, dataArea,
-                    RectangleEdge.RIGHT, null);
-        }
-        else if (location == PolarAxisLocation.EAST_ABOVE) {
-            dataArea = new Rectangle2D.Double(centerX, centerY, r, r);
-            result = axis.draw(g2, centerY, plotArea, dataArea,
-                    RectangleEdge.TOP, null);
-        }
-        else if (location == PolarAxisLocation.EAST_BELOW) {
-            dataArea = new Rectangle2D.Double(centerX, y, r, r);
-            result = axis.draw(g2, centerY, plotArea, dataArea,
-                    RectangleEdge.BOTTOM, null);
-        }
-        else if (location == PolarAxisLocation.WEST_ABOVE) {
-            dataArea = new Rectangle2D.Double(x, centerY, r, r);
-            result = axis.draw(g2, centerY, plotArea, dataArea,
-                    RectangleEdge.TOP, null);
-        }
-        else if (location == PolarAxisLocation.WEST_BELOW) {
-            dataArea = new Rectangle2D.Double(x, y, r, r);
-            result = axis.draw(g2, centerY, plotArea, dataArea,
-                    RectangleEdge.BOTTOM, null);
-        }
-       
-        return result;
+    protected AxisState drawAxis(Graphics2D g2, Rectangle2D plotArea,
+                                 Rectangle2D dataArea) {
+        return this.axis.draw(g2, dataArea.getMinY(), plotArea, dataArea,
+                RectangleEdge.TOP, null);
     }
 
     /**
@@ -1511,32 +826,20 @@ public class PolarPlot extends Plot implements ValueAxisPlot, Zoomable,
      * @param info  an optional object for collection dimension
      *              information (<code>null</code> permitted).
      */
-    protected void render(Graphics2D g2, Rectangle2D dataArea,
-            PlotRenderingInfo info) {
+    protected void render(Graphics2D g2,
+                       Rectangle2D dataArea,
+                       PlotRenderingInfo info) {
 
         // now get the data and plot it (the visual representation will depend
         // on the m_Renderer that has been set)...
-        boolean hasData = false;
-        int datasetCount = this.datasets.size();
-        for (int i = datasetCount - 1; i >= 0; i--) {
-            XYDataset dataset = getDataset(i);
-            if (dataset == null) {
-                continue;
-            }
-            PolarItemRenderer renderer = getRenderer(i);
-            if (renderer == null) {
-                continue;
-            }
-            if (!DatasetUtilities.isEmptyOrNull(dataset)) {
-                hasData = true;
-                int seriesCount = dataset.getSeriesCount();
-                for (int series = 0; series < seriesCount; series++) {
-                    renderer.drawSeries(g2, dataArea, info, this, dataset,
-                            series);
-                }
+        if (!DatasetUtilities.isEmptyOrNull(this.dataset)) {
+            int seriesCount = this.dataset.getSeriesCount();
+            for (int series = 0; series < seriesCount; series++) {
+                this.renderer.drawSeries(g2, dataArea, info, this,
+                        this.dataset, series);
             }
         }
-        if (!hasData) {
+        else {
             drawNoDataMessage(g2, dataArea);
         }
     }
@@ -1552,9 +855,8 @@ public class PolarPlot extends Plot implements ValueAxisPlot, Zoomable,
     protected void drawGridlines(Graphics2D g2, Rectangle2D dataArea,
                                  List angularTicks, List radialTicks) {
 
-        PolarItemRenderer renderer = getRenderer();
         // no renderer, no gridlines...
-        if (renderer == null) {
+        if (this.renderer == null) {
             return;
         }
 
@@ -1563,7 +865,7 @@ public class PolarPlot extends Plot implements ValueAxisPlot, Zoomable,
             Stroke gridStroke = getAngleGridlineStroke();
             Paint gridPaint = getAngleGridlinePaint();
             if ((gridStroke != null) && (gridPaint != null)) {
-                renderer.drawAngularGridLines(g2, this, angularTicks,
+                this.renderer.drawAngularGridLines(g2, this, angularTicks,
                         dataArea);
             }
         }
@@ -1573,7 +875,7 @@ public class PolarPlot extends Plot implements ValueAxisPlot, Zoomable,
             Stroke gridStroke = getRadiusGridlineStroke();
             Paint gridPaint = getRadiusGridlinePaint();
             if ((gridStroke != null) && (gridPaint != null)) {
-                renderer.drawRadialGridLines(g2, this, getAxis(),
+                this.renderer.drawRadialGridLines(g2, this, this.axis,
                         radialTicks, dataArea);
             }
         }
@@ -1585,51 +887,15 @@ public class PolarPlot extends Plot implements ValueAxisPlot, Zoomable,
      * @param percent  the amount of the zoom.
      */
     public void zoom(double percent) {
-        for (int axisIdx = 0; axisIdx < getAxisCount(); axisIdx++) {
-            final ValueAxis axis = getAxis(axisIdx);
-            if (axis != null) {
-                if (percent > 0.0) {
-                    double radius = axis.getUpperBound();
-                    double scaledRadius = radius * percent;
-                    axis.setUpperBound(scaledRadius);
-                    axis.setAutoRange(false);
-                }
-                else {
-                    axis.setAutoRange(true);
-                }
-            }
+        if (percent > 0.0) {
+            double radius = getMaxRadius();
+            double scaledRadius = radius * percent;
+            this.axis.setUpperBound(scaledRadius);
+            getAxis().setAutoRange(false);
         }
-    }
-
-    /**
-     * A utility method that returns a list of datasets that are mapped to a
-     * particular axis.
-     *
-     * @param axisIndex  the axis index (<code>null</code> not permitted).
-     *
-     * @return A list of datasets.
-     *
-     * @since 1.0.14
-     */
-    private List getDatasetsMappedToAxis(Integer axisIndex) {
-        if (axisIndex == null) {
-            throw new IllegalArgumentException("Null 'axisIndex' argument.");
+        else {
+            getAxis().setAutoRange(true);
         }
-        List result = new ArrayList();
-        for (int i = 0; i < this.datasets.size(); i++) {
-            List mappedAxes = (List) this.datasetToAxesMap.get(new Integer(i));
-            if (mappedAxes == null) {
-                if (axisIndex.equals(ZERO)) {
-                    result.add(this.datasets.get(i));
-                }
-            }
-            else {
-                if (mappedAxes.contains(axisIndex)) {
-                    result.add(this.datasets.get(i));
-                }
-            }
-        }
-        return result;
     }
 
     /**
@@ -1641,27 +907,10 @@ public class PolarPlot extends Plot implements ValueAxisPlot, Zoomable,
      */
     public Range getDataRange(ValueAxis axis) {
         Range result = null;
-        int axisIdx = getAxisIndex(axis);
-        List mappedDatasets = new ArrayList();
-
-        if (axisIdx >= 0) {
-            mappedDatasets = getDatasetsMappedToAxis(new Integer(axisIdx));
+        if (this.dataset != null) {
+            result = Range.combine(result,
+                    DatasetUtilities.findRangeBounds(this.dataset));
         }
-
-        // iterate through the datasets that map to the axis and get the union
-        // of the ranges.
-        Iterator iterator = mappedDatasets.iterator();
-        int datasetIdx = -1;
-        while (iterator.hasNext()) {
-            datasetIdx++;
-            XYDataset d = (XYDataset) iterator.next();
-            if (d != null) {
-                // FIXME better ask the renderer instead of DatasetUtilities
-                result = Range.combine(result,
-                        DatasetUtilities.findRangeBounds(d));
-            }
-        }
-
         return result;
     }
 
@@ -1673,12 +922,11 @@ public class PolarPlot extends Plot implements ValueAxisPlot, Zoomable,
      * @param event  information about the event (not used here).
      */
     public void datasetChanged(DatasetChangeEvent event) {
-        for (int i = 0; i < this.axes.size(); i++) {
-            final ValueAxis axis = (ValueAxis) this.axes.get(i);
-            if (axis != null) {
-                axis.configure();
-            }
+
+        if (this.axis != null) {
+            this.axis.configure();
         }
+
         if (getParent() != null) {
             getParent().datasetChanged(event);
         }
@@ -1699,6 +947,21 @@ public class PolarPlot extends Plot implements ValueAxisPlot, Zoomable,
     }
 
     /**
+     * Returns the number of series in the dataset for this plot.  If the
+     * dataset is <code>null</code>, the method returns 0.
+     *
+     * @return The series count.
+     */
+    public int getSeriesCount() {
+        int result = 0;
+
+        if (this.dataset != null) {
+            result = this.dataset.getSeriesCount();
+        }
+        return result;
+    }
+
+    /**
      * Returns the legend items for the plot.  Each legend item is generated by
      * the plot's m_Renderer, since the m_Renderer is responsible for the visual
      * representation of the data.
@@ -1706,18 +969,14 @@ public class PolarPlot extends Plot implements ValueAxisPlot, Zoomable,
      * @return The legend items.
      */
     public LegendItemCollection getLegendItems() {
-        if (this.fixedLegendItems != null) {
-            return this.fixedLegendItems;
-        }
         LegendItemCollection result = new LegendItemCollection();
-        int count = this.datasets.size();
-        for (int datasetIndex = 0; datasetIndex < count; datasetIndex++) {
-            XYDataset dataset = getDataset(datasetIndex);
-            PolarItemRenderer renderer = getRenderer(datasetIndex);
-            if (dataset != null && renderer != null) {
-                int seriesCount = dataset.getSeriesCount();
+
+        // get the legend items for the main m_Dataset...
+        if (this.dataset != null) {
+            if (this.renderer != null) {
+                int seriesCount = this.dataset.getSeriesCount();
                 for (int i = 0; i < seriesCount; i++) {
-                    LegendItem item = renderer.getLegendItem(i);
+                    LegendItem item = this.renderer.getLegendItem(i);
                     result.add(item);
                 }
             }
@@ -1740,27 +999,16 @@ public class PolarPlot extends Plot implements ValueAxisPlot, Zoomable,
             return false;
         }
         PolarPlot that = (PolarPlot) obj;
-        if (!this.axes.equals(that.axes)) {
+        if (!ObjectUtilities.equal(this.axis, that.axis)) {
             return false;
         }
-        if (!this.axisLocations.equals(that.axisLocations)) {
-            return false;
-        }
-        if (!this.renderers.equals(that.renderers)) {
+        if (!ObjectUtilities.equal(this.renderer, that.renderer)) {
             return false;
         }
         if (!this.angleTickUnit.equals(that.angleTickUnit)) {
             return false;
         }
         if (this.angleGridlinesVisible != that.angleGridlinesVisible) {
-            return false;
-        }
-        if (this.angleOffset != that.angleOffset)
-        {
-            return false;
-        }
-        if (this.counterClockwise != that.counterClockwise)
-        {
             return false;
         }
         if (this.angleLabelsVisible != that.angleLabelsVisible) {
@@ -1795,13 +1043,6 @@ public class PolarPlot extends Plot implements ValueAxisPlot, Zoomable,
         if (!this.cornerTextItems.equals(that.cornerTextItems)) {
             return false;
         }
-        if (this.margin != that.margin) {
-            return false;
-        }
-        if (!ObjectUtilities.equal(this.fixedLegendItems,
-                that.fixedLegendItems)) {
-            return false;
-        }
         return super.equals(obj);
     }
 
@@ -1816,40 +1057,23 @@ public class PolarPlot extends Plot implements ValueAxisPlot, Zoomable,
     public Object clone() throws CloneNotSupportedException {
 
         PolarPlot clone = (PolarPlot) super.clone();
-        clone.axes = (ObjectList) ObjectUtilities.clone(this.axes);
-        for (int i = 0; i < this.axes.size(); i++) {
-            ValueAxis axis = (ValueAxis) this.axes.get(i);
-            if (axis != null) {
-                ValueAxis clonedAxis = (ValueAxis) axis.clone();
-                clone.axes.set(i, clonedAxis);
-                clonedAxis.setPlot(clone);
-                clonedAxis.addChangeListener(clone);
-            }
+        if (this.axis != null) {
+            clone.axis = (ValueAxis) ObjectUtilities.clone(this.axis);
+            clone.axis.setPlot(clone);
+            clone.axis.addChangeListener(clone);
         }
 
-        // the datasets are not cloned, but listeners need to be added...
-        clone.datasets = (ObjectList) ObjectUtilities.clone(this.datasets);
-        for (int i = 0; i < clone.datasets.size(); ++i) {
-            XYDataset d = getDataset(i);
-            if (d != null) {
-                d.addChangeListener(clone);
-            }
+        if (clone.dataset != null) {
+            clone.dataset.addChangeListener(clone);
         }
 
-        clone.renderers = (ObjectList) ObjectUtilities.clone(this.renderers);
-        for (int i = 0; i < this.renderers.size(); i++) {
-            PolarItemRenderer renderer2 = (PolarItemRenderer) this.renderers.get(i);
-            if (renderer2 instanceof PublicCloneable) {
-                PublicCloneable pc = (PublicCloneable) renderer2;
-                PolarItemRenderer rc = (PolarItemRenderer) pc.clone();
-                clone.renderers.set(i, rc);
-                rc.setPlot(clone);
-                rc.addChangeListener(clone);
-            }
+        if (this.renderer != null) {
+            clone.renderer
+                = (PolarItemRenderer) ObjectUtilities.clone(this.renderer);
         }
 
         clone.cornerTextItems = new ArrayList(this.cornerTextItems);
-       
+
         return clone;
     }
 
@@ -1887,27 +1111,13 @@ public class PolarPlot extends Plot implements ValueAxisPlot, Zoomable,
         this.radiusGridlinePaint = SerialUtilities.readPaint(stream);
         this.angleLabelPaint = SerialUtilities.readPaint(stream);
 
-        int rangeAxisCount = this.axes.size();
-        for (int i = 0; i < rangeAxisCount; i++) {
-            Axis axis = (Axis) this.axes.get(i);
-            if (axis != null) {
-                axis.setPlot(this);
-                axis.addChangeListener(this);
-            }
+        if (this.axis != null) {
+            this.axis.setPlot(this);
+            this.axis.addChangeListener(this);
         }
-        int datasetCount = this.datasets.size();
-        for (int i = 0; i < datasetCount; i++) {
-            Dataset dataset = (Dataset) this.datasets.get(i);
-            if (dataset != null) {
-                dataset.addChangeListener(this);
-            }
-        }
-        int rendererCount = this.renderers.size();
-        for (int i = 0; i < rendererCount; i++) {
-            PolarItemRenderer renderer = (PolarItemRenderer) this.renderers.get(i);
-            if (renderer != null) {
-                renderer.addChangeListener(this);
-            }
+
+        if (this.dataset != null) {
+            this.dataset.addChangeListener(this);
         }
     }
 
@@ -1980,23 +1190,19 @@ public class PolarPlot extends Plot implements ValueAxisPlot, Zoomable,
      */
     public void zoomRangeAxes(double factor, PlotRenderingInfo info,
                               Point2D source, boolean useAnchor) {
-        // get the source coordinate - this plot has always a VERTICAL
-        // orientation
-        final double sourceX = source.getX();
 
-        for (int axisIdx = 0; axisIdx < getAxisCount(); axisIdx++) {
-            final ValueAxis axis = getAxis(axisIdx);
-            if (axis != null) {
-                if (useAnchor) {
-                    double anchorX = axis.java2DToValue(sourceX,
-                            info.getDataArea(), RectangleEdge.BOTTOM);
-                    axis.resizeRange(factor, anchorX);
-                }
-                else {
-                    axis.resizeRange(factor);
-                }
-            }
+        if (useAnchor) {
+            // get the source coordinate - this plot has always a VERTICAL
+            // orientation
+            double sourceX = source.getX();
+            double anchorX = this.axis.java2DToValue(sourceX,
+                    info.getDataArea(), RectangleEdge.BOTTOM);
+            this.axis.resizeRange(factor, anchorX);
         }
+        else {
+            this.axis.resizeRange(factor);
+        }
+
     }
 
     /**
@@ -2040,6 +1246,15 @@ public class PolarPlot extends Plot implements ValueAxisPlot, Zoomable,
     }
 
     /**
+     * Returns the upper bound of the radius axis.
+     *
+     * @return The upper bound.
+     */
+    public double getMaxRadius() {
+        return this.axis.getUpperBound();
+    }
+
+    /**
      * Translates a (theta, radius) pair into Java2D coordinates.  If
      * <code>radius</code> is less than the lower bound of the axis, then
      * this method returns the centre point.
@@ -2049,110 +1264,43 @@ public class PolarPlot extends Plot implements ValueAxisPlot, Zoomable,
      * @param dataArea  the data area.
      *
      * @return A point in Java2D space.
-     *
-     * @since 1.0.14
      */
-    public Point translateToJava2D(double angleDegrees, double radius,
-            ValueAxis axis, Rectangle2D dataArea) {
+    public Point translateValueThetaRadiusToJava2D(double angleDegrees,
+                                                   double radius,
+                                                   Rectangle2D dataArea) {
 
-        if (counterClockwise)
-            angleDegrees = -angleDegrees;
-        double radians = Math.toRadians(angleDegrees + this.angleOffset);
+        double radians = Math.toRadians(angleDegrees - 90.0);
 
-        double minx = dataArea.getMinX() + this.margin;
-        double maxx = dataArea.getMaxX() - this.margin;
-        double miny = dataArea.getMinY() + this.margin;
-        double maxy = dataArea.getMaxY() - this.margin;
+        double minx = dataArea.getMinX() + MARGIN;
+        double maxx = dataArea.getMaxX() - MARGIN;
+        double miny = dataArea.getMinY() + MARGIN;
+        double maxy = dataArea.getMaxY() - MARGIN;
 
-        double halfWidth = (maxx - minx) / 2.0;
-        double halfHeight = (maxy - miny) / 2.0;
+        double lengthX = maxx - minx;
+        double lengthY = maxy - miny;
+        double length = Math.min(lengthX, lengthY);
 
-        double midX = minx + halfWidth;
-        double midY = miny + halfHeight;
-        
-        double l = Math.min(halfWidth, halfHeight);
-        Rectangle2D quadrant = new Rectangle2D.Double(midX, midY, l, l);
+        double midX = minx + lengthX / 2.0;
+        double midY = miny + lengthY / 2.0;
 
-        double axisMin = axis.getLowerBound();
+        double axisMin = this.axis.getLowerBound();
+        double axisMax =  getMaxRadius();
         double adjustedRadius = Math.max(radius, axisMin);
-       
-        double length = axis.valueToJava2D(adjustedRadius, quadrant, RectangleEdge.BOTTOM) - midX;
-        float x = (float) (midX + Math.cos(radians) * length);
-        float y = (float) (midY + Math.sin(radians) * length);
-        
+
+        double xv = length / 2.0 * Math.cos(radians);
+        double yv = length / 2.0 * Math.sin(radians);
+
+        float x = (float) (midX + (xv * (adjustedRadius - axisMin)
+                / (axisMax - axisMin)));
+        float y = (float) (midY + (yv * (adjustedRadius - axisMin)
+                / (axisMax - axisMin)));
+
         int ix = Math.round(x);
         int iy = Math.round(y);
 
         Point p = new Point(ix, iy);
         return p;
 
-    }
-
-    /**
-     * Translates a (theta, radius) pair into Java2D coordinates.  If
-     * <code>radius</code> is less than the lower bound of the axis, then
-     * this method returns the centre point.
-     *
-     * @param angleDegrees  the angle in degrees.
-     * @param radius  the radius.
-     * @param dataArea  the data area.
-     *
-     * @return A point in Java2D space.
-     *
-     * @deprecated Since 1.0.14, use {@link #translateToJava2D(double, double,
-     * org.jfree.chart.axis.ValueAxis, java.awt.geom.Rectangle2D)} instead.
-     */
-    public Point translateValueThetaRadiusToJava2D(double angleDegrees,
-            double radius, Rectangle2D dataArea) {
-
-        return translateToJava2D(angleDegrees, radius, getAxis(), dataArea);
-    }
-
-    /**
-     * Returns the upper bound of the radius axis.
-     *
-     * @return The upper bound.
-     *
-     * @deprecated Since 1.0.14, use {@link #getAxis()} and call the
-     *         getUpperBound() method.
-     */
-    public double getMaxRadius() {
-        return getAxis().getUpperBound();
-    }
-
-    /**
-     * Returns the number of series in the dataset for this plot.  If the
-     * dataset is <code>null</code>, the method returns 0.
-     *
-     * @return The series count.
-     *
-     * @deprecated Since 1.0.14, grab a reference to the dataset and check
-     *     the series count directly.
-     */
-    public int getSeriesCount() {
-        int result = 0;
-        XYDataset dataset = getDataset(0);
-        if (dataset != null) {
-            result = dataset.getSeriesCount();
-        }
-        return result;
-    }
-
-    /**
-     * A utility method for drawing the axes.
-     *
-     * @param g2  the graphics device.
-     * @param plotArea  the plot area.
-     * @param dataArea  the data area.
-     *
-     * @return A map containing the axis states.
-     *
-     * @deprecated As of version 1.0.14, this method is no longer used.
-     */
-    protected AxisState drawAxis(Graphics2D g2, Rectangle2D plotArea,
-                                 Rectangle2D dataArea) {
-        return getAxis().draw(g2, dataArea.getMinY(), plotArea, dataArea,
-                RectangleEdge.TOP, null);
     }
 
 }

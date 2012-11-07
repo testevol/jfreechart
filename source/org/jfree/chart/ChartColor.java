@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,13 +21,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ---------------
  * ChartColor.java
  * ---------------
- * (C) Copyright 2003-2011, by Cameron Riley and Contributors.
+ * (C) Copyright 2003-2008, by Cameron Riley and Contributors.
  *
  * Original Author:  Cameron Riley;
  * Contributor(s):   David Gilbert (for Object Refinery Limited);
@@ -141,7 +141,7 @@ public class ChartColor extends Color {
 
     /**
      * Convenience method to return an array of <code>Paint</code> objects that
-     * represent the pre-defined colors in the <code>Color</code> and
+     * represent the pre-defined colors in the <code>Color<code> and
      * <code>ChartColor</code> objects.
      *
      * @return An array of objects with the <code>Paint</code> interface.

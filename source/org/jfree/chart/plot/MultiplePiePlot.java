@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,8 +21,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * --------------------
  * MultiplePiePlot.java
@@ -51,7 +51,6 @@
  *               see patch 1943021 from Brian Cabana (DG);
  * 30-Dec-2008 : Added legendItemShape field, and fixed cloning bug (DG);
  * 09-Jan-2009 : See ignoreNullValues to true for sub-chart (DG);
- * 01-Jun-2009 : Set series key in getLegendItems() (DG);
  *
  */
 
@@ -571,31 +570,28 @@ public class MultiplePiePlot extends Plot implements Cloneable, Serializable {
         else if (this.dataExtractOrder == TableOrder.BY_COLUMN) {
             keys = this.dataset.getRowKeys();
         }
-        if (keys == null) {
-            return result;
-        }
-        int section = 0;
-        Iterator iterator = keys.iterator();
-        while (iterator.hasNext()) {
-            Comparable key = (Comparable) iterator.next();
-            String label = key.toString();  // TODO: use a generator here
-            String description = label;
-            Paint paint = (Paint) this.sectionPaints.get(key);
-            LegendItem item = new LegendItem(label, description, null,
-                    null, getLegendItemShape(), paint,
-                    Plot.DEFAULT_OUTLINE_STROKE, paint);
-            item.setSeriesKey(key);
-            item.setSeriesIndex(section);
-            item.setDataset(getDataset());
-            result.add(item);
-            section++;
+
+        if (keys != null) {
+            int section = 0;
+            Iterator iterator = keys.iterator();
+            while (iterator.hasNext()) {
+                Comparable key = (Comparable) iterator.next();
+                String label = key.toString();  // TODO: use a generator here
+                String description = label;
+                Paint paint = (Paint) this.sectionPaints.get(key);
+                LegendItem item = new LegendItem(label, description, null,
+                        null, getLegendItemShape(), paint,
+                        Plot.DEFAULT_OUTLINE_STROKE, paint);
+                item.setDataset(getDataset());
+                result.add(item);
+                section++;
+            }
         }
         if (this.limit > 0.0) {
-            LegendItem a = new LegendItem(this.aggregatedItemsKey.toString(),
+            result.add(new LegendItem(this.aggregatedItemsKey.toString(),
                     this.aggregatedItemsKey.toString(), null, null,
                     getLegendItemShape(), this.aggregatedItemsPaint,
-                    Plot.DEFAULT_OUTLINE_STROKE, this.aggregatedItemsPaint);
-            result.add(a);
+                    Plot.DEFAULT_OUTLINE_STROKE, this.aggregatedItemsPaint));
         }
         return result;
     }

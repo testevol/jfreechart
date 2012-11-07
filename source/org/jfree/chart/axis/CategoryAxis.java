@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,13 +21,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * -----------------
  * CategoryAxis.java
  * -----------------
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Original Author:  David Gilbert;
  * Contributor(s):   Pady Srinivasan (patch 1217634);
@@ -93,8 +93,7 @@
  *               simpler for renderers with hidden series (PK);
  * 19-Mar-2009 : Added entity support - see patch 2603321 by Peter Kolb (DG);
  * 16-Apr-2009 : Added tick mark drawing (DG);
- * 29-Jun-2009 : Fixed bug where axis entity is hiding label entities (DG);
- * 
+ *
  */
 
 package org.jfree.chart.axis;
@@ -489,7 +488,7 @@ public class CategoryAxis extends Axis implements Cloneable, Serializable {
      * Adds a tooltip to the specified category and sends an
      * {@link AxisChangeEvent} to all registered listeners.
      *
-     * @param category  the category (<code>null</code> not permitted).
+     * @param category  the category (<code>null<code> not permitted).
      * @param tooltip  the tooltip text (<code>null</code> permitted).
      *
      * @see #removeCategoryLabelToolTip(Comparable)
@@ -524,7 +523,7 @@ public class CategoryAxis extends Axis implements Cloneable, Serializable {
      * Removes the tooltip for the specified category and sends an
      * {@link AxisChangeEvent} to all registered listeners.
      *
-     * @param category  the category (<code>null</code> not permitted).
+     * @param category  the category (<code>null<code> not permitted).
      *
      * @see #addCategoryLabelToolTip(Comparable, String)
      * @see #clearCategoryLabelToolTips()
@@ -932,12 +931,11 @@ public class CategoryAxis extends Axis implements Cloneable, Serializable {
             drawTickMarks(g2, cursor, dataArea, edge, state);
         }
 
-        createAndAddEntity(cursor, state, dataArea, edge, plotState);
-
         // draw the category labels and axis label
         state = drawCategoryLabels(g2, plotArea, dataArea, edge, state,
                 plotState);
         state = drawLabel(getLabel(), g2, plotArea, dataArea, edge, state);
+        createAndAddEntity(cursor, state, dataArea, edge, plotState);
         return state;
 
     }

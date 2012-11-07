@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,8 +21,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * -------------------------
  * StackedBarRenderer3D.java
@@ -84,7 +84,6 @@
  * 03-Feb-2009 : Fixed regression in findRangeBounds() method for null
  *               dataset (DG);
  * 04-Feb-2009 : Handle seriesVisible flag (DG);
- * 07-Jul-2009 : Added flag for handling zero values (DG);
  *
  */
 
@@ -101,7 +100,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.jfree.chart.HashUtilities;
 import org.jfree.chart.axis.CategoryAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.entity.EntityCollection;
@@ -133,14 +131,6 @@ public class StackedBarRenderer3D extends BarRenderer3D
 
     /** A flag that controls whether the bars display values or percentages. */
     private boolean renderAsPercentages;
-
-    /**
-     * A flag that controls whether or not zero values are drawn by the
-     * renderer.
-     *
-     * @since 1.0.14
-     */
-    private boolean ignoreZeroValues;
 
     /**
      * Creates a new renderer with no tool tip generator and no URL generator.
@@ -218,32 +208,6 @@ public class StackedBarRenderer3D extends BarRenderer3D
     public void setRenderAsPercentages(boolean asPercentages) {
         this.renderAsPercentages = asPercentages;
         fireChangeEvent();
-    }
-
-    /**
-     * Returns the flag that controls whether or not zero values are drawn
-     * by the renderer.
-     *
-     * @return A boolean.
-     *
-     * @since 1.0.14
-     */
-    public boolean getIgnoreZeroValues() {
-        return this.ignoreZeroValues;
-    }
-
-    /**
-     * Sets a flag that controls whether or not zero values are drawn by the
-     * renderer, and sends a {@link RendererChangeEvent} to all registered
-     * listeners.
-     *
-     * @param ignore  the new flag value.
-     *
-     * @since 1.0.14
-     */
-    public void setIgnoreZeroValues(boolean ignore) {
-        this.ignoreZeroValues = ignore;
-        notifyListeners(new RendererChangeEvent(this));
     }
 
     /**
@@ -328,7 +292,7 @@ public class StackedBarRenderer3D extends BarRenderer3D
      * @deprecated As of 1.0.13, use {@link #createStackedValueList(
      *     CategoryDataset, Comparable, int[], double, boolean)}.
      */
-    protected List createStackedValueList(CategoryDataset dataset,
+    protected static List createStackedValueList(CategoryDataset dataset,
             Comparable category, double base, boolean asPercentages) {
         int[] rows = new int[dataset.getRowCount()];
         for (int i = 0; i < rows.length; i++) {
@@ -353,7 +317,7 @@ public class StackedBarRenderer3D extends BarRenderer3D
      *
      * @since 1.0.13
      */
-    protected List createStackedValueList(CategoryDataset dataset,
+    protected static List createStackedValueList(CategoryDataset dataset,
             Comparable category, int[] includedRows, double base,
             boolean asPercentages) {
 
@@ -378,7 +342,7 @@ public class StackedBarRenderer3D extends BarRenderer3D
             if (asPercentages) {
                 v = v / total;
             }
-            if ((v > 0.0) || (!this.ignoreZeroValues && v >= 0.0)) {
+            if (v >= 0.0) {
                 if (baseIndex < 0) {
                     result.add(new Object[] {null, new Double(base)});
                     baseIndex = 0;
@@ -417,10 +381,16 @@ public class StackedBarRenderer3D extends BarRenderer3D
      * @param column  the column index (zero-based).
      * @param pass  the pass index.
      */
-    public void drawItem(Graphics2D g2, CategoryItemRendererState state,
-            Rectangle2D dataArea, CategoryPlot plot, CategoryAxis domainAxis,
-            ValueAxis rangeAxis, CategoryDataset dataset, int row, int column,
-            int pass) {
+    public void drawItem(Graphics2D g2,
+                         CategoryItemRendererState state,
+                         Rectangle2D dataArea,
+                         CategoryPlot plot,
+                         CategoryAxis domainAxis,
+                         ValueAxis rangeAxis,
+                         CategoryDataset dataset,
+                         int row,
+                         int column,
+                         int pass) {
 
         // wait till we are at the last item for the row then draw the
         // whole stack at once
@@ -860,26 +830,14 @@ public class StackedBarRenderer3D extends BarRenderer3D
         if (!(obj instanceof StackedBarRenderer3D)) {
             return false;
         }
+        if (!super.equals(obj)) {
+            return false;
+        }
         StackedBarRenderer3D that = (StackedBarRenderer3D) obj;
         if (this.renderAsPercentages != that.getRenderAsPercentages()) {
             return false;
         }
-        if (this.ignoreZeroValues != that.ignoreZeroValues) {
-            return false;
-        }
-        return super.equals(obj);
-    }
-
-    /**
-     * Returns a hash code for this instance.
-     * 
-     * @return A hash code.
-     */
-    public int hashCode() {
-        int hash = super.hashCode();
-        hash = HashUtilities.hashCode(hash, this.renderAsPercentages);
-        hash = HashUtilities.hashCode(hash, this.ignoreZeroValues);
-        return hash;
+        return true;
     }
 
 }

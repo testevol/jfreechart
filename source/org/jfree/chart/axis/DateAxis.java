@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,8 +21,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * -------------
  * DateAxis.java
@@ -1125,7 +1125,7 @@ public class DateAxis extends ValueAxis implements Cloneable, Serializable {
      *         time zone.
      */
     public static TickUnitSource createStandardDateTickUnits(TimeZone zone) {
-        return createStandardDateTickUnits(zone, Locale.getDefault());
+    	return createStandardDateTickUnits(zone, Locale.getDefault());
     }
 
     /**
@@ -1143,13 +1143,13 @@ public class DateAxis extends ValueAxis implements Cloneable, Serializable {
      * @since 1.0.11
      */
     public static TickUnitSource createStandardDateTickUnits(TimeZone zone,
-            Locale locale) {
+    		Locale locale) {
 
         if (zone == null) {
             throw new IllegalArgumentException("Null 'zone' argument.");
         }
         if (locale == null) {
-            throw new IllegalArgumentException("Null 'locale' argument.");
+        	throw new IllegalArgumentException("Null 'locale' argument.");
         }
         TickUnits units = new TickUnits();
 
@@ -1685,7 +1685,7 @@ public class DateAxis extends ValueAxis implements Cloneable, Serializable {
                 tickDate = unit.addToDate(tickDate, this.timeZone);
                 long nextTickTime = tickDate.getTime();
                 for (int minorTick = 1; minorTick < minorTickSpaces;
-                        minorTick++) {
+                        minorTick++){
                     long minorTickTime = currentTickTime
                             + (nextTickTime - currentTickTime)
                             * minorTick / minorTickSpaces;
@@ -1797,7 +1797,7 @@ public class DateAxis extends ValueAxis implements Cloneable, Serializable {
                 tickDate = unit.addToDate(tickDate, this.timeZone);
                 long nextTickTime = tickDate.getTime();
                 for (int minorTick = 1; minorTick < minorTickSpaces;
-                        minorTick++) {
+                        minorTick++){
                     long minorTickTime = currentTickTime
                             + (nextTickTime - currentTickTime)
                             * minorTick / minorTickSpaces;

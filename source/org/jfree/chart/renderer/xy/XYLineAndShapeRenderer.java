@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,13 +21,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ---------------------------
  * XYLineAndShapeRenderer.java
  * ---------------------------
- * (C) Copyright 2004-2009, by Object Refinery Limited.
+ * (C) Copyright 2004-2008, by Object Refinery Limited.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   -;
@@ -64,8 +64,7 @@
  * 02-Jun-2008 : Fixed tooltips at lower edges of data area (DG);
  * 17-Jun-2008 : Apply legend shape, font and paint attributes (DG);
  * 19-Sep-2008 : Fixed bug with drawSeriesLineAsPath - patch by Greg Darke (DG);
- * 18-May-2009 : Clip lines in drawPrimaryLine() (DG);
- * 
+ *
  */
 
 package org.jfree.chart.renderer.xy;
@@ -90,7 +89,6 @@ import org.jfree.chart.plot.CrosshairState;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.PlotRenderingInfo;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.util.LineUtilities;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.io.SerialUtilities;
 import org.jfree.ui.RectangleEdge;
@@ -1012,15 +1010,14 @@ public class XYLineAndShapeRenderer extends AbstractXYItemRenderer
         }
 
         PlotOrientation orientation = plot.getOrientation();
-        boolean visible = false;
         if (orientation == PlotOrientation.HORIZONTAL) {
             state.workingLine.setLine(transY0, transX0, transY1, transX1);
         }
         else if (orientation == PlotOrientation.VERTICAL) {
             state.workingLine.setLine(transX0, transY0, transX1, transY1);
         }
-        visible = LineUtilities.clipLine(state.workingLine, dataArea);
-        if (visible) {
+
+        if (state.workingLine.intersects(dataArea)) {
             drawFirstPassShape(g2, pass, series, item, state.workingLine);
         }
     }
@@ -1217,62 +1214,65 @@ public class XYLineAndShapeRenderer extends AbstractXYItemRenderer
      * @param datasetIndex  the dataset index (zero-based).
      * @param series  the series index (zero-based).
      *
-     * @return A legend item for the series (possibly <code>null</code).
+     * @return A legend item for the series.
      */
     public LegendItem getLegendItem(int datasetIndex, int series) {
+
         XYPlot plot = getPlot();
         if (plot == null) {
             return null;
         }
 
+        LegendItem result = null;
         XYDataset dataset = plot.getDataset(datasetIndex);
-        if (dataset == null) {
-            return null;
+        if (dataset != null) {
+            if (getItemVisible(series, 0)) {
+                String label = getLegendItemLabelGenerator().generateLabel(
+                        dataset, series);
+                String description = label;
+                String toolTipText = null;
+                if (getLegendItemToolTipGenerator() != null) {
+                    toolTipText = getLegendItemToolTipGenerator().generateLabel(
+                            dataset, series);
+                }
+                String urlText = null;
+                if (getLegendItemURLGenerator() != null) {
+                    urlText = getLegendItemURLGenerator().generateLabel(
+                            dataset, series);
+                }
+                boolean shapeIsVisible = getItemShapeVisible(series, 0);
+                Shape shape = lookupLegendShape(series);
+                boolean shapeIsFilled = getItemShapeFilled(series, 0);
+                Paint fillPaint = (this.useFillPaint
+                    ? lookupSeriesFillPaint(series)
+                    : lookupSeriesPaint(series));
+                boolean shapeOutlineVisible = this.drawOutlines;
+                Paint outlinePaint = (this.useOutlinePaint
+                    ? lookupSeriesOutlinePaint(series)
+                    : lookupSeriesPaint(series));
+                Stroke outlineStroke = lookupSeriesOutlineStroke(series);
+                boolean lineVisible = getItemLineVisible(series, 0);
+                Stroke lineStroke = lookupSeriesStroke(series);
+                Paint linePaint = lookupSeriesPaint(series);
+                result = new LegendItem(label, description, toolTipText,
+                        urlText, shapeIsVisible, shape, shapeIsFilled,
+                        fillPaint, shapeOutlineVisible, outlinePaint,
+                        outlineStroke, lineVisible, this.legendLine,
+                        lineStroke, linePaint);
+                result.setLabelFont(lookupLegendTextFont(series));
+                Paint labelPaint = lookupLegendTextPaint(series);
+                if (labelPaint != null) {
+                    result.setLabelPaint(labelPaint);
+                }
+                result.setSeriesKey(dataset.getSeriesKey(series));
+                result.setSeriesIndex(series);
+                result.setDataset(dataset);
+                result.setDatasetIndex(datasetIndex);
+            }
         }
-        
-        if (!getItemVisible(series, 0)) {
-            return null;
-        }
-        String label = getLegendItemLabelGenerator().generateLabel(dataset,
-                series);
-        String description = label;
-        String toolTipText = null;
-        if (getLegendItemToolTipGenerator() != null) {
-            toolTipText = getLegendItemToolTipGenerator().generateLabel(
-                    dataset, series);
-        }
-        String urlText = null;
-        if (getLegendItemURLGenerator() != null) {
-            urlText = getLegendItemURLGenerator().generateLabel(dataset,
-                    series);
-        }
-        boolean shapeIsVisible = getItemShapeVisible(series, 0);
-        Shape shape = lookupLegendShape(series);
-        boolean shapeIsFilled = getItemShapeFilled(series, 0);
-        Paint fillPaint = (this.useFillPaint ? lookupSeriesFillPaint(series)
-                : lookupSeriesPaint(series));
-        boolean shapeOutlineVisible = this.drawOutlines;
-        Paint outlinePaint = (this.useOutlinePaint ? lookupSeriesOutlinePaint(
-                series) : lookupSeriesPaint(series));
-        Stroke outlineStroke = lookupSeriesOutlineStroke(series);
-        boolean lineVisible = getItemLineVisible(series, 0);
-        Stroke lineStroke = lookupSeriesStroke(series);
-        Paint linePaint = lookupSeriesPaint(series);
-        LegendItem result = new LegendItem(label, description, toolTipText,
-                urlText, shapeIsVisible, shape, shapeIsFilled, fillPaint,
-                shapeOutlineVisible, outlinePaint, outlineStroke, lineVisible,
-                this.legendLine, lineStroke, linePaint);
-        result.setLabelFont(lookupLegendTextFont(series));
-        Paint labelPaint = lookupLegendTextPaint(series);
-        if (labelPaint != null) {
-            result.setLabelPaint(labelPaint);
-        }
-        result.setSeriesKey(dataset.getSeriesKey(series));
-        result.setSeriesIndex(series);
-        result.setDataset(dataset);
-        result.setDatasetIndex(datasetIndex);
-        
+
         return result;
+
     }
 
     /**

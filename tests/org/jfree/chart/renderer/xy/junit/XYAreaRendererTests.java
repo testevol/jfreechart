@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,13 +21,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ------------------------
  * XYAreaRendererTests.java
  * ------------------------
- * (C) Copyright 2003-2009, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2003-2008, by Object Refinery Limited and Contributors.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   -;
@@ -39,7 +39,6 @@
  * 14-Feb-2007 : Updated testCloning() (DG);
  * 17-May-2007 : Added testGetLegendItemSeriesIndex() (DG);
  * 22-Apr-2008 : Added testPublicCloneable (DG);
- * 10-Jun-2009 : Check new fields (DG);
  *
  */
 
@@ -65,8 +64,6 @@ import org.jfree.chart.renderer.xy.XYAreaRenderer;
 import org.jfree.data.xy.DefaultTableXYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-import org.jfree.ui.GradientPaintTransformType;
-import org.jfree.ui.StandardGradientPaintTransformer;
 import org.jfree.util.PublicCloneable;
 
 /**
@@ -134,18 +131,6 @@ public class XYAreaRendererTests extends TestCase {
         assertFalse(r1.equals(r2));
         r2.setLegendArea(new Rectangle2D.Double(1.0, 2.0, 3.0, 4.0));
         assertTrue(r1.equals(r2));
-
-        r1.setUseFillPaint(true);
-        assertFalse(r1.equals(r2));
-        r2.setUseFillPaint(true);
-        assertTrue(r1.equals(r2));
-
-        r1.setGradientTransformer(new StandardGradientPaintTransformer(
-                GradientPaintTransformType.CENTER_VERTICAL));
-        assertFalse(r1.equals(r2));
-        r2.setGradientTransformer(new StandardGradientPaintTransformer(
-                GradientPaintTransformType.CENTER_VERTICAL));
-        assertTrue(r1.equals(r2));
     }
 
     /**
@@ -158,9 +143,6 @@ public class XYAreaRendererTests extends TestCase {
         int h1 = r1.hashCode();
         int h2 = r2.hashCode();
         assertEquals(h1, h2);
-
-        r2.setUseFillPaint(true);
-        assertFalse(r1.hashCode() == r2.hashCode());
     }
 
     /**

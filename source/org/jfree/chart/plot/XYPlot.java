@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,13 +21,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * -----------
  * XYPlot.java
  * -----------
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   Craig MacFarlane;
@@ -43,7 +43,7 @@
  *                   Sergei Ivanov;
  *                   Richard West, Advanced Micro Devices, Inc.;
  *                   Ulrich Voigt - patches 1997549 and 2686040;
- *                   Peter Kolb - patches 1934255, 2603321 and 2809117;
+ *                   Peter Kolb - patches 1934255 and 2603321;
  *                   Andrew Mickish - patch 1868749;
  *
  * Changes (from 21-Jun-2001)
@@ -220,13 +220,6 @@
  *               Voigt (DG);
  * 19-Mar-2009 : Added entity support - see patch 2603321 by Peter Kolb (DG);
  * 30-Mar-2009 : Delegate panning to axes (DG);
- * 10-May-2009 : Added check for fixedLegendItems in equals(), and code to
- *               handle cloning (DG);
- * 24-Jun-2009 : Added support for annotation events - see patch 2809117
- *               by PK (DG);
- * 06-Jul-2009 : Fix for cloning of renderers - see bug 2817504 (DG)
- * 10-Jul-2009 : Added optional drop shadow generator (DG);
- * 18-Oct-2011 : Fix tooltip offset with shadow renderer (DG);
  *
  */
 
@@ -238,13 +231,11 @@ import java.awt.Color;
 import java.awt.Composite;
 import java.awt.Graphics2D;
 import java.awt.Paint;
-import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -263,7 +254,6 @@ import java.util.TreeMap;
 
 import org.jfree.chart.LegendItem;
 import org.jfree.chart.LegendItemCollection;
-import org.jfree.chart.annotations.Annotation;
 import org.jfree.chart.annotations.XYAnnotation;
 import org.jfree.chart.annotations.XYAnnotationBoundsInfo;
 import org.jfree.chart.axis.Axis;
@@ -274,7 +264,6 @@ import org.jfree.chart.axis.AxisState;
 import org.jfree.chart.axis.TickType;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.axis.ValueTick;
-import org.jfree.chart.event.AnnotationChangeEvent;
 import org.jfree.chart.event.ChartChangeEventType;
 import org.jfree.chart.event.PlotChangeEvent;
 import org.jfree.chart.event.RendererChangeEvent;
@@ -284,7 +273,6 @@ import org.jfree.chart.renderer.xy.AbstractXYItemRenderer;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYItemRendererState;
 import org.jfree.chart.util.ResourceBundleWrapper;
-import org.jfree.chart.util.ShadowGenerator;
 import org.jfree.data.Range;
 import org.jfree.data.general.Dataset;
 import org.jfree.data.general.DatasetChangeEvent;
@@ -594,13 +582,6 @@ public class XYPlot extends Plot implements ValueAxisPlot, Pannable, Zoomable,
     private boolean rangePannable;
 
     /**
-     * The shadow generator (<code>null</code> permitted).
-     * 
-     * @since 1.0.14
-     */
-    private ShadowGenerator shadowGenerator;
-    
-    /**
      * Creates a new <code>XYPlot</code> instance with no dataset, no axes and
      * no renderer.  You should specify these items before using the plot.
      */
@@ -712,7 +693,7 @@ public class XYPlot extends Plot implements ValueAxisPlot, Pannable, Zoomable,
         this.rangeCrosshairValue = 0.0;
         this.rangeCrosshairStroke = DEFAULT_CROSSHAIR_STROKE;
         this.rangeCrosshairPaint = DEFAULT_CROSSHAIR_PAINT;
-        this.shadowGenerator = null;
+
     }
 
     /**
@@ -1787,7 +1768,7 @@ public class XYPlot extends Plot implements ValueAxisPlot, Pannable, Zoomable,
 
     /**
      * Returns <code>true</code> if the domain gridlines are visible, and
-     * <code>false</code> otherwise.
+     * <code>false<code> otherwise.
      *
      * @return <code>true</code> or <code>false</code>.
      *
@@ -1817,7 +1798,7 @@ public class XYPlot extends Plot implements ValueAxisPlot, Pannable, Zoomable,
 
     /**
      * Returns <code>true</code> if the domain minor gridlines are visible, and
-     * <code>false</code> otherwise.
+     * <code>false<code> otherwise.
      *
      * @return <code>true</code> or <code>false</code>.
      *
@@ -1984,7 +1965,7 @@ public class XYPlot extends Plot implements ValueAxisPlot, Pannable, Zoomable,
 
     /**
      * Returns <code>true</code> if the range axis grid is visible, and
-     * <code>false</code> otherwise.
+     * <code>false<code> otherwise.
      *
      * @return A boolean.
      *
@@ -2070,7 +2051,7 @@ public class XYPlot extends Plot implements ValueAxisPlot, Pannable, Zoomable,
 
     /**
      * Returns <code>true</code> if the range axis minor grid is visible, and
-     * <code>false</code> otherwise.
+     * <code>false<code> otherwise.
      *
      * @return A boolean.
      *
@@ -2135,8 +2116,8 @@ public class XYPlot extends Plot implements ValueAxisPlot, Pannable, Zoomable,
     }
 
     /**
-     * Returns the paint for the minor grid lines (if any) plotted against the 
-     * range axis.
+     * Returns the paint for the minor grid lines (if any) plotted against the range
+     * axis.
      *
      * @return The paint (never <code>null</code>).
      *
@@ -2965,7 +2946,6 @@ public class XYPlot extends Plot implements ValueAxisPlot, Pannable, Zoomable,
             throw new IllegalArgumentException("Null 'annotation' argument.");
         }
         this.annotations.add(annotation);
-        annotation.addChangeListener(this);
         if (notify) {
             fireChangeEvent();
         }
@@ -3002,7 +2982,6 @@ public class XYPlot extends Plot implements ValueAxisPlot, Pannable, Zoomable,
             throw new IllegalArgumentException("Null 'annotation' argument.");
         }
         boolean removed = this.annotations.remove(annotation);
-        annotation.removeChangeListener(this);
         if (removed && notify) {
             fireChangeEvent();
         }
@@ -3029,35 +3008,7 @@ public class XYPlot extends Plot implements ValueAxisPlot, Pannable, Zoomable,
      * @see #addAnnotation(XYAnnotation)
      */
     public void clearAnnotations() {
-        for(int i = 0; i < this.annotations.size(); i++){
-            XYAnnotation annotation = (XYAnnotation) this.annotations.get(i);
-            annotation.removeChangeListener(this);
-        }
         this.annotations.clear();
-        fireChangeEvent();
-    }
-
-    /**
-     * Returns the shadow generator for the plot, if any.
-     *
-     * @return The shadow generator (possibly <code>null</code>).
-     *
-     * @since 1.0.14
-     */
-    public ShadowGenerator getShadowGenerator() {
-        return this.shadowGenerator;
-    }
-
-    /**
-     * Sets the shadow generator for the plot and sends a
-     * {@link PlotChangeEvent} to all registered listeners.
-     *
-     * @param generator  the generator (<code>null</code> permitted).
-     *
-     * @since 1.0.14
-     */
-    public void setShadowGenerator(ShadowGenerator generator) {
-        this.shadowGenerator = generator;
         fireChangeEvent();
     }
 
@@ -3172,21 +3123,6 @@ public class XYPlot extends Plot implements ValueAxisPlot, Pannable, Zoomable,
     }
 
     /**
-     * Trims a rectangle to integer coordinates.
-     *
-     * @param rect  the incoming rectangle.
-     *
-     * @return A rectangle with integer coordinates.
-     */
-    private Rectangle integerise(Rectangle2D rect) {
-        int x0 = (int) Math.ceil(rect.getMinX());
-        int y0 = (int) Math.ceil(rect.getMinY());
-        int x1 = (int) Math.floor(rect.getMaxX());
-        int y1 = (int) Math.floor(rect.getMaxY());
-        return new Rectangle(x0, y0, (x1 - x0), (y1 - y0));
-    }
-
-    /**
      * Draws the plot within the specified area on a graphics device.
      *
      * @param g2  the graphics device.
@@ -3220,11 +3156,6 @@ public class XYPlot extends Plot implements ValueAxisPlot, Pannable, Zoomable,
         AxisSpace space = calculateAxisSpace(g2, area);
         Rectangle2D dataArea = space.shrink(area, null);
         this.axisOffset.trim(dataArea);
-
-        dataArea = integerise(dataArea);
-        if (dataArea.isEmpty()) {
-            return;
-        }
         createAndAddEntity((Rectangle2D) dataArea.clone(), info, null, null);
         if (info != null) {
             info.setDataArea(dataArea);
@@ -3313,16 +3244,6 @@ public class XYPlot extends Plot implements ValueAxisPlot, Pannable, Zoomable,
         if (rangeAxisState != null) {
             drawRangeGridlines(g2, dataArea, rangeAxisState.getTicks());
             drawZeroRangeBaseline(g2, dataArea);
-        }
-
-        Graphics2D savedG2 = g2;
-        BufferedImage dataImage = null;
-        if (this.shadowGenerator != null) {
-            dataImage = new BufferedImage((int) dataArea.getWidth(),
-                    (int)dataArea.getHeight(), BufferedImage.TYPE_INT_ARGB);
-            g2 = dataImage.createGraphics();
-            g2.translate(-dataArea.getX(), -dataArea.getY());
-            g2.setRenderingHints(savedG2.getRenderingHints());
         }
 
         // draw the markers that are associated with a specific renderer...
@@ -3461,17 +3382,6 @@ public class XYPlot extends Plot implements ValueAxisPlot, Pannable, Zoomable,
         }
 
         drawAnnotations(g2, dataArea, info);
-        if (this.shadowGenerator != null) {
-            BufferedImage shadowImage
-                    = this.shadowGenerator.createDropShadow(dataImage);
-            g2 = savedG2;
-            g2.drawImage(shadowImage, (int) dataArea.getX() 
-                    + this.shadowGenerator.calculateOffsetX(),
-                    (int) dataArea.getY() 
-                    + this.shadowGenerator.calculateOffsetY(), null);
-            g2.drawImage(dataImage, (int) dataArea.getX(),
-                    (int) dataArea.getY(), null);
-        }
         g2.setClip(originalClip);
         g2.setComposite(originalComposite);
 
@@ -3944,14 +3854,12 @@ public class XYPlot extends Plot implements ValueAxisPlot, Pannable, Zoomable,
             while (iterator.hasNext()) {
                 paintLine = false;
                 ValueTick tick = (ValueTick) iterator.next();
-                if ((tick.getTickType() == TickType.MINOR) 
-                        && isDomainMinorGridlinesVisible()) {
+                if ((tick.getTickType() == TickType.MINOR) && isDomainMinorGridlinesVisible()){
                     gridStroke = getDomainMinorGridlineStroke();
                     gridPaint = getDomainMinorGridlinePaint();
                     paintLine = true;
                 }
-                else if ((tick.getTickType() == TickType.MAJOR) 
-                        && isDomainGridlinesVisible()) {
+                else if ((tick.getTickType() == TickType.MAJOR) && isDomainGridlinesVisible()){
                     gridStroke = getDomainGridlineStroke();
                     gridPaint = getDomainGridlinePaint();
                     paintLine = true;
@@ -4592,24 +4500,6 @@ public class XYPlot extends Plot implements ValueAxisPlot, Pannable, Zoomable,
 
         return result;
 
-    }
-
-    /**
-     * Receives notification of a change to an {@link Annotation} added to
-     * this plot.
-     *
-     * @param event  information about the event (not used here).
-     *
-     * @since 1.0.14
-     */
-    public void annotationChanged(AnnotationChangeEvent event) {
-        if (getParent() != null) {
-            getParent().annotationChanged(event);
-        }
-        else {
-            PlotChangeEvent e = new PlotChangeEvent(this);
-            notifyListeners(e);
-        }
     }
 
     /**
@@ -5579,10 +5469,6 @@ public class XYPlot extends Plot implements ValueAxisPlot, Pannable, Zoomable,
         if (!ObjectUtilities.equal(this.annotations, that.annotations)) {
             return false;
         }
-        if (!ObjectUtilities.equal(this.fixedLegendItems,
-                that.fixedLegendItems)) {
-            return false;
-        }
         if (!PaintUtilities.equal(this.domainTickBandPaint,
                 that.domainTickBandPaint)) {
             return false;
@@ -5599,10 +5485,6 @@ public class XYPlot extends Plot implements ValueAxisPlot, Pannable, Zoomable,
                     that.quadrantPaint[i])) {
                 return false;
             }
-        }
-        if (!ObjectUtilities.equal(this.shadowGenerator,
-                that.shadowGenerator)) {
-            return false;
         }
         return super.equals(obj);
     }
@@ -5663,10 +5545,7 @@ public class XYPlot extends Plot implements ValueAxisPlot, Pannable, Zoomable,
             XYItemRenderer renderer2 = (XYItemRenderer) this.renderers.get(i);
             if (renderer2 instanceof PublicCloneable) {
                 PublicCloneable pc = (PublicCloneable) renderer2;
-                XYItemRenderer rc = (XYItemRenderer) pc.clone();
-                clone.renderers.set(i, rc);
-                rc.setPlot(clone);
-                rc.addChangeListener(clone);
+                clone.renderers.set(i, pc.clone());
             }
         }
         clone.foregroundDomainMarkers = (Map) ObjectUtilities.clone(
@@ -5686,10 +5565,7 @@ public class XYPlot extends Plot implements ValueAxisPlot, Pannable, Zoomable,
             clone.fixedRangeAxisSpace = (AxisSpace) ObjectUtilities.clone(
                     this.fixedRangeAxisSpace);
         }
-        if (this.fixedLegendItems != null) {
-            clone.fixedLegendItems
-                    = (LegendItemCollection) this.fixedLegendItems.clone();
-        }
+
         clone.quadrantOrigin = (Point2D) ObjectUtilities.clone(
                 this.quadrantOrigin);
         clone.quadrantPaint = (Paint[]) this.quadrantPaint.clone();

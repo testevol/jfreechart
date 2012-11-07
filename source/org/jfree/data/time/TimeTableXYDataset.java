@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,13 +21,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * -----------------------
  * TimeTableXYDataset.java
  * -----------------------
- * (C) Copyright 2004-2009, by Andreas Schroeder and Contributors.
+ * (C) Copyright 2004-2008, by Andreas Schroeder and Contributors.
  *
  * Original Author:  Andreas Schroeder;
  * Contributor(s):   David Gilbert (for Object Refinery Limited);
@@ -49,8 +49,6 @@
  * 02-Feb-2007 : Removed author tags all over JFreeChart sources (DG);
  * 25-Jul-2007 : Added clear() method by Rob Eden, see patch 1752205 (DG);
  * 04-Jun-2008 : Updated Javadocs (DG);
- * 26-May-2009 : Peg to time zone if RegularTimePeriod is used (DG);
- * 02-Nov-2009 : Changed String to Comparable in add methods (DG);
  *
  */
 
@@ -213,9 +211,9 @@ public class TimeTableXYDataset extends AbstractIntervalXYDataset
      * @param y  the value for this period.
      * @param seriesName  the name of the series to add the value.
      *
-     * @see #remove(TimePeriod, Comparable)
+     * @see #remove(TimePeriod, String)
      */
-    public void add(TimePeriod period, double y, Comparable seriesName) {
+    public void add(TimePeriod period, double y, String seriesName) {
         add(period, new Double(y), seriesName, true);
     }
 
@@ -229,18 +227,10 @@ public class TimeTableXYDataset extends AbstractIntervalXYDataset
      *                    (<code>null</code> not permitted).
      * @param notify  whether dataset listener are notified or not.
      *
-     * @see #remove(TimePeriod, Comparable, boolean)
+     * @see #remove(TimePeriod, String, boolean)
      */
-    public void add(TimePeriod period, Number y, Comparable seriesName,
+    public void add(TimePeriod period, Number y, String seriesName,
                     boolean notify) {
-        // here's a quirk - the API has been defined in terms of a plain
-        // TimePeriod, which cannot make use of the timezone and locale
-        // specified in the constructor...so we only do the time zone
-        // pegging if the period is an instanceof RegularTimePeriod
-        if (period instanceof RegularTimePeriod) {
-            RegularTimePeriod p = (RegularTimePeriod) period;
-            p.peg(this.workingCalendar);
-        }
         this.values.addValue(y, period, seriesName);
         if (notify) {
             fireDatasetChanged();
@@ -255,9 +245,9 @@ public class TimeTableXYDataset extends AbstractIntervalXYDataset
      * @param seriesName  the (existing!) series name to remove the value
      *                    (<code>null</code> not permitted).
      *
-     * @see #add(TimePeriod, double, Comparable)
+     * @see #add(TimePeriod, double, String)
      */
-    public void remove(TimePeriod period, Comparable seriesName) {
+    public void remove(TimePeriod period, String seriesName) {
         remove(period, seriesName, true);
     }
 
@@ -271,10 +261,9 @@ public class TimeTableXYDataset extends AbstractIntervalXYDataset
      *                    (<code>null</code> not permitted).
      * @param notify  whether dataset listener are notified or not.
      *
-     * @see #add(TimePeriod, double, Comparable)
+     * @see #add(TimePeriod, double, String)
      */
-    public void remove(TimePeriod period, Comparable seriesName,
-            boolean notify) {
+    public void remove(TimePeriod period, String seriesName, boolean notify) {
         this.values.removeValue(period, seriesName);
         if (notify) {
             fireDatasetChanged();

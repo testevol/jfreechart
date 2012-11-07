@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,19 +21,18 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ---------------------------
  * StatisticalBarRenderer.java
  * ---------------------------
- * (C) Copyright 2002-2011, by Pascal Collet and Contributors.
+ * (C) Copyright 2002-2009, by Pascal Collet and Contributors.
  *
  * Original Author:  Pascal Collet;
  * Contributor(s):   David Gilbert (for Object Refinery Limited);
  *                   Christian W. Zuckschwerdt;
- *                   Peter Kolb (patches 2497611, 2791407);
- *                   Martin Hoeller;
+ *                   Peter Kolb (patch 2497611);
  *
  * Changes
  * -------
@@ -55,10 +54,6 @@
  * 14-Nov-2007 : Added errorIndicatorStroke, and fixed bugs with drawBarOutline
  *               and gradientPaintTransformer attributes being ignored (DG);
  * 14-Jan-2009 : Added support for seriesVisible flags (PK);
- * 16-May-2009 : Added findRangeBounds() override to take into account the
- *               dataset interval (PK);
- * 28-Oct-2011 : Fixed problem with maximalBarWidth, bug #2810220 (MH);
- * 30-Oct-2011 : Additional change for bug #2810220 (DG);
  *
  */
 
@@ -84,7 +79,6 @@ import org.jfree.chart.event.RendererChangeEvent;
 import org.jfree.chart.labels.CategoryItemLabelGenerator;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.data.Range;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.statistics.StatisticalCategoryDataset;
 import org.jfree.io.SerialUtilities;
@@ -187,20 +181,6 @@ public class StatisticalBarRenderer extends BarRenderer
     }
 
     /**
-     * Returns the range of values the renderer requires to display all the
-     * items from the specified dataset. This takes into account the range
-     * between the min/max values, possibly ignoring invisible series.
-     *
-     * @param dataset  the dataset (<code>null</code> permitted).
-     *
-     * @return The range (or <code>null</code> if the dataset is
-     *         <code>null</code> or empty).
-     */
-    public Range findRangeBounds(CategoryDataset dataset) {
-         return findRangeBounds(dataset, true);
-    }
-
-    /**
      * Draws the bar with its standard deviation line range for a single
      * (series, category) data item.
      *
@@ -273,9 +253,23 @@ public class StatisticalBarRenderer extends BarRenderer
                                       int row,
                                       int column) {
 
+        RectangleEdge xAxisLocation = plot.getDomainAxisEdge();
+
         // BAR Y
-        double rectY = calculateBarW0(plot, PlotOrientation.HORIZONTAL, 
-                dataArea, domainAxis, state, visibleRow, column);
+        double rectY = domainAxis.getCategoryStart(column, getColumnCount(),
+                dataArea, xAxisLocation);
+
+        int seriesCount = state.getVisibleSeriesCount() >= 0
+                ? state.getVisibleSeriesCount() : getRowCount();
+        int categoryCount = getColumnCount();
+        if (seriesCount > 1) {
+            double seriesGap = dataArea.getHeight() * getItemMargin()
+                               / (categoryCount * (seriesCount - 1));
+            rectY = rectY + visibleRow * (state.getBarWidth() + seriesGap);
+        }
+        else {
+            rectY = rectY + visibleRow * state.getBarWidth();
+        }
 
         // BAR X
         Number meanValue = dataset.getMeanValue(row, column);
@@ -420,9 +414,23 @@ public class StatisticalBarRenderer extends BarRenderer
                                     int row,
                                     int column) {
 
+        RectangleEdge xAxisLocation = plot.getDomainAxisEdge();
+
         // BAR X
-        double rectX = calculateBarW0(plot, PlotOrientation.VERTICAL, dataArea,
-                domainAxis, state, visibleRow, column);
+        double rectX = domainAxis.getCategoryStart(column, getColumnCount(),
+                dataArea, xAxisLocation);
+
+        int seriesCount = state.getVisibleSeriesCount() >= 0
+                ? state.getVisibleSeriesCount() : getRowCount();
+        int categoryCount = getColumnCount();
+        if (seriesCount > 1) {
+            double seriesGap = dataArea.getWidth() * getItemMargin()
+                               / (categoryCount * (seriesCount - 1));
+            rectX = rectX + visibleRow * (state.getBarWidth() + seriesGap);
+        }
+        else {
+            rectX = rectX + visibleRow * state.getBarWidth();
+        }
 
         // BAR Y
         Number meanValue = dataset.getMeanValue(row, column);

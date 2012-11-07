@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,13 +21,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ----------------------
  * StandardDialScale.java
  * ----------------------
- * (C) Copyright 2006-2010, by Object Refinery Limited.
+ * (C) Copyright 2006-2009, by Object Refinery Limited.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   -;
@@ -39,7 +39,6 @@
  * 24-Oct-2007 : Added tick label formatter (DG);
  * 19-Nov-2007 : Added some missing accessor methods (DG);
  * 27-Feb-2009 : Fixed bug 2617557: tickLabelPaint ignored (DG);
- * 09-Feb-2010 : Fixed bug 2946521 (DG);
  *
  */
 
@@ -194,18 +193,13 @@ public class StandardDialScale extends AbstractDialLayer implements DialScale,
      * @param startAngle  the start angle (in degrees, using the same
      *     orientation as Java's <code>Arc2D</code> class).
      * @param extent  the extent (in degrees, counter-clockwise).
-     * @param majorTickIncrement  the interval between major tick marks (must
-     *     be > 0).
+     * @param majorTickIncrement  the interval between major tick marks
      * @param minorTickCount  the number of minor ticks between major tick
      *          marks.
      */
     public StandardDialScale(double lowerBound, double upperBound,
             double startAngle, double extent, double majorTickIncrement,
             int minorTickCount) {
-        if (majorTickIncrement <= 0.0) {
-            throw new IllegalArgumentException(
-                    "Requires 'majorTickIncrement' > 0.");
-        }
         this.startAngle = startAngle;
         this.extent = extent;
         this.lowerBound = lowerBound;
@@ -376,7 +370,7 @@ public class StandardDialScale extends AbstractDialLayer implements DialScale,
      * Sets the increment (in data units) between major tick labels and sends a
      * {@link DialLayerChangeEvent} to all registered listeners.
      *
-     * @param increment  the increment (must be > 0).
+     * @param increment  the increment.
      *
      * @see #getMajorTickIncrement()
      */

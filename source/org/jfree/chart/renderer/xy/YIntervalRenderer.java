@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,8 +21,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ----------------------
  * YIntervalRenderer.java
@@ -260,6 +260,8 @@ public class YIntervalRenderer extends AbstractXYItemRenderer
      * @param item  the item index (zero-based).
      * @param x  the x coordinate (in Java2D space).
      * @param y  the y coordinate (in Java2D space).
+     * @param negative  indicates a negative value (which affects the item
+     *                  label position).
      */
     private void drawAdditionalItemLabel(Graphics2D g2,
             PlotOrientation orientation, XYDataset dataset, int series,

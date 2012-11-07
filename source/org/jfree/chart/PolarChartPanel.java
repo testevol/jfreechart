@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,8 +21,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * --------------------
  * PolarChartPanel.java
@@ -31,14 +31,12 @@
  *
  * Original Author:  Daniel Bridenbecker, Solution Engineering, Inc.;
  * Contributor(s):   David Gilbert (for Object Refinery Limited);
- *                   Martin Hoeller;
  *
  * Changes
  * -------
  * 19-Jan-2004 : Version 1, contributed by DB with minor changes by DG (DG);
  * ------------- JFREECHART 1.0.x ---------------------------------------------
  * 02-Feb-2007 : Removed author tags all over JFreeChart sources (DG);
- * 10-Oct-2011 : bug #3165708: localization (MH);
  *
  */
 
@@ -145,25 +143,19 @@ public class PolarChartPanel extends ChartPanel {
                                          boolean zoom) {
 
        JPopupMenu result = super.createPopupMenu(properties, save, print, zoom);
-       int zoomInIndex = getPopupMenuItem(result,
-               localizationResources.getString("Zoom_In"));
-       int zoomOutIndex = getPopupMenuItem(result,
-               localizationResources.getString("Zoom_Out"));
-       int autoIndex = getPopupMenuItem(result,
-               localizationResources.getString("Auto_Range"));
+       int zoomInIndex  = getPopupMenuItem(result, "Zoom In");
+       int zoomOutIndex = getPopupMenuItem(result, "Zoom Out");
+       int autoIndex     = getPopupMenuItem(result, "Auto Range");
        if (zoom) {
-           JMenuItem zoomIn = new JMenuItem(
-                   localizationResources.getString("Zoom_In"));
+           JMenuItem zoomIn = new JMenuItem("Zoom In");
            zoomIn.setActionCommand(POLAR_ZOOM_IN_ACTION_COMMAND);
            zoomIn.addActionListener(this);
 
-           JMenuItem zoomOut = new JMenuItem(
-                   localizationResources.getString("Zoom_Out"));
+           JMenuItem zoomOut = new JMenuItem("Zoom Out");
            zoomOut.setActionCommand(POLAR_ZOOM_OUT_ACTION_COMMAND);
            zoomOut.addActionListener(this);
 
-           JMenuItem auto = new JMenuItem(
-                   localizationResources.getString("Auto_Range"));
+           JMenuItem auto = new JMenuItem("Auto Range");
            auto.setActionCommand(POLAR_AUTO_RANGE_ACTION_COMMAND);
            auto.addActionListener(this);
 

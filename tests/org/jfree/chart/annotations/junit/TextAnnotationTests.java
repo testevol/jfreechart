@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,8 +21,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ------------------------
  * TextAnnotationTests.java
@@ -30,14 +30,13 @@
  * (C) Copyright 2003-2008, by Object Refinery Limited and Contributors.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
- * Contributor(s):   Martin Hoeller;
+ * Contributor(s):   -;
  *
  * Changes
  * -------
  * 19-Aug-2003 : Version 1 (DG);
  * 07-Jan-2005 : Added testHashCode() method (DG);
- * 28-Oct-2011 : Added testSetRotationAnchor() method for bug #3428870 (MH);
- * 
+ *
  */
 
 package org.jfree.chart.annotations.junit;
@@ -138,16 +137,4 @@ public class TextAnnotationTests extends TestCase {
         assertEquals(h1, h2);
     }
 
-    /**
-     * Test null-argument (Bug #3428870).
-     */
-    public void testSetRotationAnchor() {
-        TextAnnotation a = new CategoryTextAnnotation("Test", "Category", 1.0);
-        try {
-            a.setRotationAnchor(null);
-            fail("Should have thrown Exception.");
-        } catch (IllegalArgumentException e) {
-            // ok, exception is expected
-        }
-    }
 }

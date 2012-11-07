@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,8 +21,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * -----------------
  * LogAxisTests.java
@@ -36,14 +36,12 @@
  * -------
  * 11-Jul-2007 : Version 1 (DG);
  * 08-Apr-2008 : Fixed incorrect testEquals() method (DG);
- * 28-Oct-2011 : Cdded test for endless loop, # 3429707 (MH);
+ *
  */
 
 package org.jfree.chart.axis.junit;
 
-import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInput;
@@ -57,7 +55,6 @@ import junit.framework.TestSuite;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.AxisState;
 import org.jfree.chart.axis.LogAxis;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
@@ -324,18 +321,5 @@ public class LogAxisTests extends TestCase {
     public void testTickMarksVisibleDefault() {
         LogAxis axis = new LogAxis("Log Axis");
         assertTrue(axis.isTickMarksVisible());
-    }
-    
-    /**
-     * Checks that a TickUnit with a size of 0 doesn't crash.
-     */
-    public void testrefreshTicksWithZeroTickUnit() {
-        LogAxis axis = new LogAxis();
-        AxisState state = new AxisState();
-        BufferedImage image = new BufferedImage(200, 100,
-                BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2 = image.createGraphics();
-        Rectangle2D area = new Rectangle2D.Double(0.0, 0.0, 200, 100);
-        axis.refreshTicks(g2, state, area, RectangleEdge.TOP);
     }
 }

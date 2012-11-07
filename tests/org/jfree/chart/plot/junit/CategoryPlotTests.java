@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,8 +21,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ----------------------
  * CategoryPlotTests.java
@@ -45,7 +45,6 @@
  *               testCloning2() and testCloning3() (DG);
  * 26-Jun-2008 : Updated testEquals() (DG);
  * 21-Jan-2009 : Updated testEquals() for new fields (DG);
- * 10-Jul-2009 : Updated testEquals() for new field (DG);
  *
  */
 
@@ -96,7 +95,6 @@ import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.chart.renderer.category.CategoryItemRenderer;
 import org.jfree.chart.renderer.category.DefaultCategoryItemRenderer;
 import org.jfree.chart.renderer.category.LineAndShapeRenderer;
-import org.jfree.chart.util.DefaultShadowGenerator;
 import org.jfree.data.Range;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
@@ -493,18 +491,6 @@ public class CategoryPlotTests extends TestCase {
         plot2.setRangeZeroBaselineStroke(new BasicStroke(1.23f));
         assertTrue(plot1.equals(plot2));
 
-        // shadowGenerator
-        plot1.setShadowGenerator(new DefaultShadowGenerator(5, Color.gray,
-                0.6f, 4, -Math.PI / 4));
-        assertFalse(plot1.equals(plot2));
-        plot2.setShadowGenerator(new DefaultShadowGenerator(5, Color.gray,
-                0.6f, 4, -Math.PI / 4));
-        assertTrue(plot1.equals(plot2));
-
-        plot1.setShadowGenerator(null);
-        assertFalse(plot1.equals(plot2));
-        plot2.setShadowGenerator(null);
-        assertTrue(plot1.equals(plot2));
     }
 
     /**
@@ -623,30 +609,6 @@ public class CategoryPlotTests extends TestCase {
     }
 
     /**
-     * Renderers that belong to the plot are being cloned but they are
-     * retaining a reference to the original plot.
-     */
-    public void testBug2817504() {
-        CategoryPlot p1 = new CategoryPlot();
-        LineAndShapeRenderer r1 = new LineAndShapeRenderer();
-        p1.setRenderer(r1);
-        CategoryPlot p2 = null;
-        try {
-            p2 = (CategoryPlot) p1.clone();
-        }
-        catch (CloneNotSupportedException e) {
-            e.printStackTrace();
-        }
-        assertTrue(p1 != p2);
-        assertTrue(p1.getClass() == p2.getClass());
-        assertTrue(p1.equals(p2));
-
-        // check for independence
-        LineAndShapeRenderer r2 = (LineAndShapeRenderer) p2.getRenderer();
-        assertTrue(r2.getPlot() == p2);
-    }
-
-    /**
      * Serialize an instance, restore it, and check for equality.
      */
     public void testSerialization() {
@@ -711,8 +673,15 @@ public class CategoryPlotTests extends TestCase {
     public void testSerialization3() {
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
         JFreeChart chart = ChartFactory.createBarChart(
-                "Test Chart", "Category Axis", "Value Axis", dataset,
-                PlotOrientation.VERTICAL, true, true, false);
+            "Test Chart",
+            "Category Axis",
+            "Value Axis",
+            dataset,
+            PlotOrientation.VERTICAL,
+            true,
+            true,
+            false
+        );
         JFreeChart chart2 = null;
 
         // serialize and deserialize the chart....
@@ -749,8 +718,15 @@ public class CategoryPlotTests extends TestCase {
     public void testSerialization4() {
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
         JFreeChart chart = ChartFactory.createBarChart(
-                "Test Chart", "Category Axis", "Value Axis",
-                dataset, PlotOrientation.VERTICAL, true, true, false);
+            "Test Chart",
+            "Category Axis",
+            "Value Axis",
+            dataset,
+            PlotOrientation.VERTICAL,
+            true,
+            true,
+            false
+        );
         CategoryPlot plot = (CategoryPlot) chart.getPlot();
         plot.addRangeMarker(new ValueMarker(1.1), Layer.FOREGROUND);
         plot.addRangeMarker(new IntervalMarker(2.2, 3.3), Layer.BACKGROUND);
@@ -1074,5 +1050,6 @@ public class CategoryPlotTests extends TestCase {
         plot.mapDatasetToRangeAxes(0, axisIndices);
         assertEquals(yAxis2, plot.getRangeAxisForDataset(0));
     }
+
 
 }

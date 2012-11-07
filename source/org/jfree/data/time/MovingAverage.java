@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,8 +21,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ------------------
  * MovingAverage.java
@@ -43,7 +43,6 @@
  *               getYValue() (DG);
  * 11-Jan-2005 : Removed deprecated code in preparation for the 1.0.0
  *               release (DG);
- * 09-Jun-2009 : Tidied up some calls to TimeSeries (DG);
  *
  */
 
@@ -114,8 +113,8 @@ public class MovingAverage {
             throw new IllegalArgumentException("Null source.");
         }
         if (periodCount < 1) {
-            throw new IllegalArgumentException("periodCount must be greater " 
-                    + "than or equal to 1.");
+            throw new IllegalArgumentException("periodCount must be greater " +
+                    "than or equal to 1.");
 
         }
 
@@ -126,12 +125,14 @@ public class MovingAverage {
             // if the initial averaging period is to be excluded, then
             // calculate the index of the
             // first data item to have an average calculated...
-            long firstSerial = source.getTimePeriod(0).getSerialIndex() + skip;
+            long firstSerial
+                    = source.getDataItem(0).getPeriod().getSerialIndex() + skip;
 
             for (int i = source.getItemCount() - 1; i >= 0; i--) {
 
                 // get the current data item...
-                RegularTimePeriod period = source.getTimePeriod(i);
+                TimeSeriesDataItem current = source.getDataItem(i);
+                RegularTimePeriod period = current.getPeriod();
                 long serial = period.getSerialIndex();
 
                 if (serial >= firstSerial) {
@@ -144,7 +145,7 @@ public class MovingAverage {
 
                     while ((offset < periodCount) && (!finished)) {
                         if ((i - offset) >= 0) {
-                            TimeSeriesDataItem item = source.getRawDataItem(
+                            TimeSeriesDataItem item = source.getDataItem(
                                     i - offset);
                             RegularTimePeriod p = item.getPeriod();
                             Number v = item.getValue();
@@ -198,22 +199,21 @@ public class MovingAverage {
             throw new IllegalArgumentException("Null 'source'.");
         }
         if (pointCount < 2) {
-            throw new IllegalArgumentException("periodCount must be greater " 
-                    + "than or equal to 2.");
+            throw new IllegalArgumentException("periodCount must be greater " +
+                    "than or equal to 2.");
         }
 
         TimeSeries result = new TimeSeries(name);
         double rollingSumForPeriod = 0.0;
         for (int i = 0; i < source.getItemCount(); i++) {
             // get the current data item...
-            TimeSeriesDataItem current = source.getRawDataItem(i);
+            TimeSeriesDataItem current = source.getDataItem(i);
             RegularTimePeriod period = current.getPeriod();
-            // FIXME: what if value is null on next line?
             rollingSumForPeriod += current.getValue().doubleValue();
 
             if (i > pointCount - 1) {
                 // remove the point i-periodCount out of the rolling sum.
-                TimeSeriesDataItem startOfMovingAvg = source.getRawDataItem(
+                TimeSeriesDataItem startOfMovingAvg = source.getDataItem(
                         i - pointCount);
                 rollingSumForPeriod -= startOfMovingAvg.getValue()
                         .doubleValue();
@@ -301,6 +301,7 @@ public class MovingAverage {
         }
         if (skip < 0.0) {
             throw new IllegalArgumentException("skip must be >= 0.0.");
+
         }
 
         XYSeries result = new XYSeries(name);

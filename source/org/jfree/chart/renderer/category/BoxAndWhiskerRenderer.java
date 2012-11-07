@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,22 +21,19 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * --------------------------
  * BoxAndWhiskerRenderer.java
  * --------------------------
- * (C) Copyright 2003-2011, by David Browning and Contributors.
+ * (C) Copyright 2003-2009, by David Browning and Contributors.
  *
  * Original Author:  David Browning (for the Australian Institute of Marine
  *                   Science);
  * Contributor(s):   David Gilbert (for Object Refinery Limited);
  *                   Tim Bardzil;
  *                   Rob Van der Sanden (patches 1866446 and 1888422);
- *                   Peter Becker (patches 2868585 and 2868608);
- *                   Martin Krauskopf (patch 3421088);
- *                   Martin Hoeller;
  *
  * Changes
  * -------
@@ -77,13 +74,6 @@
  * 02-Oct-2008 : Check item visibility in drawItem() method (DG);
  * 21-Jan-2009 : Added flags to control visibility of mean and median
  *               indicators (DG);
- * 28-Sep-2009 : Added fireChangeEvent() to setMedianVisible (DG);
- * 28-Sep-2009 : Added useOutlinePaintForWhiskers flag, see patch 2868585
- *               by Peter Becker (DG);
- * 28-Sep-2009 : Added whiskerWidth attribute, see patch 2868608 by Peter
- *               Becker (DG);
- * 11-Oct-2011 : applied patch #3421088 from Martin Krauskopf to fix bug (MH);
- *
  */
 
 package org.jfree.chart.renderer.category;
@@ -151,8 +141,8 @@ public class BoxAndWhiskerRenderer extends AbstractCategoryItemRenderer
     private double itemMargin;
 
     /**
-     * The maximum bar width as percentage of the available space in the plot.
-     * Take care with the encoding - for example, 0.05 is five percent.
+     * The maximum bar width as percentage of the available space in the plot,
+     * where 0.05 is five percent.
      */
     private double maximumBarWidth;
 
@@ -171,22 +161,6 @@ public class BoxAndWhiskerRenderer extends AbstractCategoryItemRenderer
     private boolean meanVisible;
 
     /**
-     * A flag that, if <code>true</code>, causes the whiskers to be drawn
-     * using the outline paint for the series.  The default value is
-     * <code>false</code> and in that case the regular series paint is used.
-     *
-     * @since 1.0.14
-     */
-    private boolean useOutlinePaintForWhiskers;
-
-    /**
-     * The width of the whiskers as fraction of the bar width.
-     *
-     * @since 1.0.14
-     */
-    private double whiskerWidth;
-
-    /**
      * Default constructor.
      */
     public BoxAndWhiskerRenderer() {
@@ -196,8 +170,6 @@ public class BoxAndWhiskerRenderer extends AbstractCategoryItemRenderer
         this.maximumBarWidth = 1.0;
         this.medianVisible = true;
         this.meanVisible = true;
-        this.useOutlinePaintForWhiskers = false;
-        this.whiskerWidth = 1.0;
         setBaseLegendShape(new Rectangle2D.Double(-4.0, -4.0, 8.0, 8.0));
     }
 
@@ -280,7 +252,7 @@ public class BoxAndWhiskerRenderer extends AbstractCategoryItemRenderer
 
     /**
      * Returns the maximum bar width as a percentage of the available drawing
-     * space.  Take care with the encoding, for example 0.10 is ten percent.
+     * space.
      *
      * @return The maximum bar width.
      *
@@ -297,8 +269,7 @@ public class BoxAndWhiskerRenderer extends AbstractCategoryItemRenderer
      * available space for all bars, and sends a {@link RendererChangeEvent}
      * to all registered listeners.
      *
-     * @param percent  the maximum bar width (a percentage, where 0.10 is ten
-     *     percent).
+     * @param percent  the maximum Bar Width (a percentage).
      *
      * @see #getMaximumBarWidth()
      *
@@ -368,76 +339,7 @@ public class BoxAndWhiskerRenderer extends AbstractCategoryItemRenderer
      * @since 1.0.13
      */
     public void setMedianVisible(boolean visible) {
-        if (this.medianVisible == visible) {
-            return;
-        }
         this.medianVisible = visible;
-        fireChangeEvent();
-    }
-
-    /**
-     * Returns the flag that, if <code>true</code>, causes the whiskers to
-     * be drawn using the series outline paint.
-     *
-     * @return A boolean.
-     *
-     * @since 1.0.14
-     */
-    public boolean getUseOutlinePaintForWhiskers() {
-        return this.useOutlinePaintForWhiskers;
-    }
-
-    /**
-     * Sets the flag that, if <code>true</code>, causes the whiskers to
-     * be drawn using the series outline paint, and sends a
-     * {@link RendererChangeEvent} to all registered listeners.
-     *
-     * @param flag  the new flag value.
-     *
-     * @since 1.0.14
-     */
-    public void setUseOutlinePaintForWhiskers(boolean flag) {
-        if (this.useOutlinePaintForWhiskers == flag) {
-            return;
-        }
-        this.useOutlinePaintForWhiskers = flag;
-        fireChangeEvent();
-    }
-
-    /**
-     * Returns the width of the whiskers as fraction of the bar width.
-     *
-     * @return The width of the whiskers.
-     *
-     * @see #setWhiskerWidth(double)
-     *
-     * @since 1.0.14
-     */
-    public double getWhiskerWidth() {
-        return this.whiskerWidth;
-    }
-
-    /**
-     * Sets the width of the whiskers as a fraction of the bar width and sends
-     * a {@link RendererChangeEvent} to all registered listeners.
-     *
-     * @param width  a value between 0 and 1 indicating how wide the
-     *     whisker is supposed to be compared to the bar.
-     * @see #getWhiskerWidth()
-     * @see CategoryItemRendererState#getBarWidth()
-     *
-     * @since 1.0.14
-     */
-    public void setWhiskerWidth(double width) {
-        if (width < 0 || width > 1) {
-            throw new IllegalArgumentException(
-                    "Value for whisker width out of range");
-        }
-        if (width == this.whiskerWidth) {
-            return;
-        }
-        this.whiskerWidth = width;
-        fireChangeEvent();
     }
 
     /**
@@ -578,10 +480,16 @@ public class BoxAndWhiskerRenderer extends AbstractCategoryItemRenderer
      * @param column  the column index (zero-based).
      * @param pass  the pass index.
      */
-    public void drawItem(Graphics2D g2, CategoryItemRendererState state,
-        Rectangle2D dataArea, CategoryPlot plot, CategoryAxis domainAxis,
-        ValueAxis rangeAxis, CategoryDataset dataset, int row, int column,
-        int pass) {
+    public void drawItem(Graphics2D g2,
+                         CategoryItemRendererState state,
+                         Rectangle2D dataArea,
+                         CategoryPlot plot,
+                         CategoryAxis domainAxis,
+                         ValueAxis rangeAxis,
+                         CategoryDataset dataset,
+                         int row,
+                         int column,
+                         int pass) {
 
         // do nothing if item is not visible
         if (!getItemVisible(row, column)) {
@@ -623,10 +531,15 @@ public class BoxAndWhiskerRenderer extends AbstractCategoryItemRenderer
      * @param row  the row index (zero-based).
      * @param column  the column index (zero-based).
      */
-    public void drawHorizontalItem(Graphics2D g2, 
-            CategoryItemRendererState state, Rectangle2D dataArea,
-            CategoryPlot plot, CategoryAxis domainAxis, ValueAxis rangeAxis,
-            CategoryDataset dataset, int row, int column) {
+    public void drawHorizontalItem(Graphics2D g2,
+                                   CategoryItemRendererState state,
+                                   Rectangle2D dataArea,
+                                   CategoryPlot plot,
+                                   CategoryAxis domainAxis,
+                                   ValueAxis rangeAxis,
+                                   CategoryDataset dataset,
+                                   int row,
+                                   int column) {
 
         BoxAndWhiskerCategoryDataset bawDataset
                 = (BoxAndWhiskerCategoryDataset) dataset;
@@ -681,7 +594,16 @@ public class BoxAndWhiskerRenderer extends AbstractCategoryItemRenderer
             double xxMin = rangeAxis.valueToJava2D(xMin.doubleValue(), dataArea,
                     location);
             double yymid = yy + state.getBarWidth() / 2.0;
-            double halfW = (state.getBarWidth() / 2.0) * this.whiskerWidth;
+
+            // draw the upper shadow...
+            g2.draw(new Line2D.Double(xxMax, yymid, xxQ3, yymid));
+            g2.draw(new Line2D.Double(xxMax, yy, xxMax,
+                    yy + state.getBarWidth()));
+
+            // draw the lower shadow...
+            g2.draw(new Line2D.Double(xxMin, yymid, xxQ1, yymid));
+            g2.draw(new Line2D.Double(xxMin, yy, xxMin,
+                    yy + state.getBarWidth()));
 
             // draw the box...
             box = new Rectangle2D.Double(Math.min(xxQ1, xxQ3), yy,
@@ -689,23 +611,8 @@ public class BoxAndWhiskerRenderer extends AbstractCategoryItemRenderer
             if (this.fillBox) {
                 g2.fill(box);
             }
-
-            Paint outlinePaint = getItemOutlinePaint(row, column);
-            if (this.useOutlinePaintForWhiskers) {
-                g2.setPaint(outlinePaint);
-            }
-            // draw the upper shadow...
-            g2.draw(new Line2D.Double(xxMax, yymid, xxQ3, yymid));
-            g2.draw(new Line2D.Double(xxMax, yymid - halfW, xxMax,
-                    yymid + halfW));
-
-            // draw the lower shadow...
-            g2.draw(new Line2D.Double(xxMin, yymid, xxQ1, yymid));
-            g2.draw(new Line2D.Double(xxMin, yymid - halfW, xxMin,
-                    yy + halfW));
-
             g2.setStroke(getItemOutlineStroke(row, column));
-            g2.setPaint(outlinePaint);
+            g2.setPaint(getItemOutlinePaint(row, column));
             g2.draw(box);
         }
 
@@ -767,9 +674,15 @@ public class BoxAndWhiskerRenderer extends AbstractCategoryItemRenderer
      * @param row  the row index (zero-based).
      * @param column  the column index (zero-based).
      */
-    public void drawVerticalItem(Graphics2D g2, CategoryItemRendererState state,
-        Rectangle2D dataArea, CategoryPlot plot, CategoryAxis domainAxis,
-        ValueAxis rangeAxis, CategoryDataset dataset, int row, int column) {
+    public void drawVerticalItem(Graphics2D g2,
+                                 CategoryItemRendererState state,
+                                 Rectangle2D dataArea,
+                                 CategoryPlot plot,
+                                 CategoryAxis domainAxis,
+                                 ValueAxis rangeAxis,
+                                 CategoryDataset dataset,
+                                 int row,
+                                 int column) {
 
         BoxAndWhiskerCategoryDataset bawDataset
                 = (BoxAndWhiskerCategoryDataset) dataset;
@@ -829,7 +742,16 @@ public class BoxAndWhiskerRenderer extends AbstractCategoryItemRenderer
             double yyMin = rangeAxis.valueToJava2D(yMin.doubleValue(),
                     dataArea, location);
             double xxmid = xx + state.getBarWidth() / 2.0;
-            double halfW = (state.getBarWidth() / 2.0) * this.whiskerWidth;
+
+            // draw the upper shadow...
+            g2.draw(new Line2D.Double(xxmid, yyMax, xxmid, yyQ3));
+            g2.draw(new Line2D.Double(xx, yyMax, xx + state.getBarWidth(),
+                    yyMax));
+
+            // draw the lower shadow...
+            g2.draw(new Line2D.Double(xxmid, yyMin, xxmid, yyQ1));
+            g2.draw(new Line2D.Double(xx, yyMin, xx + state.getBarWidth(),
+                    yyMin));
 
             // draw the body...
             box = new Rectangle2D.Double(xx, Math.min(yyQ1, yyQ3),
@@ -837,21 +759,8 @@ public class BoxAndWhiskerRenderer extends AbstractCategoryItemRenderer
             if (this.fillBox) {
                 g2.fill(box);
             }
-
-            Paint outlinePaint = getItemOutlinePaint(row, column);
-            if (this.useOutlinePaintForWhiskers) {
-                g2.setPaint(outlinePaint);
-            }
-            // draw the upper shadow...
-            g2.draw(new Line2D.Double(xxmid, yyMax, xxmid, yyQ3));
-            g2.draw(new Line2D.Double(xxmid - halfW, yyMax, xxmid + halfW, yyMax));
-
-            // draw the lower shadow...
-            g2.draw(new Line2D.Double(xxmid, yyMin, xxmid, yyQ1));
-            g2.draw(new Line2D.Double(xxmid - halfW, yyMin, xxmid + halfW, yyMin));
-
             g2.setStroke(getItemOutlineStroke(row, column));
-            g2.setPaint(outlinePaint);
+            g2.setPaint(getItemOutlinePaint(row, column));
             g2.draw(box);
         }
 
@@ -883,8 +792,8 @@ public class BoxAndWhiskerRenderer extends AbstractCategoryItemRenderer
             if (yMedian != null) {
                 double yyMedian = rangeAxis.valueToJava2D(
                         yMedian.doubleValue(), dataArea, location);
-                g2.draw(new Line2D.Double(xx, yyMedian, 
-                        xx + state.getBarWidth(), yyMedian));
+                g2.draw(new Line2D.Double(xx, yyMedian, xx + state.getBarWidth(),
+                        yyMedian));
             }
         }
 
@@ -1069,13 +978,6 @@ public class BoxAndWhiskerRenderer extends AbstractCategoryItemRenderer
             return false;
         }
         if (this.medianVisible != that.medianVisible) {
-            return false;
-        }
-        if (this.useOutlinePaintForWhiskers
-                != that.useOutlinePaintForWhiskers) {
-            return false;
-        }
-        if (this.whiskerWidth != that.whiskerWidth) {
             return false;
         }
         if (!PaintUtilities.equal(this.artifactPaint, that.artifactPaint)) {

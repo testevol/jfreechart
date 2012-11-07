@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2008, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,13 +21,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * ------------------
  * GanttRenderer.java
  * ------------------
- * (C) Copyright 2003-2009, by Object Refinery Limited.
+ * (C) Copyright 2003-2008, by Object Refinery Limited.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   -;
@@ -48,8 +48,7 @@
  * 20-Mar-2007 : Implemented equals() and fixed serialization (DG);
  * 24-Jun-2008 : Added new barPainter mechanism (DG);
  * 26-Jun-2008 : Added crosshair support (DG);
- * 19-May-2009 : Fixed FindBugs warnings, patch by Michal Wozniak (DG);
- * 
+ *
  */
 
 package org.jfree.chart.renderer.category;
@@ -458,7 +457,9 @@ public class GanttRenderer extends IntervalBarRenderer
             double temp = java2dValue1;
             java2dValue1 = java2dValue0;
             java2dValue0 = temp;
+            Number tempNum = value1;
             value1 = value0;
+            value0 = tempNum;
         }
 
         double rectStart = calculateBarW0(plot, orientation, dataArea,

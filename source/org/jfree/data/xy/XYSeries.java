@@ -2,7 +2,7 @@
  * JFreeChart : a free chart library for the Java(tm) platform
  * ===========================================================
  *
- * (C) Copyright 2000-2011, by Object Refinery Limited and Contributors.
+ * (C) Copyright 2000-2009, by Object Refinery Limited and Contributors.
  *
  * Project Info:  http://www.jfree.org/jfreechart/index.html
  *
@@ -21,13 +21,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. 
- * Other names may be trademarks of their respective owners.]
+ * [Java is a trademark or registered trademark of Sun Microsystems, Inc.
+ * in the United States and other countries.]
  *
  * -------------
  * XYSeries.java
  * -------------
- * (C) Copyright 2001-2011, Object Refinery Limited and Contributors.
+ * (C) Copyright 2001-2009, Object Refinery Limited and Contributors.
  *
  * Original Author:  David Gilbert (for Object Refinery Limited);
  * Contributor(s):   Aaron Metzger;
@@ -72,9 +72,7 @@
  *               Ted Schwartz (DG);
  * 24-Nov-2008 : Further fix for 1955483 (DG);
  * 06-Mar-2009 : Added minX, maxX, minY and maxY fields (DG);
- * 10-Jun-2009 : Make clones to isolate XYDataItem instances used
- *               for data storage (DG);
- * 
+ *
  */
 
 package org.jfree.data.xy;
@@ -504,7 +502,6 @@ public class XYSeries extends Series implements Cloneable, Serializable {
         if (item == null) {
             throw new IllegalArgumentException("Null 'item' argument.");
         }
-        item = (XYDataItem) item.clone();
         if (this.autoSort) {
             int index = Collections.binarySearch(this.data, item);
             if (index < 0) {
@@ -616,20 +613,6 @@ public class XYSeries extends Series implements Cloneable, Serializable {
      * @return The data item with the specified index.
      */
     public XYDataItem getDataItem(int index) {
-        XYDataItem item = (XYDataItem) this.data.get(index);
-        return (XYDataItem) item.clone();
-    }
-
-    /**
-     * Return the data item with the specified index.
-     *
-     * @param index  the index.
-     *
-     * @return The data item with the specified index.
-     *
-     * @since 1.0.14
-     */
-    XYDataItem getRawDataItem(int index) {
         return (XYDataItem) this.data.get(index);
     }
 
@@ -641,7 +624,7 @@ public class XYSeries extends Series implements Cloneable, Serializable {
      * @return The x-value (never <code>null</code>).
      */
     public Number getX(int index) {
-        return getRawDataItem(index).getX();
+        return getDataItem(index).getX();
     }
 
     /**
@@ -652,7 +635,7 @@ public class XYSeries extends Series implements Cloneable, Serializable {
      * @return The y-value (possibly <code>null</code>).
      */
     public Number getY(int index) {
-        return getRawDataItem(index).getY();
+        return getDataItem(index).getY();
     }
 
     /**
@@ -666,7 +649,7 @@ public class XYSeries extends Series implements Cloneable, Serializable {
      *         confusion with the {@link #update(Number, Number)} method.
      */
     public void update(int index, Number y) {
-        XYDataItem item = getRawDataItem(index);
+        XYDataItem item = getDataItem(index);
 
         // figure out if we need to iterate through all the y-values
         boolean iterate = false;
@@ -700,10 +683,14 @@ public class XYSeries extends Series implements Cloneable, Serializable {
         if (Double.isNaN(a)) {
             return b;
         }
-        if (Double.isNaN(b)) {
-            return a;
+        else {
+            if (Double.isNaN(b)) {
+                return a;
+            }
+            else {
+                return Math.min(a, b);
+            }
         }
-        return Math.min(a, b);
     }
 
     /**
@@ -719,10 +706,14 @@ public class XYSeries extends Series implements Cloneable, Serializable {
         if (Double.isNaN(a)) {
             return b;
         }
-        if (Double.isNaN(b)) {
-            return a;
+        else {
+            if (Double.isNaN(b)) {
+                return a;
+            }
+            else {
+                return Math.max(a, b);
+            }
         }
-        return Math.max(a, b);
     }
 
     /**
@@ -752,7 +743,9 @@ public class XYSeries extends Series implements Cloneable, Serializable {
         if (index < 0) {
             throw new SeriesException("No observation for x = " + x);
         }
-        updateByIndex(index, y);
+        else {
+            updateByIndex(index, y);
+        }
     }
 
     /**
@@ -781,49 +774,38 @@ public class XYSeries extends Series implements Cloneable, Serializable {
      *         item was overwritten.
      */
     public XYDataItem addOrUpdate(Number x, Number y) {
-        // defer argument checking
-        return addOrUpdate(new XYDataItem(x, y));
-    }
-
-    /**
-     * Adds or updates an item in the series and sends a
-     * {@link SeriesChangeEvent} to all registered listeners.
-     *
-     * @param item  the data item (<code>null</code> not permitted).
-     *
-     * @return A copy of the overwritten data item, or <code>null</code> if no
-     *         item was overwritten.
-     *
-     * @since 1.0.14
-     */
-    public XYDataItem addOrUpdate(XYDataItem item) {
-        if (item == null) {
-            throw new IllegalArgumentException("Null 'item' argument.");
+        if (x == null) {
+            throw new IllegalArgumentException("Null 'x' argument.");
         }
         if (this.allowDuplicateXValues) {
-            add(item);
+            add(x, y);
             return null;
         }
 
         // if we get to here, we know that duplicate X values are not permitted
         XYDataItem overwritten = null;
-        int index = indexOf(item.getX());
+        int index = indexOf(x);
         if (index >= 0) {
             XYDataItem existing = (XYDataItem) this.data.get(index);
-            overwritten = (XYDataItem) existing.clone();
+            try {
+                overwritten = (XYDataItem) existing.clone();
+            }
+            catch (CloneNotSupportedException e) {
+                throw new SeriesException("Couldn't clone XYDataItem!");
+            }
             // figure out if we need to iterate through all the y-values
             boolean iterate = false;
             double oldY = existing.getYValue();
             if (!Double.isNaN(oldY)) {
                 iterate = oldY <= this.minY || oldY >= this.maxY;
             }
-            existing.setY(item.getY());
+            existing.setY(y);
 
             if (iterate) {
                 findBoundsByIteration();
             }
-            else if (item.getY() != null) {
-                double yy = item.getY().doubleValue();
+            else if (y != null) {
+                double yy = y.doubleValue();
                 this.minY = minIgnoreNaN(this.minY, yy);
                 this.maxY = minIgnoreNaN(this.maxY, yy);
             }
@@ -833,7 +815,7 @@ public class XYSeries extends Series implements Cloneable, Serializable {
             // Collections.binarySearch() and tells us where to insert the
             // new item...otherwise it will be just -1 and we should just
             // append the value to the list...
-            item = (XYDataItem) item.clone();
+            XYDataItem item = new XYDataItem(x, y);
             if (this.autoSort) {
                 this.data.add(-index - 1, item);
             }
@@ -989,15 +971,15 @@ public class XYSeries extends Series implements Cloneable, Serializable {
         // the first, middle and last items...
         int count = getItemCount();
         if (count > 0) {
-            XYDataItem item = getRawDataItem(0);
+            XYDataItem item = getDataItem(0);
             result = 29 * result + item.hashCode();
         }
         if (count > 1) {
-            XYDataItem item = getRawDataItem(count - 1);
+            XYDataItem item = getDataItem(count - 1);
             result = 29 * result + item.hashCode();
         }
         if (count > 2) {
-            XYDataItem item = getRawDataItem(count / 2);
+            XYDataItem item = getDataItem(count / 2);
             result = 29 * result + item.hashCode();
         }
         result = 29 * result + this.maximumItemCount;
